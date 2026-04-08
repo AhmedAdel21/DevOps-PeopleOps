@@ -1,6 +1,53 @@
+import { TextStyle } from 'react-native';
 import { fs } from '@/presentation/utils/scaling';
 
-export const lightTheme = {
+type FontWeight = TextStyle['fontWeight'];
+
+export interface AppTheme {
+  dark: boolean;
+  colors: {
+    primary: string;
+    primaryDark: string;
+    secondary: string;
+    secondaryLight: string;
+    background: string;
+    surface: string;
+    card: string;
+    border: string;
+    divider: string;
+    status: {
+      success: string;
+      warning: string;
+      error: string;
+      neutral: string;
+      info: string;
+    };
+    text: {
+      primary: string;
+      secondary: string;
+      disabled: string;
+      inverse: string;
+    };
+  };
+  typography: {
+    sizes: {
+      display: number;
+      heading: number;
+      subheading: number;
+      body: number;
+      caption: number;
+      micro: number;
+    };
+    weights: {
+      regular: FontWeight;
+      medium: FontWeight;
+      semibold: FontWeight;
+      bold: FontWeight;
+    };
+  };
+}
+
+export const lightTheme: AppTheme = {
   dark: false,
   colors: {
     primary: '#E8522A',
@@ -39,12 +86,10 @@ export const lightTheme = {
       micro: fs(11),
     },
     weights: {
-      regular: '400' as const,
-      medium: '500' as const,
-      semibold: '600' as const,
-      bold: '700' as const,
+      regular: '400',
+      medium: '500',
+      semibold: '600',
+      bold: '700',
     },
   },
-} as const;
-
-export type AppTheme = typeof lightTheme;
+};
