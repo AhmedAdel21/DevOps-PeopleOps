@@ -1,37 +1,65 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Button } from 'react-native';
 import { useTheme } from '@themes/theme_context';
 import { useLanguage } from '@/presentation/localization/language_context';
 import type { AppTheme } from '@themes/index';
 import { Mail, Lock, Eye } from 'lucide-react-native';
+import {
+  AppText,
+  AppButton,
+  AppTextField,
+  AppCard,
+  AppIconCircle,
+  AppAlertBanner,
+  AppDivider,
+  AppBackButton,
+} from '@/presentation/components/atoms';
+
 export const PlaceholderScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    <View style={{ alignItems: 'center', marginTop: 24, gap: 12 }}>
-      <Text style={{ fontFamily: 'Inter-Regular', fontSize: 16, color: theme.colors.foreground }}>
-        Inter Regular — the quick brown fox
-      </Text>
-      <Text style={{ fontFamily: 'Inter-Medium', fontSize: 16, color: theme.colors.foreground }}>
-        Inter Medium — the quick brown fox
-      </Text>
-      <Text style={{
-        fontFamily: 'Inter-SemiBold', fontSize: 16, color: theme.colors.foreground
-      }}>
-        Inter SemiBold — the quick brown fox
-      </Text>
-      <Text style={{ fontFamily: 'Inter-Bold', fontSize: 16, color: theme.colors.foreground }}>
-        Inter Bold — the quick brown fox
-      </Text>
+    <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
+      <AppBackButton onPress={() => { }} />
 
-      <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
-        <Mail size={24} color={theme.colors.primary} />
-        <Lock size={24} color={theme.colors.primary} />
-        <Eye size={24} color={theme.colors.primary} />
-      </View>
-    </View>
+      <AppText variant="display">Welcome back</AppText>
+      <AppText variant="body" color={theme.colors.mutedForeground}>
+        Sign in to continue
+      </AppText>
+
+      <AppIconCircle icon={Mail} />
+
+      <AppCard title="Login" description="Use your work email">
+        <AppTextField label="Email" placeholder="name@company.com" leftIcon={Mail} />
+        <AppTextField
+          label="Password"
+          placeholder="••••••••"
+          leftIcon={Lock}
+          rightIcon={Eye}
+          onRightIconPress={() => { }}
+          secureTextEntry
+        />
+        <AppTextField label="With error" error="Invalid email" leftIcon={Mail} />
+      </AppCard>
+
+      <AppButton label="Primary" onPress={() => { }} fullWidth />
+      <AppButton label="Secondary" variant="secondary" onPress={() => { }} fullWidth />
+      <AppButton label="Outline" variant="outline" onPress={() => { }} fullWidth />
+      <AppButton label="Ghost" variant="ghost" onPress={() => { }} fullWidth />
+      <AppButton label="Destructive" variant="destructive" onPress={() => { }} fullWidth />
+      <AppButton label="Loading" onPress={() => { }} loading fullWidth />
+      <AppButton label="Small" size="sm" />
+      <AppButton label="Large" size="lg" leftIcon={Mail} />
+
+      <AppDivider />
+
+      <AppAlertBanner variant="error" message="Account locked. Try again in 15 minutes." />
+      <AppAlertBanner variant="warning" message="This code has expired." />
+      <AppAlertBanner variant="success" message="Your password has been updated." />
+      <AppAlertBanner variant="info" message="Tip: contact HR to get access." />
+    </ScrollView>
   );
 };
 
