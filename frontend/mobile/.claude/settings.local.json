@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(grep -o '\\\\$--[a-z\\\\-]*' \"/Users/developer/ReactNative/DevOps_PeopleOps/design/design.pen\")"
+    ]
+  }
+}

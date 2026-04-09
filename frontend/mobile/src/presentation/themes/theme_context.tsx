@@ -1,10 +1,88 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StorageKeys } from '@/core/keys/storage.key';
-import { lightTheme, type AppTheme } from './light.theme';
+import { lightTheme } from './light.theme';
 import { darkTheme } from './dark.theme';
+import { TextStyle } from 'react-native';
+import type { Spacing } from './spacing';
+import type { Radius } from './radius';
+import type { FontFamily, FontSizes, FontWeights } from './typography';
+
+/**
+ * Status color group — each semantic status exposes its base, the foreground
+ * color to render text/icons on the base, and a tinted "light" surface
+ * variant used for alert backgrounds.
+ */
+export interface StatusColor {
+  base: string;
+  foreground: string;
+  light: string;
+}
+type FontWeight = TextStyle['fontWeight'];
 
 type ThemeMode = 'light' | 'dark';
+
+export interface AppTheme {
+  dark: boolean;
+  colors: {
+    // Brand
+    primary: string;
+    primaryHover: string;
+    primaryLight: string;
+    primaryForeground: string;
+
+    secondary: string;
+    secondaryHover: string;
+    secondaryLight: string;
+    secondaryForeground: string;
+
+    // Surfaces
+    background: string;
+    foreground: string;
+    surface: string;
+    card: string;
+    cardForeground: string;
+
+    // Neutrals
+    muted: string;
+    mutedForeground: string;
+
+    // Borders & inputs
+    border: string;
+    borderStrong: string;
+    divider: string;
+    input: string;
+    ring: string;
+
+    // Destructive (separate from status.error so buttons can use it)
+    destructive: string;
+    destructiveForeground: string;
+
+    // Status
+    status: {
+      success: StatusColor;
+      warning: StatusColor;
+      error: StatusColor;
+      info: StatusColor;
+    };
+
+    // Legacy aliases (kept so placeholder_screen.tsx still compiles).
+    // Do NOT use in new code.
+    text: {
+      primary: string;
+      secondary: string;
+      disabled: string;
+      inverse: string;
+    };
+  };
+  spacing: Spacing;
+  radius: Radius;
+  typography: {
+    fontFamily: FontFamily;
+    sizes: FontSizes;
+    weights: FontWeights;
+  };
+}
 
 interface ThemeContextValue {
   theme: AppTheme;

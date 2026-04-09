@@ -1,28 +1,77 @@
-import { fs } from '@/presentation/utils/scaling';
-import type { AppTheme } from './light.theme';
+import type { AppTheme } from './theme_context';
+import { spacing } from './spacing';
+import { radius } from './radius';
+import { fontFamily, fontSizes, fontWeights } from './typography';
 
+/**
+ * Dark theme — derived from the light brand palette. The Penpot file only
+ * ships light tokens, so the dark variant mirrors them with sensible
+ * inversions:
+ *   - background/foreground are flipped
+ *   - brand primary stays warm but slightly brighter for AA contrast on dark
+ *   - status colors keep their hue but use darker tinted "light" surfaces
+ */
 export const darkTheme: AppTheme = {
   dark: true,
   colors: {
-    primary: '#F06A45',
-    primaryDark: '#E8522A',
-    secondary: '#A3B8D9',
-    secondaryLight: '#7A94BF',
+    // Brand
+    primary: '#FF7A4D',
+    primaryHover: '#FF6633',
+    primaryLight: '#3A1F18',
+    primaryForeground: '#FFFFFF',
 
-    background: '#111827',
-    surface: '#1F2937',
-    card: '#1F2937',
+    secondary: '#A9B6D6',
+    secondaryHover: '#C5CFE5',
+    secondaryLight: '#1F2A44',
+    secondaryForeground: '#0B1020',
+
+    // Surfaces
+    background: '#0B1020',
+    foreground: '#F9FAFB',
+    surface: '#111827',
+    card: '#111827',
+    cardForeground: '#F9FAFB',
+
+    // Neutrals
+    muted: '#1F2937',
+    mutedForeground: '#9CA3AF',
+
+    // Borders & inputs
     border: '#374151',
+    borderStrong: '#4B5563',
     divider: '#1F2937',
+    input: '#111827',
+    ring: '#FF7A4D55',
 
+    // Destructive
+    destructive: '#F87171',
+    destructiveForeground: '#FFFFFF',
+
+    // Status
     status: {
-      success: '#22C55E',
-      warning: '#F59E0B',
-      error: '#EF4444',
-      neutral: '#9CA3AF',
-      info: '#3B82F6',
+      success: {
+        base: '#34D399',
+        foreground: '#A7F3D0',
+        light: '#0F2A22',
+      },
+      warning: {
+        base: '#FBBF24',
+        foreground: '#FDE68A',
+        light: '#2A1F09',
+      },
+      error: {
+        base: '#F87171',
+        foreground: '#FECACA',
+        light: '#2A1212',
+      },
+      info: {
+        base: '#60A5FA',
+        foreground: '#BFDBFE',
+        light: '#0F1B2E',
+      },
     },
 
+    // Legacy compat
     text: {
       primary: '#F9FAFB',
       secondary: '#9CA3AF',
@@ -30,20 +79,11 @@ export const darkTheme: AppTheme = {
       inverse: '#111827',
     },
   },
+  spacing,
+  radius,
   typography: {
-    sizes: {
-      display: fs(32),
-      heading: fs(22),
-      subheading: fs(18),
-      body: fs(15),
-      caption: fs(13),
-      micro: fs(11),
-    },
-    weights: {
-      regular: '400',
-      medium: '500',
-      semibold: '600',
-      bold: '700',
-    },
+    fontFamily,
+    sizes: fontSizes,
+    weights: fontWeights,
   },
 };

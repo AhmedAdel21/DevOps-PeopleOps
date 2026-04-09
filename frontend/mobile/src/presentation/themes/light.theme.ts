@@ -1,74 +1,73 @@
-import { TextStyle } from 'react-native';
-import { fs } from '@/presentation/utils/scaling';
+import type { AppTheme } from './theme_context';
+import { spacing } from './spacing';
+import { radius } from './radius';
+import { fontFamily, fontSizes, fontWeights } from './typography';
 
-type FontWeight = TextStyle['fontWeight'];
-
-export interface AppTheme {
-  dark: boolean;
-  colors: {
-    primary: string;
-    primaryDark: string;
-    secondary: string;
-    secondaryLight: string;
-    background: string;
-    surface: string;
-    card: string;
-    border: string;
-    divider: string;
-    status: {
-      success: string;
-      warning: string;
-      error: string;
-      neutral: string;
-      info: string;
-    };
-    text: {
-      primary: string;
-      secondary: string;
-      disabled: string;
-      inverse: string;
-    };
-  };
-  typography: {
-    sizes: {
-      display: number;
-      heading: number;
-      subheading: number;
-      body: number;
-      caption: number;
-      micro: number;
-    };
-    weights: {
-      regular: FontWeight;
-      medium: FontWeight;
-      semibold: FontWeight;
-      bold: FontWeight;
-    };
-  };
-}
-
+/**
+ * Light theme — exact tokens from design.pen (Colors & Typography frame).
+ * This is the canonical brand palette.
+ */
 export const lightTheme: AppTheme = {
   dark: false,
   colors: {
-    primary: '#E8522A',
-    primaryDark: '#C4421F',
-    secondary: '#1B2A4A',
-    secondaryLight: '#2A3F6A',
+    // Brand
+    primary: '#FF6633',
+    primaryHover: '#E85A2B',
+    primaryLight: '#FFF0EB',
+    primaryForeground: '#FFFFFF',
 
-    background: '#F8F9FA',
+    secondary: '#1B2A5B',
+    secondaryHover: '#152248',
+    secondaryLight: '#E8EAF0',
+    secondaryForeground: '#FFFFFF',
+
+    // Surfaces
+    background: '#FFFFFF',
+    foreground: '#111827',
     surface: '#FFFFFF',
     card: '#FFFFFF',
-    border: '#E5E7EB',
-    divider: '#F3F4F6',
+    cardForeground: '#111827',
 
+    // Neutrals
+    muted: '#F3F4F6',
+    mutedForeground: '#6B7280',
+
+    // Borders & inputs
+    border: '#E5E7EB',
+    borderStrong: '#D1D5DB',
+    divider: '#F3F4F6',
+    input: '#F9FAFB',
+    ring: '#FF663333',
+
+    // Destructive
+    destructive: '#EF4444',
+    destructiveForeground: '#FFFFFF',
+
+    // Status
     status: {
-      success: '#22C55E',
-      warning: '#F59E0B',
-      error: '#EF4444',
-      neutral: '#9CA3AF',
-      info: '#3B82F6',
+      success: {
+        base: '#10B981',
+        foreground: '#065F46',
+        light: '#ECFDF5',
+      },
+      warning: {
+        base: '#F59E0B',
+        foreground: '#92400E',
+        light: '#FFFBEB',
+      },
+      error: {
+        base: '#EF4444',
+        foreground: '#991B1B',
+        light: '#FEF2F2',
+      },
+      info: {
+        base: '#3B82F6',
+        foreground: '#1E40AF',
+        light: '#EFF6FF',
+      },
     },
 
+    // Legacy compat
     text: {
       primary: '#111827',
       secondary: '#6B7280',
@@ -76,20 +75,11 @@ export const lightTheme: AppTheme = {
       inverse: '#FFFFFF',
     },
   },
+  spacing,
+  radius,
   typography: {
-    sizes: {
-      display: fs(32),
-      heading: fs(22),
-      subheading: fs(18),
-      body: fs(15),
-      caption: fs(13),
-      micro: fs(11),
-    },
-    weights: {
-      regular: '400',
-      medium: '500',
-      semibold: '600',
-      bold: '700',
-    },
+    fontFamily,
+    sizes: fontSizes,
+    weights: fontWeights,
   },
 };
