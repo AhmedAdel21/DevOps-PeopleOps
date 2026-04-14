@@ -1,4 +1,4 @@
-package com.mobile
+package com.devops.peopleops
 
 import android.app.Application
 import com.facebook.react.PackageList

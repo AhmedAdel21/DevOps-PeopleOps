@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "306312628824",
+    "project_id": "slack-daily-attendance",
+    "storage_bucket": "slack-daily-attendance.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:306312628824:android:797c165f2e6be98475182d",
+        "android_client_info": {
+          "package_name": "com.devops.peopleops"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4vh7iNWmDrFe90C21iS4rvKQWQlFvHkw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
