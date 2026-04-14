@@ -6386,7 +6386,8 @@
               "content": "v1.0",
               "textAlign": "center",
               "fontFamily": "Inter",
-              "fontSize": 12
+              "fontSize": 12,
+              "fontWeight": "normal"
             }
           ]
         },
@@ -11689,7 +11690,8 @@
                       "content": "No attendance records for this month",
                       "textAlign": "center",
                       "fontFamily": "Inter",
-                      "fontSize": 14
+                      "fontSize": 14,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -12947,7 +12949,8 @@
                       "fill": "$--muted-foreground",
                       "content": "9 April 2026",
                       "fontFamily": "Inter",
-                      "fontSize": 16
+                      "fontSize": 16,
+                      "fontWeight": "normal"
                     },
                     {
                       "type": "frame",
@@ -13221,7 +13224,8 @@
                           "fill": "$--foreground",
                           "content": "Remote — Home",
                           "fontFamily": "Inter",
-                          "fontSize": 14
+                          "fontSize": 14,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -14438,7 +14442,8 @@
                       "fill": "$--muted-foreground",
                       "content": "2026",
                       "fontFamily": "Inter",
-                      "fontSize": 14
+                      "fontSize": 14,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -14503,7 +14508,8 @@
                               "fill": "$--muted-foreground",
                               "content": "days remaining",
                               "fontFamily": "Inter",
-                              "fontSize": 10
+                              "fontSize": 10,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -14525,7 +14531,8 @@
                           "fill": "$--muted-foreground",
                           "content": "3 used of 21",
                           "fontFamily": "Inter",
-                          "fontSize": 10
+                          "fontSize": 10,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -14581,7 +14588,8 @@
                               "fill": "$--muted-foreground",
                               "content": "days remaining",
                               "fontFamily": "Inter",
-                              "fontSize": 10
+                              "fontSize": 10,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -14603,7 +14611,8 @@
                           "fill": "$--muted-foreground",
                           "content": "2 used of 6",
                           "fontFamily": "Inter",
-                          "fontSize": 10
+                          "fontSize": 10,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -14651,7 +14660,8 @@
                           "fill": "$--muted-foreground",
                           "content": "No limit",
                           "fontFamily": "Inter",
-                          "fontSize": 10
+                          "fontSize": 10,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -14912,7 +14922,8 @@
                       "content": "Submit your first leave request to get started",
                       "textAlign": "center",
                       "fontFamily": "Inter",
-                      "fontSize": 14
+                      "fontSize": 14,
+                      "fontWeight": "normal"
                     },
                     {
                       "id": "0jAr9",
