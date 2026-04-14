@@ -80,6 +80,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
 
                     {/* Email field */}
                     <AppTextField
+                        containerStyle={styles.emailField}
                         label={t('auth.forgotPassword.emailLabel')}
                         placeholder={t('auth.forgotPassword.emailPlaceholder')}
                         value={email}
@@ -151,5 +152,8 @@ const createStyles = (theme: AppTheme) =>
         },
         linkRow: {
             alignSelf: 'center',
+        },
+        emailField: {
+            width: '80%',
         },
     });
