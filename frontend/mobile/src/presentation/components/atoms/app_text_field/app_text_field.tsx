@@ -122,7 +122,7 @@ const buildStyles = (theme: AppTheme) =>
         field: {
             flexDirection: 'row',
             alignItems: 'center',
-            height: hs(44),
+            height: hs(50),
             backgroundColor: theme.colors.input,
             borderWidth: 1,
             borderRadius: theme.radius.m,
@@ -134,9 +134,10 @@ const buildStyles = (theme: AppTheme) =>
         },
         input: {
             flex: 1,
-            paddingVertical: 0,
+            height: '100%',
             fontSize: theme.typography.sizes.base,
             fontFamily: theme.typography.fontFamily.regular,
+            includeFontPadding: true,
         },
         inputDisabled: {
             color: theme.colors.mutedForeground,
