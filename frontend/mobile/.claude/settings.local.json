@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(grep -o '\\\\$--[a-z\\\\-]*' \"/Users/developer/ReactNative/DevOps_PeopleOps/design/design.pen\")"
+      "Bash(grep -o '\\\\$--[a-z\\\\-]*' \"/Users/developer/ReactNative/DevOps_PeopleOps/design/design.pen\")",
+      "Bash([ -d \"src/presentation/components/atoms/$atom\" ])",
+      "Bash([ -d \"src/presentation/components/molecules/$mol\" ])",
+      "Bash([ -d \"src/presentation/screens/auth/$screen\" ])",
+      "Bash(ls -1d src/presentation/components/atoms/*/)",
+      "Bash(ls -1d src/presentation/components/molecules/*/)",
+      "Bash(ls src/presentation/themes/rad*.ts)",
+      "Bash(npx tsc:*)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }
