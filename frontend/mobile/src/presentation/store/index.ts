@@ -1,8 +1,8 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { authReducer } from './slices';
 
 const rootReducer = combineReducers({
-  // Slices will be added here as domain modules are built.
-  _placeholder: (state: null = null) => state,
+  auth: authReducer,
 });
 
 export const store = configureStore({

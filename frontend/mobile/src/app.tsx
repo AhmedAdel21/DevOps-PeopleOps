@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
 import { Provider as ReduxProvider } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { store } from '@/presentation/store';
+import { bootstrapAuth } from '@/presentation/store/slices';
 import { ThemeProvider, useTheme } from '@themes/theme_context';
 import { LanguageProvider } from '@/presentation/localization/language_context';
 import { RootNavigation } from '@/presentation/navigation/root_navigation';
@@ -13,6 +14,10 @@ ServiceLocator.initialize();
 
 function AppContent() {
   const { isDark } = useTheme();
+
+  useEffect(() => {
+    store.dispatch(bootstrapAuth());
+  }, []);
 
   return (
     <>

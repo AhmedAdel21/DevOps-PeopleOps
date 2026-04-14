@@ -1,3 +1,2 @@
-export abstract class UseCase<TInput, TOutput> {
-  abstract execute(input: TInput): Promise<TOutput>;
-}
+export { UseCase, SyncUseCase } from './use_case.base';
+export * from './auth';

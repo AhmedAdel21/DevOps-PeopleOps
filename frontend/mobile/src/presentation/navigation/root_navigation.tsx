@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavigationContainer } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
@@ -14,36 +15,118 @@ import {
   ForgotPasswordScreen,
   OtpScreen,
   SetPasswordScreen,
+  type LoginScreenStatus,
 } from '@/presentation/screens/auth';
 import { LocationPickerSheet } from '@/presentation/screens/location_picker';
 import { MainTabsNavigator } from './main_tabs_navigator';
-
-
+import {
+  useAppDispatch,
+  useAppSelector,
+} from '@/presentation/store/hooks';
+import {
+  loginWithEmail,
+  clearLoginError,
+} from '@/presentation/store/slices';
+import {
+  selectAuthStatus,
+  selectLoginStatus,
+  selectLoginError,
+} from '@/presentation/store/selectors';
+import type { AuthErrorCode } from '@/domain/errors';
+import { authLog } from '@/core/logger';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-type ScreenProps<T extends keyof RootStackParamList> =
-  NativeStackScreenProps<RootStackParamList, T>;
+type ScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
+  RootStackParamList,
+  T
+>;
+
+const ERROR_I18N_KEY: Record<AuthErrorCode, string> = {
+  'invalid-credentials': 'auth.loginScreen.errors.invalidCredentials',
+  'user-disabled': 'auth.loginScreen.errors.userDisabled',
+  'too-many-requests': 'auth.loginScreen.errors.accountLocked',
+  network: 'auth.loginScreen.errors.network',
+  unknown: 'common.error',
+};
+
+const resolveErrorCode = (code: string | undefined): AuthErrorCode => {
+  if (!code?.startsWith('auth/')) return 'unknown';
+  const tail = code.slice('auth/'.length) as AuthErrorCode;
+  return tail in ERROR_I18N_KEY ? tail : 'unknown';
+};
 
 const SplashWrapper: React.FC<ScreenProps<'Splash'>> = ({ navigation }) => {
-  const onReady = useCallback(() => {
-    navigation.replace('Login');
-  }, [navigation]);
+  const authStatus = useAppSelector(selectAuthStatus);
+  const [minDelayElapsed, setMinDelayElapsed] = useState(false);
 
-  return <SplashScreen onReady={onReady} />;
+  const handleReady = useCallback(() => {
+    setMinDelayElapsed(true);
+  }, []);
+
+  useEffect(() => {
+    if (!minDelayElapsed) return;
+    if (authStatus === 'uninitialized') {
+      authLog.info(
+        'navigation',
+        'SplashWrapper waiting: min delay elapsed but auth still uninitialized',
+      );
+      return;
+    }
+    const target = authStatus === 'authenticated' ? 'MainTabs' : 'Login';
+    authLog.info(
+      'navigation',
+      `SplashWrapper routing → ${target} (authStatus=${authStatus})`,
+    );
+    navigation.replace(target);
+  }, [minDelayElapsed, authStatus, navigation]);
+
+  return <SplashScreen onReady={handleReady} />;
 };
 
 const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
+  const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const loginStatus = useAppSelector(selectLoginStatus);
+  const loginError = useAppSelector(selectLoginError);
+  const authStatus = useAppSelector(selectAuthStatus);
+
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
-  const handleSubmit = useCallback(
-    (_credentials: { email: string; password: string }) => {
-      // TODO: dispatch login thunk. On success:
-      // navigation.replace('Placeholder'); // or home screen
-      // For demo, show the location picker:
+  const screenStatus: LoginScreenStatus =
+    loginStatus === 'pending'
+      ? 'submitting'
+      : loginStatus === 'error'
+      ? 'error'
+      : 'idle';
+
+  const errorMessage = useMemo(() => {
+    if (!loginError) return undefined;
+    const code = resolveErrorCode(loginError.code);
+    return t(ERROR_I18N_KEY[code]);
+  }, [loginError, t]);
+
+  // Clear any stale error when Login screen mounts.
+  useEffect(() => {
+    dispatch(clearLoginError());
+  }, [dispatch]);
+
+  // Navigate to the app once the observer reports the user is authenticated.
+  useEffect(() => {
+    if (authStatus === 'authenticated') {
       setShowLocationPicker(true);
+    }
+  }, [authStatus]);
+
+  const handleSubmit = useCallback(
+    (credentials: { email: string; password: string }) => {
+      authLog.info(
+        'navigation',
+        `LoginWrapper submit → dispatching loginWithEmail (email=${authLog.maskEmail(credentials.email)})`,
+      );
+      dispatch(loginWithEmail(credentials));
     },
-    [],
+    [dispatch],
   );
 
   const handleForgotPassword = useCallback(() => {
@@ -53,6 +136,8 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
   return (
     <>
       <LoginScreen
+        status={screenStatus}
+        errorMessage={errorMessage}
         onSubmit={handleSubmit}
         onForgotPassword={handleForgotPassword}
       />
@@ -61,14 +146,12 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
         onClose={() => setShowLocationPicker(false)}
         onSelect={(_locationId) => {
           setShowLocationPicker(false);
-          // TODO: persist selected location
           navigation.replace('MainTabs');
         }}
       />
     </>
   );
 };
-
 
 const ForgotPasswordWrapper: React.FC<ScreenProps<'ForgotPassword'>> = ({
   navigation,
@@ -84,10 +167,7 @@ const ForgotPasswordWrapper: React.FC<ScreenProps<'ForgotPassword'>> = ({
     navigation.goBack();
   }, [navigation]);
   return (
-    <ForgotPasswordScreen
-      onSubmit={handleSubmit}
-      onBackToLogin={handleBack}
-    />
+    <ForgotPasswordScreen onSubmit={handleSubmit} onBackToLogin={handleBack} />
   );
 };
 
@@ -97,7 +177,10 @@ const OtpWrapper: React.FC<ScreenProps<'Otp'>> = ({ navigation, route }) => {
   const handleVerify = useCallback(
     (_code: string) => {
       // TODO: dispatch verify OTP thunk. On success:
-      navigation.navigate('SetPassword', { mode: 'reset', token: 'placeholder-token' });
+      navigation.navigate('SetPassword', {
+        mode: 'reset',
+        token: 'placeholder-token',
+      });
     },
     [navigation],
   );
@@ -120,7 +203,6 @@ const OtpWrapper: React.FC<ScreenProps<'Otp'>> = ({ navigation, route }) => {
   );
 };
 
-
 const SetPasswordWrapper: React.FC<ScreenProps<'SetPassword'>> = ({
   navigation,
   route,
@@ -134,7 +216,6 @@ const SetPasswordWrapper: React.FC<ScreenProps<'SetPassword'>> = ({
 
   const handleContinue = useCallback(() => {
     navigation.popToTop();
-    // After popping back to Login, the user can sign in with the new password
   }, [navigation]);
 
   const handleBack = useCallback(() => {
@@ -151,10 +232,8 @@ const SetPasswordWrapper: React.FC<ScreenProps<'SetPassword'>> = ({
   );
 };
 
-
 export const RootNavigation: React.FC = () => {
   return (
-
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Splash"
@@ -176,6 +255,5 @@ export const RootNavigation: React.FC = () => {
         <Stack.Screen name="Placeholder" component={PlaceholderScreen} />
       </Stack.Navigator>
     </NavigationContainer>
-
   );
 };

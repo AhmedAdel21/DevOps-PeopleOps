@@ -1,2 +1,1 @@
-// Repository implementations will be defined here.
-export {};
+export { AuthRepositoryImpl } from './auth.repository_impl';

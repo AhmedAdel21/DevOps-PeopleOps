@@ -17,19 +17,23 @@ import {
     AppCard,
     AppTextField,
     AppAlertBanner,
-} from '@/presentation/components/atoms';   
+} from '@/presentation/components/atoms';
 import { AppLogo } from '@/presentation/components/molecules';
 
-type LoginStatus = 'idle' | 'submitting' | 'invalid' | 'locked';
+export type LoginScreenStatus = 'idle' | 'submitting' | 'error';
 
 export interface LoginScreenProps {
     onSubmit?: (credentials: { email: string; password: string }) => void;
     onForgotPassword?: () => void;
+    status?: LoginScreenStatus;
+    errorMessage?: string;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
     onSubmit,
     onForgotPassword,
+    status = 'idle',
+    errorMessage,
 }) => {
     const { theme } = useTheme();
     const { t } = useTranslation();
@@ -38,21 +42,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [status, setStatus] = useState<LoginStatus>('idle');
 
-    const isLocked = status === 'locked';
-    const isInvalid = status === 'invalid';
     const isSubmitting = status === 'submitting';
+    const hasError = status === 'error' && Boolean(errorMessage);
 
     const handleSubmit = useCallback(() => {
         if (!email.trim() || !password.trim()) return;
-        setStatus('submitting');
         onSubmit?.({ email: email.trim(), password });
     }, [email, password, onSubmit]);
-
-    /** Expose setStatus so the parent / redux thunk can drive state transitions. */
-    // For now, simulate: uncomment the line below to test error/locked states
-    // setTimeout(() => setStatus('invalid'), 1500);
 
     return (
         <KeyboardAvoidingView
@@ -65,10 +62,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.container}>
-                    {/* Logo */}
                     <AppLogo />
 
-                    {/* Headline */}
                     <View style={styles.headlineGroup}>
                         <AppText variant="display" align="center">
                             {t('auth.loginScreen.title')}
@@ -82,64 +77,54 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                         </AppText>
                     </View>
 
-                    {/* Locked banner */}
-                    {isLocked && (
+                    {hasError && (
                         <AppAlertBanner
                             variant="error"
-                            message={t('auth.loginScreen.errors.accountLocked')}
+                            message={errorMessage!}
                         />
                     )}
 
-                    {/* Form card */}
                     <AppCard>
                         <AppTextField
                             label={t('auth.loginScreen.emailLabel')}
                             placeholder={t('auth.loginScreen.emailPlaceholder')}
                             value={email}
-                            onChangeText={(text) => {
-                                setEmail(text);
-                                if (isInvalid) setStatus('idle');
-                            }}
+                            onChangeText={setEmail}
                             leftIcon={Mail}
-                            error={isInvalid ? t('auth.loginScreen.errors.invalidCredentials') : undefined}
-                            disabled={isLocked}
                             keyboardType="email-address"
                             autoCapitalize="none"
                             autoCorrect={false}
                             textContentType="emailAddress"
                             autoComplete="email"
                             returnKeyType="next"
+                            editable={!isSubmitting}
                         />
 
                         <AppTextField
                             label={t('auth.loginScreen.passwordLabel')}
                             placeholder={t('auth.loginScreen.passwordPlaceholder')}
                             value={password}
-                            onChangeText={(text) => {
-                                setPassword(text);
-                                if (isInvalid) setStatus('idle');
-                            }}
+                            onChangeText={setPassword}
                             leftIcon={Lock}
                             rightIcon={showPassword ? EyeOff : Eye}
                             onRightIconPress={() => setShowPassword((prev) => !prev)}
                             secureTextEntry={!showPassword}
-                            disabled={isLocked}
                             textContentType="password"
                             autoComplete="password"
                             returnKeyType="done"
                             onSubmitEditing={handleSubmit}
+                            editable={!isSubmitting}
                         />
 
-                        {/* Forgot password link */}
                         <Pressable
                             onPress={onForgotPassword}
                             hitSlop={8}
                             style={styles.forgotRow}
-                            disabled={isLocked}
+                            disabled={isSubmitting}
                         >
                             <AppText
                                 variant="caption"
-                                color={isLocked ? theme.colors.mutedForeground : theme.colors.primary}
+                                color={theme.colors.primary}
                                 weight="medium"
                             >
                                 {t('auth.loginScreen.forgotLink')}
@@ -147,16 +132,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                         </Pressable>
                     </AppCard>
 
-                    {/* Submit button */}
                     <AppButton
                         label={t('auth.loginScreen.submit')}
                         onPress={handleSubmit}
                         loading={isSubmitting}
-                        disabled={isLocked || !email.trim() || !password.trim()}
+                        disabled={isSubmitting || !email.trim() || !password.trim()}
                         fullWidth
                     />
 
-                    {/* Footer */}
                     <AppText
                         variant="caption"
                         color={theme.colors.mutedForeground}

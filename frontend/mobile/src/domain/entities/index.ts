@@ -3,3 +3,5 @@ export interface BaseEntity {
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
+
+export type { User } from './user.entity';

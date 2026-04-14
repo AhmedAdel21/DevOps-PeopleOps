@@ -1,5 +1,5 @@
 export { LoginScreen } from './login';
-export type { LoginScreenProps } from './login';
+export type { LoginScreenProps, LoginScreenStatus } from './login';
 export { ForgotPasswordScreen } from './forgot_password';
 export type { ForgotPasswordScreenProps } from './forgot_password';
 export { OtpScreen } from './otp';
