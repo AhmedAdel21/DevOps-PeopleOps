@@ -16,6 +16,7 @@ export type AppButtonVariant =
     | 'primary'
     | 'secondary'
     | 'outline'
+    | 'outlineDestructive'
     | 'ghost'
     | 'destructive';
 
@@ -88,6 +89,7 @@ const resolveTextColor = (theme: AppTheme, variant: AppButtonVariant): string =>
         case 'primary': return theme.colors.primaryForeground;
         case 'secondary': return theme.colors.secondaryForeground;
         case 'outline': return theme.colors.foreground;
+        case 'outlineDestructive': return theme.colors.destructive;
         case 'ghost': return theme.colors.foreground;
         case 'destructive': return theme.colors.destructiveForeground;
     }
@@ -126,6 +128,10 @@ const buildStyles = (theme: AppTheme) =>
         outline: {
             backgroundColor: 'transparent',
             borderColor: theme.colors.borderStrong,
+        },
+        outlineDestructive: {
+            backgroundColor: 'transparent',
+            borderColor: theme.colors.destructive,
         },
         ghost: {
             backgroundColor: 'transparent',
