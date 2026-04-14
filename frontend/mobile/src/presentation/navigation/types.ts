@@ -4,7 +4,16 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   Otp: { email: string };
   SetPassword: { mode: 'reset' | 'firstLogin'; token: string };
-  Placeholder: undefined; // keep until home screen is built
+  MainTabs: undefined;
+  Placeholder: undefined;
+};
+
+export type MainTabsParamList = {
+  Home: undefined;
+  Attendance: undefined;
+  Leave: undefined;
+  Team: undefined;
+  Profile: undefined;
 };
 
 declare global {

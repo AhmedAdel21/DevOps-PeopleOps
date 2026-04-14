@@ -98,11 +98,63 @@ export const en = {
       notifications: 'Notifications',
     },
   },
+  home: {
+    greetingMorning: 'Good morning, {{name}}',
+    greetingAfternoon: 'Good afternoon, {{name}}',
+    greetingEvening: 'Good evening, {{name}}',
+    recentTitle: 'Recent',
+    historyLink: 'View full history',
+    mode: {
+      office: 'Office',
+      remote: 'Remote',
+    },
+    leaveBalance: {
+      annual: 'Annual {{count}}d',
+      casual: 'Casual {{count}}d',
+      sick: 'Sick —',
+    },
+    notSignedIn: {
+      statusTitle: "You haven't signed in yet",
+      statusSubtitle: 'Tap below to start your workday',
+      signInCta: 'Sign In',
+    },
+    signedInOffice: {
+      statusTitle: 'Signed in — Office',
+      statusSubtitle: 'Since {{time}} · {{elapsed}} elapsed',
+      todayLabel: 'Office · On time',
+    },
+    signedInRemote: {
+      statusTitle: 'Signed in — Remote',
+      statusSubtitle: 'Since {{time}} · {{elapsed}} elapsed',
+      todayLabel: 'Remote · On time',
+    },
+    signOut: 'Sign out',
+    signInSheet: {
+      title: 'Where are you working from?',
+      subtitle: 'Today, {{date}} · {{time}}',
+      timeLabel: 'Sign-in time',
+      modes: {
+        office: {
+          title: 'Office',
+          body: 'Working from the office',
+        },
+        remote: {
+          title: 'Remote',
+          body: 'Working from home',
+        },
+      },
+      confirm: 'Confirm sign-in',
+      cancel: 'Cancel',
+    },
+  },
   tabs: {
     home: 'Home',
     attendance: 'Attendance',
-    vacations: 'Vacations',
+    vacations: 'Leave',
     team: 'Team',
     profile: 'Profile',
+  },
+  comingSoon: {
+    body: "We're still building this. Check back soon.",
   },
 } as const;

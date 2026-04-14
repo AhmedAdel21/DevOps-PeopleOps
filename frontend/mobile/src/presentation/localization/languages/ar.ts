@@ -98,11 +98,63 @@ export const ar = {
       notifications: 'الإشعارات',
     },
   },
+  home: {
+    greetingMorning: 'صباح الخير، {{name}}',
+    greetingAfternoon: 'مساء الخير، {{name}}',
+    greetingEvening: 'مساء الخير، {{name}}',
+    recentTitle: 'الأخيرة',
+    historyLink: 'عرض السجل الكامل',
+    mode: {
+      office: 'مكتب',
+      remote: 'عن بُعد',
+    },
+    leaveBalance: {
+      annual: 'سنوية {{count}}ي',
+      casual: 'عرضية {{count}}ي',
+      sick: 'مرضية —',
+    },
+    notSignedIn: {
+      statusTitle: 'لم تسجّل دخولك بعد',
+      statusSubtitle: 'اضغط أدناه لبدء يوم عملك',
+      signInCta: 'تسجيل الدخول',
+    },
+    signedInOffice: {
+      statusTitle: 'مسجّل الدخول — المكتب',
+      statusSubtitle: 'منذ {{time}} · مضى {{elapsed}}',
+      todayLabel: 'مكتب · في الوقت المحدد',
+    },
+    signedInRemote: {
+      statusTitle: 'مسجّل الدخول — عن بُعد',
+      statusSubtitle: 'منذ {{time}} · مضى {{elapsed}}',
+      todayLabel: 'عن بُعد · في الوقت المحدد',
+    },
+    signOut: 'تسجيل الخروج',
+    signInSheet: {
+      title: 'من أين تعمل اليوم؟',
+      subtitle: 'اليوم، {{date}} · {{time}}',
+      timeLabel: 'وقت تسجيل الدخول',
+      modes: {
+        office: {
+          title: 'المكتب',
+          body: 'العمل من المكتب',
+        },
+        remote: {
+          title: 'عن بُعد',
+          body: 'العمل من المنزل',
+        },
+      },
+      confirm: 'تأكيد تسجيل الدخول',
+      cancel: 'إلغاء',
+    },
+  },
   tabs: {
     home: 'الرئيسية',
     attendance: 'الحضور',
     vacations: 'الإجازات',
     team: 'الفريق',
     profile: 'الملف الشخصي',
+  },
+  comingSoon: {
+    body: 'لا تزال هذه الميزة قيد التطوير. ترقّب عودتها قريباً.',
   },
 } as const;

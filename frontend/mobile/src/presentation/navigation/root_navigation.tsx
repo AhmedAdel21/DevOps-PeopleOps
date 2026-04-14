@@ -16,6 +16,7 @@ import {
   SetPasswordScreen,
 } from '@/presentation/screens/auth';
 import { LocationPickerSheet } from '@/presentation/screens/location_picker';
+import { MainTabsNavigator } from './main_tabs_navigator';
 
 
 
@@ -58,10 +59,10 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
       <LocationPickerSheet
         visible={showLocationPicker}
         onClose={() => setShowLocationPicker(false)}
-        onSelect={(locationId) => {
+        onSelect={(_locationId) => {
           setShowLocationPicker(false);
-          // TODO: save selected location, then navigate to home
-          navigation.replace('Placeholder');
+          // TODO: persist selected location
+          navigation.replace('MainTabs');
         }}
       />
     </>
@@ -171,6 +172,7 @@ export const RootNavigation: React.FC = () => {
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordWrapper} />
         <Stack.Screen name="Otp" component={OtpWrapper} />
         <Stack.Screen name="SetPassword" component={SetPasswordWrapper} />
+        <Stack.Screen name="MainTabs" component={MainTabsNavigator} />
         <Stack.Screen name="Placeholder" component={PlaceholderScreen} />
       </Stack.Navigator>
     </NavigationContainer>
