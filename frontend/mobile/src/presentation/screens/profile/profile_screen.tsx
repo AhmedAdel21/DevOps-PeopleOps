@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LogOut } from 'lucide-react-native';
-import { CommonActions } from '@react-navigation/native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
@@ -19,7 +18,6 @@ import {
   selectCurrentUser,
   selectLogoutStatus,
 } from '@/presentation/store/selectors';
-import { navigationRef } from '@/presentation/navigation/navigation_ref';
 import { authLog } from '@/core/logger';
 
 export const ProfileScreen: React.FC = () => {
@@ -31,18 +29,12 @@ export const ProfileScreen: React.FC = () => {
   const user = useAppSelector(selectCurrentUser);
   const logoutStatus = useAppSelector(selectLogoutStatus);
 
-  const handleLogout = useCallback(async () => {
+  // Dispatch logout only — the auth observer will flip authStatus to
+  // unauthenticated, and RootNavigation's watcher will reset the stack
+  // back to Login automatically.
+  const handleLogout = useCallback(() => {
     authLog.info('navigation', 'ProfileScreen logout button pressed');
-    const result = await dispatch(logout());
-    if (logout.fulfilled.match(result) && navigationRef.isReady()) {
-      authLog.info('navigation', 'ProfileScreen resetting stack → Login');
-      navigationRef.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        }),
-      );
-    }
+    dispatch(logout());
   }, [dispatch]);
 
   return (

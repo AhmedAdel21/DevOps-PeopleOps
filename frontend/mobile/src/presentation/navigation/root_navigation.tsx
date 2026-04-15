@@ -1,6 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavigationContainer } from '@react-navigation/native';
+import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
   type NativeStackScreenProps,
@@ -17,7 +23,6 @@ import {
   SetPasswordScreen,
   type LoginScreenStatus,
 } from '@/presentation/screens/auth';
-import { LocationPickerSheet } from '@/presentation/screens/location_picker';
 import { MainTabsNavigator } from './main_tabs_navigator';
 import {
   useAppDispatch,
@@ -91,8 +96,6 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
   const loginError = useAppSelector(selectLoginError);
   const authStatus = useAppSelector(selectAuthStatus);
 
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
-
   const screenStatus: LoginScreenStatus =
     loginStatus === 'pending'
       ? 'submitting'
@@ -111,12 +114,20 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
     dispatch(clearLoginError());
   }, [dispatch]);
 
-  // Navigate to the app once the observer reports the user is authenticated.
+  // Once the observer reports the user is authenticated, reset the stack
+  // to MainTabs so Login is dropped from history (no back-swipe into it).
   useEffect(() => {
     if (authStatus === 'authenticated') {
-      setShowLocationPicker(true);
+      authLog.info(
+        'navigation',
+        'LoginWrapper → auth success, resetting stack to MainTabs',
+      );
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
     }
-  }, [authStatus]);
+  }, [authStatus, navigation]);
 
   const handleSubmit = useCallback(
     (credentials: { email: string; password: string }) => {
@@ -134,22 +145,12 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
   }, [navigation]);
 
   return (
-    <>
-      <LoginScreen
-        status={screenStatus}
-        errorMessage={errorMessage}
-        onSubmit={handleSubmit}
-        onForgotPassword={handleForgotPassword}
-      />
-      <LocationPickerSheet
-        visible={showLocationPicker}
-        onClose={() => setShowLocationPicker(false)}
-        onSelect={(_locationId) => {
-          setShowLocationPicker(false);
-          navigation.replace('MainTabs');
-        }}
-      />
-    </>
+    <LoginScreen
+      status={screenStatus}
+      errorMessage={errorMessage}
+      onSubmit={handleSubmit}
+      onForgotPassword={handleForgotPassword}
+    />
   );
 };
 
@@ -233,6 +234,35 @@ const SetPasswordWrapper: React.FC<ScreenProps<'SetPassword'>> = ({
 };
 
 export const RootNavigation: React.FC = () => {
+  const authStatus = useAppSelector(selectAuthStatus);
+  const prevAuthStatusRef = useRef(authStatus);
+
+  // Centralised auth-driven routing: whenever the observer reports the user
+  // has lost authentication (explicit logout, token revocation, session
+  // expiry, etc.), reset the root stack back to the Login screen. This
+  // removes the need for every logout button to navigate manually.
+  useEffect(() => {
+    const previous = prevAuthStatusRef.current;
+    prevAuthStatusRef.current = authStatus;
+
+    if (
+      previous === 'authenticated' &&
+      authStatus === 'unauthenticated' &&
+      navigationRef.isReady()
+    ) {
+      authLog.info(
+        'navigation',
+        'RootNavigation → auth lost, resetting root stack to Login',
+      );
+      navigationRef.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        }),
+      );
+    }
+  }, [authStatus]);
+
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
