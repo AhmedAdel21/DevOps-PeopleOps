@@ -1,12 +1,26 @@
+import { AppConfig } from '@/di/config';
 import { DiKeys } from '@/core/keys/di.key';
-import type { AuthRepository } from '@/domain/repositories';
+import type {
+  AuthRepository,
+  AttendanceRepository,
+} from '@/domain/repositories';
 import {
   LoginUseCase,
   LogoutUseCase,
   ObserveAuthStateUseCase,
+  GetAttendanceStatusUseCase,
+  SignInAttendanceUseCase,
+  SignOutAttendanceUseCase,
 } from '@/domain/use_cases';
-import { FirebaseAuthRemoteDataSource } from '@/data/data_sources';
-import { AuthRepositoryImpl } from '@/data/repositories';
+import {
+  FirebaseAuthRemoteDataSource,
+  AttendanceRemoteDataSource,
+  HttpClient,
+} from '@/data/data_sources';
+import {
+  AuthRepositoryImpl,
+  AttendanceRepositoryImpl,
+} from '@/data/repositories';
 
 export class ServiceLocator {
   private static registry = new Map<string, unknown>();
@@ -14,6 +28,7 @@ export class ServiceLocator {
   static initialize(): void {
     ServiceLocator.registry.clear();
 
+    // ── Auth ────────────────────────────────────────────────
     const firebaseAuthDs = new FirebaseAuthRemoteDataSource();
     ServiceLocator.register(
       DiKeys.FIREBASE_AUTH_DATA_SOURCE,
@@ -34,6 +49,37 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.OBSERVE_AUTH_STATE_USE_CASE,
       new ObserveAuthStateUseCase(authRepo),
+    );
+
+    // ── HTTP + Attendance ───────────────────────────────────
+    const httpClient = new HttpClient(
+      AppConfig.API_BASE_URL,
+      () => firebaseAuthDs.getIdToken(),
+    );
+    ServiceLocator.register(DiKeys.HTTP_CLIENT, httpClient);
+
+    const attendanceDs = new AttendanceRemoteDataSource(httpClient);
+    ServiceLocator.register(
+      DiKeys.ATTENDANCE_REMOTE_DATA_SOURCE,
+      attendanceDs,
+    );
+
+    const attendanceRepo: AttendanceRepository = new AttendanceRepositoryImpl(
+      attendanceDs,
+    );
+    ServiceLocator.register(DiKeys.ATTENDANCE_REPOSITORY, attendanceRepo);
+
+    ServiceLocator.register(
+      DiKeys.GET_ATTENDANCE_STATUS_USE_CASE,
+      new GetAttendanceStatusUseCase(attendanceRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.SIGN_IN_ATTENDANCE_USE_CASE,
+      new SignInAttendanceUseCase(attendanceRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.SIGN_OUT_ATTENDANCE_USE_CASE,
+      new SignOutAttendanceUseCase(attendanceRepo),
     );
   }
 

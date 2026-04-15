@@ -1,9 +1,18 @@
 export const DiKeys = {
+  // auth
   FIREBASE_AUTH_DATA_SOURCE: 'firebaseAuthDataSource',
   AUTH_REPOSITORY: 'authRepository',
   LOGIN_USE_CASE: 'loginUseCase',
   LOGOUT_USE_CASE: 'logoutUseCase',
   OBSERVE_AUTH_STATE_USE_CASE: 'observeAuthStateUseCase',
+
+  // http + attendance
+  HTTP_CLIENT: 'httpClient',
+  ATTENDANCE_REMOTE_DATA_SOURCE: 'attendanceRemoteDataSource',
+  ATTENDANCE_REPOSITORY: 'attendanceRepository',
+  GET_ATTENDANCE_STATUS_USE_CASE: 'getAttendanceStatusUseCase',
+  SIGN_IN_ATTENDANCE_USE_CASE: 'signInAttendanceUseCase',
+  SIGN_OUT_ATTENDANCE_USE_CASE: 'signOutAttendanceUseCase',
 } as const;
 
 export type DiKey = (typeof DiKeys)[keyof typeof DiKeys];

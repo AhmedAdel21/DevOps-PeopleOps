@@ -10,7 +10,8 @@ export class FirebaseAuthRemoteDataSource {
       `Firebase signInWithEmailAndPassword → email=${authLog.maskEmail(email)}`,
     );
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      let userCredential: FirebaseAuthTypes.UserCredential = await auth().signInWithEmailAndPassword(email, password);
+      authLog.info('data_source', 'Firebase signInWithEmailAndPassword resolved', userCredential);
       authLog.info('data_source', 'Firebase signInWithEmailAndPassword resolved');
     } catch (e) {
       const code = (e as { code?: string } | null)?.code ?? 'unknown';
@@ -46,6 +47,25 @@ export class FirebaseAuthRemoteDataSource {
       `getCurrentUser → uid=${u?.uid ?? '<none>'}`,
     );
     return u;
+  }
+
+  async getIdToken(forceRefresh = false): Promise<string | null> {
+    const user = auth().currentUser;
+    if (!user) {
+      authLog.info('data_source', 'getIdToken → no current user');
+      return null;
+    }
+    try {
+      const token = await user.getIdToken(forceRefresh);
+      authLog.info(
+        'data_source',
+        `getIdToken → ok (len=${token.length}, forceRefresh=${forceRefresh})`,
+      );
+      return token;
+    } catch (e) {
+      authLog.error('data_source', 'getIdToken failed', e);
+      throw e;
+    }
   }
 
   observe(

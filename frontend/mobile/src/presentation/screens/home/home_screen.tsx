@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import {
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
+    AppAlertBanner,
     AppBadge,
     AppButton,
     AppCard,
@@ -21,6 +22,27 @@ import {
     SignInLocationSheet,
     type WorkMode,
 } from './sign_in_location_sheet';
+import {
+    useAppDispatch,
+    useAppSelector,
+} from '@/presentation/store/hooks';
+import {
+    fetchAttendanceStatus,
+    signInAttendance,
+    signOutAttendance,
+    clearAttendanceErrors,
+} from '@/presentation/store/slices';
+import {
+    selectAttendanceCurrent,
+    selectAttendanceFetchError,
+    selectAttendanceFetchStatus,
+    selectAttendanceSignInError,
+    selectAttendanceSignInStatus,
+    selectAttendanceSignOutError,
+    selectAttendanceSignOutStatus,
+} from '@/presentation/store/selectors';
+import type { AttendanceErrorCode } from '@/domain/errors';
+import { attendanceLog } from '@/core/logger';
 
 export type HomeStatus = 'notSignedIn' | 'signedInOffice' | 'signedInRemote';
 
@@ -28,14 +50,10 @@ export type RecentMode = 'office' | 'remote';
 
 export interface RecentEntry {
     id: string;
-    /** Localized short date, e.g. "Mon, 7 Apr". */
     date: string;
     mode: RecentMode;
-    /** Localized duration, e.g. "8h 12m". */
     duration: string;
-    /** True when the day was completed (sign-in + sign-out captured). */
     complete: boolean;
-    /** Whether the badge should use the success/highlight color. */
     highlight?: boolean;
 }
 
@@ -45,9 +63,6 @@ export interface HomeScreenProps {
     casualLeaveDays?: number;
     hasUnreadNotifications?: boolean;
     recentEntries?: RecentEntry[];
-    /** Initial status; the screen owns the state internally and updates on
-     *  sign-in/sign-out until a real attendance domain wires this up. */
-    initialStatus?: HomeStatus;
     onOpenNotifications?: () => void;
     onOpenProfile?: () => void;
     onViewHistory?: () => void;
@@ -70,13 +85,42 @@ interface StatusVisuals {
     todayDotColor: string;
 }
 
+const ERROR_I18N_KEY: Record<AttendanceErrorCode, string> = {
+    unauthenticated: 'home.errors.sessionExpired',
+    'employee-not-linked': 'home.errors.employeeNotLinked',
+    'invalid-state': 'home.errors.invalidState',
+    network: 'home.errors.network',
+    unknown: 'home.errors.generic',
+};
+
+const resolveErrorCode = (code: string | undefined): AttendanceErrorCode => {
+    if (!code?.startsWith('attendance/')) return 'unknown';
+    const tail = code.slice('attendance/'.length) as AttendanceErrorCode;
+    return tail in ERROR_I18N_KEY ? tail : 'unknown';
+};
+
+const domainToHomeStatus = (
+    status: 'not_signed_in' | 'in_office' | 'wfh',
+): HomeStatus => {
+    switch (status) {
+        case 'in_office':
+            return 'signedInOffice';
+        case 'wfh':
+            return 'signedInRemote';
+        default:
+            return 'notSignedIn';
+    }
+};
+
+const workModeToPlace = (mode: WorkMode) =>
+    mode === 'office' ? ('in_office' as const) : ('wfh' as const);
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({
-    userName = 'Ahmed',
+    userName: userNameProp,
     annualLeaveDays = 18,
     casualLeaveDays = 4,
     hasUnreadNotifications = true,
     recentEntries = DEFAULT_RECENT,
-    initialStatus = 'notSignedIn',
     onOpenNotifications,
     onOpenProfile,
     onViewHistory,
@@ -85,11 +129,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     const { t, i18n } = useTranslation();
     const styles = useMemo(() => createStyles(theme), [theme]);
 
-    const [status, setStatus] = useState<HomeStatus>(initialStatus);
-    const [signInSheetVisible, setSignInSheetVisible] = useState(false);
-    const [signedInSince, setSignedInSince] = useState<Date | null>(null);
+    const dispatch = useAppDispatch();
+    const current = useAppSelector(selectAttendanceCurrent);
+    const fetchStatus = useAppSelector(selectAttendanceFetchStatus);
+    const fetchError = useAppSelector(selectAttendanceFetchError);
+    const signInStatus = useAppSelector(selectAttendanceSignInStatus);
+    const signInError = useAppSelector(selectAttendanceSignInError);
+    const signOutStatus = useAppSelector(selectAttendanceSignOutStatus);
+    const signOutError = useAppSelector(selectAttendanceSignOutError);
 
+    const [signInSheetVisible, setSignInSheetVisible] = useState(false);
+
+    // Fetch current status when the screen first mounts.
+    useEffect(() => {
+        attendanceLog.info(
+            'screen',
+            'HomeScreen mount → dispatching fetchAttendanceStatus',
+        );
+        dispatch(fetchAttendanceStatus());
+    }, [dispatch]);
+
+    const status: HomeStatus = domainToHomeStatus(
+        current?.status ?? 'not_signed_in',
+    );
     const isSignedIn = status !== 'notSignedIn';
+
+    const userName = current?.displayName ?? userNameProp ?? 'there';
+
+    const signedInSince = useMemo(() => {
+        if (!current?.signInAtIso) return null;
+        return new Date(current.signInAtIso);
+    }, [current?.signInAtIso]);
 
     const greeting = useMemo(
         () => buildGreeting(userName, t),
@@ -123,24 +193,47 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         return t(`${visuals.subtitleKey}`, { time, elapsed });
     }, [signedInSince, isSignedIn, i18n.language, t, visuals.subtitleKey]);
 
+    const errorMessage = useMemo(() => {
+        const err = signInError ?? signOutError ?? fetchError;
+        if (!err) return null;
+        return t(ERROR_I18N_KEY[resolveErrorCode(err.code)]);
+    }, [signInError, signOutError, fetchError, t]);
+
+    const isBusy =
+        fetchStatus === 'pending' ||
+        signInStatus === 'pending' ||
+        signOutStatus === 'pending';
+
     const handleOpenSignIn = useCallback(() => {
+        dispatch(clearAttendanceErrors());
         setSignInSheetVisible(true);
-    }, []);
+    }, [dispatch]);
 
     const handleCloseSignIn = useCallback(() => {
         setSignInSheetVisible(false);
     }, []);
 
-    const handleConfirmSignIn = useCallback((mode: WorkMode, time: Date) => {
-        setStatus(mode === 'office' ? 'signedInOffice' : 'signedInRemote');
-        setSignedInSince(time);
-        setSignInSheetVisible(false);
-    }, []);
+    const handleConfirmSignIn = useCallback(
+        async (mode: WorkMode, _time: Date) => {
+            const place = workModeToPlace(mode);
+            attendanceLog.info(
+                'screen',
+                `HomeScreen → confirm sign-in (mode=${mode}, place=${place})`,
+            );
+            setSignInSheetVisible(false);
+            await dispatch(signInAttendance({ place }));
+        },
+        [dispatch],
+    );
 
-    const handleSignOut = useCallback(() => {
-        setStatus('notSignedIn');
-        setSignedInSince(null);
-    }, []);
+    const handleSignOut = useCallback(async () => {
+        attendanceLog.info('screen', 'HomeScreen → sign-out pressed');
+        await dispatch(signOutAttendance());
+    }, [dispatch]);
+
+    const handleDismissError = useCallback(() => {
+        dispatch(clearAttendanceErrors());
+    }, [dispatch]);
 
     return (
         <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
@@ -155,7 +248,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Greeting */}
                 <View style={styles.greeting}>
                     <AppText variant="title">{greeting}</AppText>
                     <AppText variant="caption" color={theme.colors.mutedForeground}>
@@ -163,7 +255,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     </AppText>
                 </View>
 
-                {/* Status card — accent + icon + copy swap per status */}
+                {errorMessage && (
+                    <Pressable onPress={handleDismissError}>
+                        <AppAlertBanner variant="error" message={errorMessage} />
+                    </Pressable>
+                )}
+
                 <AppCard
                     style={[
                         styles.statusCard,
@@ -189,23 +286,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     </View>
                 </AppCard>
 
-                {/* CTA — Sign In (primary) or Sign Out (outline destructive) */}
                 {isSignedIn ? (
                     <AppButton
                         label={t('home.signOut')}
                         onPress={handleSignOut}
                         variant="outlineDestructive"
+                        loading={signOutStatus === 'pending'}
+                        disabled={isBusy}
                         fullWidth
                     />
                 ) : (
                     <AppButton
                         label={t('home.notSignedIn.signInCta')}
                         onPress={handleOpenSignIn}
+                        loading={fetchStatus === 'pending' && !current}
+                        disabled={isBusy}
                         fullWidth
                     />
                 )}
 
-                {/* Today summary strip — only in signed-in states */}
                 {isSignedIn && (
                     <View style={styles.todayStrip}>
                         <View
@@ -220,7 +319,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     </View>
                 )}
 
-                {/* Leave balance — only when not signed in */}
                 {!isSignedIn && (
                     <View style={styles.leaveRow}>
                         <AppBadge
@@ -233,7 +331,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     </View>
                 )}
 
-                {/* Recent section */}
                 <View style={styles.recentSection}>
                     <AppText variant="cardTitle">{t('home.recentTitle')}</AppText>
 

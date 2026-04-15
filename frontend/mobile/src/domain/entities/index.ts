@@ -5,3 +5,8 @@ export interface BaseEntity {
 }
 
 export type { User } from './user.entity';
+export type {
+  Attendance,
+  AttendancePlace,
+  AttendanceStatus,
+} from './attendance.entity';

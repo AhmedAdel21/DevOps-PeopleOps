@@ -131,6 +131,14 @@ export const en = {
       todayLabel: 'Remote · On time',
     },
     signOut: 'Sign out',
+    errors: {
+      sessionExpired: 'Your session has expired. Please sign in again.',
+      employeeNotLinked:
+        "We couldn't find your employee profile. Your Firebase email must match your Slack email.",
+      invalidState: "That action isn't allowed right now.",
+      network: 'Network error. Check your connection and try again.',
+      generic: "Something went wrong. Please try again.",
+    },
     signInSheet: {
       title: 'Where are you working from?',
       subtitle: 'Today, {{date}} · {{time}}',
