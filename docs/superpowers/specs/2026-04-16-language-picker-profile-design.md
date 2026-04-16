@@ -48,6 +48,16 @@ Both use `Globe` from `lucide-react-native`. EN uses `primary` accent, AR uses `
 
 ### Modified files
 
+**`language_context.tsx`**
+- Add `remountKey: number` to `LanguageContextValue`
+- Add `remountKey` state (starts at `0`) to `LanguageProvider`
+- In `changeLanguage`: after `I18nManager.forceRTL(shouldBeRTL)`, call `setRemountKey(k => k + 1)`
+- Expose `remountKey` in context value
+
+**`app.tsx`**
+- Add `AppRoot` component (inside `LanguageProvider`) that reads `remountKey` via `useLanguage()` and renders `<AppContent key={remountKey} />`
+- Replace `<AppContent />` with `<AppRoot />` inside `App`
+
 **`profile_screen.tsx`**
 - Import `useLanguage` from `@/presentation/localization/language_context`
 - Add `sheetVisible` boolean state
@@ -104,16 +114,26 @@ ProfileScreen
       → sheetVisible = false
 ```
 
-`changeLanguage` is already implemented in `language_context.tsx`:
+`changeLanguage` is updated in `language_context.tsx` to also trigger a full tree remount when RTL direction flips:
 - Calls `i18n.changeLanguage(lng)` → triggers re-render of all `useTranslation()` consumers
 - Calls `I18nManager.forceRTL(true/false)` for AR/EN
+- Increments `remountKey` in context state when RTL direction changes
 - Persists the choice to `AsyncStorage` under `StorageKeys.LANGUAGE`
+
+`app.tsx` gains a thin `AppRoot` wrapper that passes `remountKey` as `key` to `AppContent`, forcing a full React subtree remount when RTL flips. Redux store lives outside this boundary so all auth/store state survives. Navigation stack resets (user lands at auth or home per Redux auth state) — acceptable for a language direction change.
 
 ---
 
-## RTL note
+## RTL handling
 
-RTL layout changes require an app restart to fully apply (React Native limitation). No in-app banner is shown — this is acceptable for now since text direction updates immediately and layout direction updates on next cold start.
+RTL changes apply immediately without an app restart. The remount-key pattern is used:
+
+1. `I18nManager.forceRTL(shouldBeRTL)` sets the native flag
+2. `setRemountKey(k => k + 1)` in `LanguageProvider` increments a counter exposed via context
+3. `AppRoot` in `app.tsx` passes this as `key` to `AppContent`, triggering unmount + remount
+4. The remounted tree renders fresh with the correct RTL layout
+
+Same-direction switches (e.g. EN→EN) do not increment `remountKey` and cause no remount.
 
 ---
 
