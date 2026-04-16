@@ -2,14 +2,18 @@ const path = require('path');
 
 module.exports = {
   preset: '@react-native/jest-preset',
-  // Extends @react-native/jest-preset's default — also transforms @react-native-async-storage (ships ESM)
+  // Extends @react-native/jest-preset's default — also transforms @react-native-async-storage (ships ESM), react-redux, and @react-navigation
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native-async-storage)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native-async-storage|@react-navigation|react-redux|@reduxjs/toolkit|immer)/)',
   ],
   moduleNameMapper: {
     '^@react-native-async-storage/async-storage$': path.resolve(
       __dirname,
       'node_modules/@react-native-async-storage/async-storage/lib/module/jest/AsyncStorageMock.js',
+    ),
+    '^@react-native-firebase/auth$': path.resolve(
+      __dirname,
+      '__mocks__/@react-native-firebase/auth.js',
     ),
   },
 };

@@ -15,10 +15,6 @@ ServiceLocator.initialize();
 function AppContent() {
   const { isDark } = useTheme();
 
-  useEffect(() => {
-    store.dispatch(bootstrapAuth());
-  }, []);
-
   return (
     <>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
@@ -29,6 +25,11 @@ function AppContent() {
 
 function AppRoot() {
   const { remountKey } = useLanguage();
+
+  useEffect(() => {
+    store.dispatch(bootstrapAuth());
+  }, []);
+
   return <AppContent key={remountKey} />;
 }
 
