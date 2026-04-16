@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 import { I18nManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -8,6 +8,7 @@ interface LanguageContextValue {
   t: TFunction;
   isRTL: boolean;
   language: string;
+  remountKey: number;
   changeLanguage: (lng: string) => Promise<void>;
 }
 
@@ -15,6 +16,7 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { t, i18n } = useTranslation();
+  const [remountKey, setRemountKey] = useState(0);
 
   const isRTL = i18n.language === 'ar';
 
@@ -24,7 +26,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const shouldBeRTL = lng === 'ar';
       if (I18nManager.isRTL !== shouldBeRTL) {
         I18nManager.forceRTL(shouldBeRTL);
-        console.warn('Language changed. Restart the app for RTL changes to take effect.');
+        setRemountKey((k) => k + 1);
       }
     },
     [i18n],
@@ -34,6 +36,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     t,
     isRTL,
     language: i18n.language,
+    remountKey,
     changeLanguage,
   };
 
