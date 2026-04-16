@@ -21,6 +21,13 @@ beforeEach(() => {
   captured = null;
 });
 
+afterEach(() => {
+  jest.restoreAllMocks();
+  // Ensure I18nManager.isRTL is reset to false after each test
+  const { I18nManager } = require('react-native');
+  Object.defineProperty(I18nManager, 'isRTL', { configurable: true, value: false });
+});
+
 test('useLanguage exposes remountKey starting at 0', async () => {
   await ReactTestRenderer.act(async () => {
     renderTree();
@@ -46,14 +53,24 @@ test('remountKey does NOT increment when direction stays the same', async () => 
     renderTree();
   });
 
-  // Start is 'en'. Switch to another LTR language (still 'en' in this app) — no direction change
+  // EN → EN: LTR stays LTR, no increment
   await ReactTestRenderer.act(async () => {
     await captured!.changeLanguage('en');
   });
-  const keyAfterFirst = captured!.remountKey;
+  expect(captured!.remountKey).toBe(0);
 
+  // Simulate already being in AR (RTL) by mocking I18nManager.isRTL
+  const { I18nManager } = require('react-native');
+  const originalIsRTL = I18nManager.isRTL;
+  Object.defineProperty(I18nManager, 'isRTL', { configurable: true, value: true });
+
+  // AR → AR: RTL stays RTL, no increment
+  const keyBeforeArAr = captured!.remountKey;
   await ReactTestRenderer.act(async () => {
-    await captured!.changeLanguage('en');
+    await captured!.changeLanguage('ar');
   });
-  expect(captured!.remountKey).toBe(keyAfterFirst);
+  expect(captured!.remountKey).toBe(keyBeforeArAr);
+
+  // Restore
+  Object.defineProperty(I18nManager, 'isRTL', { configurable: true, value: originalIsRTL });
 });
