@@ -5,7 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { store } from '@/presentation/store';
 import { bootstrapAuth } from '@/presentation/store/slices';
 import { ThemeProvider, useTheme } from '@themes/theme_context';
-import { LanguageProvider } from '@/presentation/localization/language_context';
+import { LanguageProvider, useLanguage } from '@/presentation/localization/language_context';
 import { RootNavigation } from '@/presentation/navigation/root_navigation';
 import { ServiceLocator } from '@/di';
 
@@ -27,13 +27,18 @@ function AppContent() {
   );
 }
 
+function AppRoot() {
+  const { remountKey } = useLanguage();
+  return <AppContent key={remountKey} />;
+}
+
 export default function App() {
   return (
     <ReduxProvider store={store}>
       <SafeAreaProvider>
         <ThemeProvider>
           <LanguageProvider>
-            <AppContent />
+            <AppRoot />
           </LanguageProvider>
         </ThemeProvider>
       </SafeAreaProvider>
