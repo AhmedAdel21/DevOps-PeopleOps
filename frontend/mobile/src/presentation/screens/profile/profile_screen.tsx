@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { LogOut } from 'lucide-react-native';
+import { LogOut, ChevronRight } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
@@ -19,6 +20,8 @@ import {
   selectLogoutStatus,
 } from '@/presentation/store/selectors';
 import { authLog } from '@/core/logger';
+import { useLanguage } from '@/presentation/localization/language_context';
+import { LanguagePickerSheet } from './language_picker_sheet';
 
 export const ProfileScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -29,15 +32,24 @@ export const ProfileScreen: React.FC = () => {
   const user = useAppSelector(selectCurrentUser);
   const logoutStatus = useAppSelector(selectLogoutStatus);
 
-  // Dispatch logout only — the auth observer will flip authStatus to
-  // unauthenticated, and RootNavigation's watcher will reset the stack
-  // back to Login automatically.
+  const { language, changeLanguage } = useLanguage();
+  const [langSheetVisible, setLangSheetVisible] = useState(false);
+
   const handleLogout = useCallback(() => {
     authLog.info('navigation', 'ProfileScreen logout button pressed');
     dispatch(logout());
   }, [dispatch]);
 
+  const handleLanguageConfirm = useCallback(
+    async (lng: string) => {
+      setLangSheetVisible(false);
+      await changeLanguage(lng);
+    },
+    [changeLanguage],
+  );
+
   return (
+    <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.container}
@@ -56,6 +68,25 @@ export const ProfileScreen: React.FC = () => {
             {user?.email ?? user?.displayName ?? '—'}
           </AppText>
         </View>
+
+        <View style={styles.divider} />
+
+        <Pressable
+          style={styles.langRow}
+          onPress={() => setLangSheetVisible(true)}
+          hitSlop={4}
+        >
+          <AppText variant="body">{t('profile.languageRow')}</AppText>
+          <View style={styles.langRight}>
+            <AppText variant="body" color={theme.colors.mutedForeground}>
+              {language.toUpperCase()}
+            </AppText>
+            <ChevronRight
+              size={ws(18)}
+              color={theme.colors.mutedForeground}
+            />
+          </View>
+        </Pressable>
       </AppCard>
 
       <AppButton
@@ -68,11 +99,23 @@ export const ProfileScreen: React.FC = () => {
         fullWidth
       />
     </ScrollView>
+
+    <LanguagePickerSheet
+      visible={langSheetVisible}
+      currentLanguage={language}
+      onClose={() => setLangSheetVisible(false)}
+      onConfirm={handleLanguageConfirm}
+    />
+  </SafeAreaView>
   );
 };
 
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
+    flex: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
     screen: {
       flex: 1,
       backgroundColor: theme.colors.background,
@@ -84,5 +127,21 @@ const createStyles = (theme: AppTheme) =>
     },
     row: {
       gap: theme.spacing.xs,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.colors.border,
+      marginVertical: hs(4),
+    },
+    langRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: hs(4),
+    },
+    langRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: ws(4),
     },
   });
