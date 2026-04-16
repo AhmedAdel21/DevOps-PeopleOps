@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Globe, type LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -60,9 +60,9 @@ export const LanguagePickerSheet: React.FC<LanguagePickerSheetProps> = ({
     }
   }, [visible, currentLanguage]);
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     onConfirm(selected);
-  };
+  }, [onConfirm, selected]);
 
   return (
     <AppBottomSheet visible={visible} onClose={onClose} heightFraction={0.5}>
