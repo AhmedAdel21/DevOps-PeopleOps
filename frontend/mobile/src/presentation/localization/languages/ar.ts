@@ -167,4 +167,16 @@ export const ar = {
   comingSoon: {
     body: 'لا تزال هذه الميزة قيد التطوير. ترقّب عودتها قريباً.',
   },
+  profile: {
+    languageRow: 'اللغة',
+    languageSheet: {
+      title: 'اختر اللغة',
+      confirm: 'تطبيق',
+      cancel: 'إلغاء',
+      languages: {
+        en: { title: 'الإنجليزية', body: 'تغيير التطبيق إلى الإنجليزية' },
+        ar: { title: 'العربية', body: 'تغيير التطبيق إلى العربية' },
+      },
+    },
+  },
 } as const;

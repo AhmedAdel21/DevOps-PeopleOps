@@ -167,4 +167,16 @@ export const en = {
   comingSoon: {
     body: "We're still building this. Check back soon.",
   },
+  profile: {
+    languageRow: 'Language',
+    languageSheet: {
+      title: 'Select Language',
+      confirm: 'Apply',
+      cancel: 'Cancel',
+      languages: {
+        en: { title: 'English', body: 'Switch app to English' },
+        ar: { title: 'Arabic', body: 'Switch app to Arabic' },
+      },
+    },
+  },
 } as const;
