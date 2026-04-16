@@ -35,6 +35,9 @@ export const ProfileScreen: React.FC = () => {
   const { language, changeLanguage } = useLanguage();
   const [langSheetVisible, setLangSheetVisible] = useState(false);
 
+  // Dispatch logout only — the auth observer will flip authStatus to
+  // unauthenticated, and RootNavigation's watcher will reset the stack
+  // back to Login automatically.
   const handleLogout = useCallback(() => {
     authLog.info('navigation', 'ProfileScreen logout button pressed');
     dispatch(logout());
@@ -50,63 +53,63 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.container}
-    >
-      <AppText variant="display">{t('tabs.profile')}</AppText>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.container}
+      >
+        <AppText variant="display">{t('tabs.profile')}</AppText>
 
-      <AppCard>
-        <View style={styles.row}>
-          <AppText
-            variant="caption"
-            color={theme.colors.mutedForeground}
-          >
-            {t('auth.loginScreen.emailLabel')}
-          </AppText>
-          <AppText variant="body">
-            {user?.email ?? user?.displayName ?? '—'}
-          </AppText>
-        </View>
-
-        <View style={styles.divider} />
-
-        <Pressable
-          style={styles.langRow}
-          onPress={() => setLangSheetVisible(true)}
-          hitSlop={4}
-        >
-          <AppText variant="body">{t('profile.languageRow')}</AppText>
-          <View style={styles.langRight}>
-            <AppText variant="body" color={theme.colors.mutedForeground}>
-              {language.toUpperCase()}
-            </AppText>
-            <ChevronRight
-              size={ws(18)}
+        <AppCard>
+          <View style={styles.row}>
+            <AppText
+              variant="caption"
               color={theme.colors.mutedForeground}
-            />
+            >
+              {t('auth.loginScreen.emailLabel')}
+            </AppText>
+            <AppText variant="body">
+              {user?.email ?? user?.displayName ?? '—'}
+            </AppText>
           </View>
-        </Pressable>
-      </AppCard>
 
-      <AppButton
-        label={t('auth.logout')}
-        onPress={handleLogout}
-        loading={logoutStatus === 'pending'}
-        disabled={logoutStatus === 'pending'}
-        variant="outlineDestructive"
-        leftIcon={LogOut}
-        fullWidth
+          <View style={styles.divider} />
+
+          <Pressable
+            style={styles.langRow}
+            onPress={() => setLangSheetVisible(true)}
+            hitSlop={4}
+          >
+            <AppText variant="body">{t('profile.languageRow')}</AppText>
+            <View style={styles.langRight}>
+              <AppText variant="body" color={theme.colors.mutedForeground}>
+                {language.toUpperCase()}
+              </AppText>
+              <ChevronRight
+                size={ws(18)}
+                color={theme.colors.mutedForeground}
+              />
+            </View>
+          </Pressable>
+        </AppCard>
+
+        <AppButton
+          label={t('auth.logout')}
+          onPress={handleLogout}
+          loading={logoutStatus === 'pending'}
+          disabled={logoutStatus === 'pending'}
+          variant="outlineDestructive"
+          leftIcon={LogOut}
+          fullWidth
+        />
+      </ScrollView>
+
+      <LanguagePickerSheet
+        visible={langSheetVisible}
+        currentLanguage={language}
+        onClose={() => setLangSheetVisible(false)}
+        onConfirm={handleLanguageConfirm}
       />
-    </ScrollView>
-
-    <LanguagePickerSheet
-      visible={langSheetVisible}
-      currentLanguage={language}
-      onClose={() => setLangSheetVisible(false)}
-      onConfirm={handleLanguageConfirm}
-    />
-  </SafeAreaView>
+    </SafeAreaView>
   );
 };
 
