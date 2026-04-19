@@ -31,12 +31,16 @@ import {
 } from '@/presentation/store/hooks';
 import {
   loginWithEmail,
+  loginWithZoho,
   clearLoginError,
+  clearZohoLoginError,
 } from '@/presentation/store/slices';
 import {
   selectAuthStatus,
   selectLoginStatus,
   selectLoginError,
+  selectZohoLoginStatus,
+  selectZohoLoginError,
 } from '@/presentation/store/selectors';
 import type { AuthErrorCode } from '@/domain/errors';
 import { authLog } from '@/core/logger';
@@ -54,6 +58,8 @@ const ERROR_I18N_KEY: Record<AuthErrorCode, string> = {
   'too-many-requests': 'auth.loginScreen.errors.accountLocked',
   network: 'auth.loginScreen.errors.network',
   unknown: 'common.error',
+  'zoho-cancelled': 'common.error',
+  'zoho-employee-not-linked': 'auth.loginScreen.errors.zohoEmployeeNotLinked',
 };
 
 const resolveErrorCode = (code: string | undefined): AuthErrorCode => {
@@ -95,6 +101,8 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const loginStatus = useAppSelector(selectLoginStatus);
   const loginError = useAppSelector(selectLoginError);
+  const zohoLoginStatus = useAppSelector(selectZohoLoginStatus);
+  const zohoLoginError = useAppSelector(selectZohoLoginError);
   const authStatus = useAppSelector(selectAuthStatus);
 
   const screenStatus: LoginScreenStatus =
@@ -104,15 +112,29 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
       ? 'error'
       : 'idle';
 
+  const zohoScreenStatus: LoginScreenStatus =
+    zohoLoginStatus === 'pending'
+      ? 'submitting'
+      : zohoLoginStatus === 'error'
+      ? 'error'
+      : 'idle';
+
   const errorMessage = useMemo(() => {
     if (!loginError) return undefined;
     const code = resolveErrorCode(loginError.code);
     return t(ERROR_I18N_KEY[code]);
   }, [loginError, t]);
 
-  // Clear any stale error when Login screen mounts.
+  const zohoErrorMessage = useMemo(() => {
+    if (!zohoLoginError) return undefined;
+    const code = resolveErrorCode(zohoLoginError.code);
+    return t(ERROR_I18N_KEY[code]);
+  }, [zohoLoginError, t]);
+
+  // Clear any stale errors when Login screen mounts.
   useEffect(() => {
     dispatch(clearLoginError());
+    dispatch(clearZohoLoginError());
   }, [dispatch]);
 
   // Once the observer reports the user is authenticated, reset the stack
@@ -141,6 +163,11 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
     [dispatch],
   );
 
+  const handleZohoSignIn = useCallback(() => {
+    authLog.info('navigation', 'LoginWrapper → dispatching loginWithZoho');
+    dispatch(loginWithZoho());
+  }, [dispatch]);
+
   const handleForgotPassword = useCallback(() => {
     navigation.navigate('ForgotPassword');
   }, [navigation]);
@@ -151,6 +178,9 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
       errorMessage={errorMessage}
       onSubmit={handleSubmit}
       onForgotPassword={handleForgotPassword}
+      onZohoSignIn={handleZohoSignIn}
+      zohoStatus={zohoScreenStatus}
+      zohoErrorMessage={zohoErrorMessage}
     />
   );
 };

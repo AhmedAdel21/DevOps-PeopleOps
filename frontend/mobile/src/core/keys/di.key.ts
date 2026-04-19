@@ -1,10 +1,12 @@
 export const DiKeys = {
   // auth
   FIREBASE_AUTH_DATA_SOURCE: 'firebaseAuthDataSource',
+  ZOHO_AUTH_DATA_SOURCE: 'zohoAuthDataSource',
   AUTH_REPOSITORY: 'authRepository',
   LOGIN_USE_CASE: 'loginUseCase',
   LOGOUT_USE_CASE: 'logoutUseCase',
   OBSERVE_AUTH_STATE_USE_CASE: 'observeAuthStateUseCase',
+  ZOHO_LOGIN_USE_CASE: 'zohoLoginUseCase',
 
   // http + attendance
   HTTP_CLIENT: 'httpClient',

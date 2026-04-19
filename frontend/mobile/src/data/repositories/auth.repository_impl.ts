@@ -3,15 +3,22 @@ import type {
   AuthRepository,
   AuthStateSubscription,
 } from '@/domain/repositories';
-import { FirebaseAuthRemoteDataSource } from '@/data/data_sources/auth';
+import {
+  FirebaseAuthRemoteDataSource,
+  ZohoAuthRemoteDataSource,
+} from '@/data/data_sources/auth';
 import {
   firebaseUserToDomain,
   mapFirebaseAuthError,
 } from '@/data/mappers/auth';
+import { AuthError } from '@/domain/errors';
 import { authLog } from '@/core/logger';
 
 export class AuthRepositoryImpl implements AuthRepository {
-  constructor(private readonly ds: FirebaseAuthRemoteDataSource) {}
+  constructor(
+    private readonly ds: FirebaseAuthRemoteDataSource,
+    private readonly zohoDs: ZohoAuthRemoteDataSource,
+  ) {}
 
   async signIn(email: string, password: string): Promise<void> {
     authLog.info(
@@ -54,6 +61,26 @@ export class AuthRepositoryImpl implements AuthRepository {
       `getCurrentUser → ${user ? `uid=${user.id}` : '<none>'}`,
     );
     return user;
+  }
+
+  async loginWithZoho(): Promise<void> {
+    authLog.info('repository', 'loginWithZoho called');
+    try {
+      const result = await this.zohoDs.authenticate();
+
+      if (!result.isActive) {
+        authLog.warn('repository', 'loginWithZoho: account inactive');
+        throw new AuthError('user-disabled', 'Account is inactive');
+      }
+
+      await this.ds.signInWithCustomToken(result.accessToken);
+      authLog.info('repository', 'loginWithZoho succeeded');
+    } catch (e) {
+      if (e instanceof AuthError) throw e;
+      const mapped = mapFirebaseAuthError(e);
+      authLog.error('repository', `loginWithZoho failed (authCode=${mapped.authCode})`);
+      throw mapped;
+    }
   }
 
   observeAuthState(

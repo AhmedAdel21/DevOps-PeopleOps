@@ -2,8 +2,10 @@ export {
   default as authReducer,
   bootstrapAuth,
   loginWithEmail,
+  loginWithZoho,
   logout,
   clearLoginError,
+  clearZohoLoginError,
   type AuthState,
 } from './auth.slice';
 

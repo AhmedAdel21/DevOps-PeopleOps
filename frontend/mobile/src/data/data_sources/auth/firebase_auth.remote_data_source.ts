@@ -68,6 +68,22 @@ export class FirebaseAuthRemoteDataSource {
     }
   }
 
+  async signInWithCustomToken(token: string): Promise<void> {
+    authLog.info('data_source', 'Firebase signInWithCustomToken →');
+    try {
+      await auth().signInWithCustomToken(token);
+      authLog.info('data_source', 'Firebase signInWithCustomToken resolved');
+    } catch (e) {
+      const code = (e as { code?: string } | null)?.code ?? 'unknown';
+      authLog.error(
+        'data_source',
+        `Firebase signInWithCustomToken rejected (code=${code})`,
+        e,
+      );
+      throw e;
+    }
+  }
+
   observe(
     cb: (user: FirebaseAuthTypes.User | null) => void,
   ): () => void {

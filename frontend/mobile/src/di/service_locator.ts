@@ -8,6 +8,7 @@ import {
   LoginUseCase,
   LogoutUseCase,
   ObserveAuthStateUseCase,
+  ZohoLoginUseCase,
   GetAttendanceStatusUseCase,
   SignInAttendanceUseCase,
   SignOutAttendanceUseCase,
@@ -15,6 +16,7 @@ import {
 } from '@/domain/use_cases';
 import {
   FirebaseAuthRemoteDataSource,
+  ZohoAuthRemoteDataSource,
   AttendanceRemoteDataSource,
   HttpClient,
 } from '@/data/data_sources';
@@ -36,7 +38,10 @@ export class ServiceLocator {
       firebaseAuthDs,
     );
 
-    const authRepo: AuthRepository = new AuthRepositoryImpl(firebaseAuthDs);
+    const zohoAuthDs = new ZohoAuthRemoteDataSource(AppConfig.API_BASE_URL);
+    ServiceLocator.register(DiKeys.ZOHO_AUTH_DATA_SOURCE, zohoAuthDs);
+
+    const authRepo: AuthRepository = new AuthRepositoryImpl(firebaseAuthDs, zohoAuthDs);
     ServiceLocator.register(DiKeys.AUTH_REPOSITORY, authRepo);
 
     ServiceLocator.register(
@@ -50,6 +55,10 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.OBSERVE_AUTH_STATE_USE_CASE,
       new ObserveAuthStateUseCase(authRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.ZOHO_LOGIN_USE_CASE,
+      new ZohoLoginUseCase(authRepo),
     );
 
     // ── HTTP + Attendance ───────────────────────────────────

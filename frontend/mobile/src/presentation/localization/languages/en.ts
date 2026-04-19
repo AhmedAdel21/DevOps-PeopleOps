@@ -28,12 +28,15 @@ export const en = {
       passwordPlaceholder: 'Enter your password',
       forgotLink: 'Forgot password?',
       submit: 'Sign In',
+      orDivider: 'OR',
+      zohoSignIn: 'Sign in with Zoho',
       footer: "Don't have an account? Contact HR to get access.",
       errors: {
         invalidCredentials: 'Invalid email or password',
         accountLocked: 'Too many attempts. Try again in a few minutes.',
         userDisabled: 'This account has been disabled. Contact HR for help.',
         network: 'Network error. Check your connection and try again.',
+        zohoEmployeeNotLinked: 'No employee profile is linked to your Zoho account. Contact HR.',
       },
     },
 
