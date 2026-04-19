@@ -179,4 +179,28 @@ export const en = {
       },
     },
   },
+  attendance: {
+    history: {
+      title: 'Attendance History',
+      empty: 'No attendance history yet',
+      loadError: 'Failed to load history.',
+      loadMoreError: 'Failed to load more.',
+      retry: 'Retry',
+      workedHours: '{{h}}h {{m}}m',
+      workedHoursOnly: '{{h}}h',
+      workedMinutesOnly: '{{m}}m',
+      status: {
+        inOffice: 'In Office',
+        wfh: 'Remote',
+        signedOut: 'Signed Out',
+        notCheckedIn: 'No Check-in',
+        vacation: 'Vacation',
+        absent: 'Absent',
+      },
+      place: {
+        inOffice: 'Office',
+        wfh: 'Remote',
+      },
+    },
+  },
 } as const;

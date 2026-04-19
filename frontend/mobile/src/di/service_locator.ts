@@ -11,6 +11,7 @@ import {
   GetAttendanceStatusUseCase,
   SignInAttendanceUseCase,
   SignOutAttendanceUseCase,
+  GetAttendanceHistoryUseCase,
 } from '@/domain/use_cases';
 import {
   FirebaseAuthRemoteDataSource,
@@ -80,6 +81,10 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.SIGN_OUT_ATTENDANCE_USE_CASE,
       new SignOutAttendanceUseCase(attendanceRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.GET_ATTENDANCE_HISTORY_USE_CASE,
+      new GetAttendanceHistoryUseCase(attendanceRepo),
     );
   }
 

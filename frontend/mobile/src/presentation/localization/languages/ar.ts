@@ -179,4 +179,28 @@ export const ar = {
       },
     },
   },
+  attendance: {
+    history: {
+      title: 'سجل الحضور',
+      empty: 'لا يوجد سجل حضور بعد',
+      loadError: 'فشل تحميل السجل.',
+      loadMoreError: 'فشل تحميل المزيد.',
+      retry: 'إعادة المحاولة',
+      workedHours: '{{h}}س {{m}}د',
+      workedHoursOnly: '{{h}}س',
+      workedMinutesOnly: '{{m}}د',
+      status: {
+        inOffice: 'في المكتب',
+        wfh: 'عن بُعد',
+        signedOut: 'انصرف',
+        notCheckedIn: 'لم يسجّل',
+        vacation: 'إجازة',
+        absent: 'غائب',
+      },
+      place: {
+        inOffice: 'مكتب',
+        wfh: 'عن بُعد',
+      },
+    },
+  },
 } as const;
