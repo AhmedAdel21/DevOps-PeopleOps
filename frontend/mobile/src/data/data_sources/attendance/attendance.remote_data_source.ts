@@ -2,12 +2,14 @@ import type { HttpClient } from '@/data/data_sources/http';
 import type {
   EmployeeStatusDto,
   SignInRequestDto,
+  AttendanceHistoryResponseDto,
 } from '@/data/dtos/attendance';
 import { attendanceLog } from '@/core/logger';
 
 const SIGN_IN_PATH = '/api/attendance/signin';
 const GET_CURRENT_STATUS_PATH = '/api/attendance/me';
 const SIGN_OUT_PATH = '/api/attendance/signout';
+const GET_HISTORY_PATH = '/api/attendance/me/history';
 
 export class AttendanceRemoteDataSource {
   constructor(private readonly http: HttpClient) {}
@@ -26,5 +28,18 @@ export class AttendanceRemoteDataSource {
   async signOut(): Promise<EmployeeStatusDto> {
     attendanceLog.info('data_source', `POST ${SIGN_OUT_PATH}`);
     return this.http.post<EmployeeStatusDto>(SIGN_OUT_PATH, {});
+  }
+
+  async getHistory(params: {
+    before?: string;
+    pageSize?: number;
+  }): Promise<AttendanceHistoryResponseDto> {
+    const query = new URLSearchParams();
+    if (params.before)    query.set('before', params.before);
+    if (params.pageSize)  query.set('pageSize', String(params.pageSize));
+    const qs = query.toString();
+    const path = qs ? `${GET_HISTORY_PATH}?${qs}` : GET_HISTORY_PATH;
+    attendanceLog.info('data_source', `GET ${path}`);
+    return this.http.get<AttendanceHistoryResponseDto>(path);
   }
 }

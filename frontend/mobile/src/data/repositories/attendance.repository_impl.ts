@@ -9,6 +9,7 @@ import {
   employeeStatusDtoToDomain,
   mapHttpErrorToAttendance,
   placeToDto,
+  attendanceHistoryResponseDtoToDomain,
 } from '@/data/mappers/attendance';
 import { attendanceLog } from '@/core/logger';
 
@@ -75,8 +76,20 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
     }
   }
 
-  async getHistory(_params: { before?: string; pageSize?: number }): Promise<AttendanceHistoryPage> {
-    // TODO: implement in data layer task
-    throw new Error('AttendanceRepositoryImpl.getHistory not yet implemented');
+  async getHistory(params: { before?: string; pageSize?: number }): Promise<AttendanceHistoryPage> {
+    attendanceLog.info(
+      'repository',
+      `getHistory called (before=${params.before ?? 'none'}, pageSize=${params.pageSize ?? 'default'})`,
+    );
+    try {
+      const dto = await this.ds.getHistory(params);
+      const page = attendanceHistoryResponseDtoToDomain(dto);
+      attendanceLog.info('repository', `getHistory → ${page.items.length} items, nextCursor=${page.nextCursor ?? 'none'}`);
+      return page;
+    } catch (e) {
+      const mapped = mapHttpErrorToAttendance(e);
+      attendanceLog.error('repository', `getHistory failed (code=${mapped.attendanceCode})`);
+      throw mapped;
+    }
   }
 }
