@@ -24,6 +24,7 @@ import {
   type LoginScreenStatus,
 } from '@/presentation/screens/auth';
 import { MainTabsNavigator } from './main_tabs_navigator';
+import { HistoryScreen } from '@/presentation/screens/history';
 import {
   useAppDispatch,
   useAppSelector,
@@ -283,6 +284,7 @@ export const RootNavigation: React.FC = () => {
         <Stack.Screen name="SetPassword" component={SetPasswordWrapper} />
         <Stack.Screen name="MainTabs" component={MainTabsNavigator} />
         <Stack.Screen name="Placeholder" component={PlaceholderScreen} />
+        <Stack.Screen name="History" component={HistoryScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

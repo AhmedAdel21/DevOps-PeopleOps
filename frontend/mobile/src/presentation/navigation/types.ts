@@ -6,6 +6,7 @@ export type RootStackParamList = {
   SetPassword: { mode: 'reset' | 'firstLogin'; token: string };
   MainTabs: undefined;
   Placeholder: undefined;
+  History: undefined;
 };
 
 export type MainTabsParamList = {
