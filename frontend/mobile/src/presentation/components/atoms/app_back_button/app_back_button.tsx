@@ -1,6 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, ViewStyle } from 'react-native';
-import { ArrowLeft } from 'lucide-react-native';
+import { I18nManager, Pressable, StyleSheet, ViewStyle } from 'react-native';
+import { ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { useTheme } from '@themes/index';
 import { ws } from '@/presentation/utils/scaling';
 
@@ -32,7 +32,10 @@ export const AppBackButton: React.FC<AppBackButtonProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Go back"
         >
-            <ArrowLeft size={ws(size)} color={color ?? theme.colors.foreground} />
+            {I18nManager.isRTL
+                ? <ArrowRight size={ws(size)} color={color ?? theme.colors.foreground} />
+                : <ArrowLeft size={ws(size)} color={color ?? theme.colors.foreground} />
+            }
         </Pressable>
     );
 };

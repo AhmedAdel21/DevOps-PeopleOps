@@ -195,6 +195,11 @@ export const en = {
         ar: { title: 'Arabic', body: 'Switch app to Arabic' },
       },
     },
+    rtlRestart: {
+      title: 'Restart Required',
+      body: 'Please restart the app for the layout direction change to take full effect.',
+      ok: 'OK',
+    },
   },
   attendance: {
     history: {

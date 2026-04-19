@@ -103,7 +103,7 @@ export const HistoryScreen: React.FC = () => {
 
   if (isInitialLoad) {
     return (
-      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
@@ -113,7 +113,7 @@ export const HistoryScreen: React.FC = () => {
 
   if (isInitialError) {
     return (
-      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
         <View style={styles.centered}>
           <Pressable onPress={handleRetryInitial}>
             <AppAlertBanner
@@ -127,7 +127,7 @@ export const HistoryScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
       <FlatList<SerializableAttendanceRecord>
         data={items}
         keyExtractor={(item) => item.date}

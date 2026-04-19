@@ -77,7 +77,7 @@ const buildStyles = (_theme: AppTheme) =>
         dot: {
             position: 'absolute',
             top: 0,
-            right: 0,
+            end: 0,
             width: ws(8),
             height: ws(8),
             borderRadius: ws(4),
