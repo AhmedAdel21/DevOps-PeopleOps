@@ -41,9 +41,19 @@ export const ProfileScreen: React.FC = () => {
   // ── Slack Connect ────────────────────────────────────────────────────────
   const [slackConnected, setSlackConnected] = useState(false);
   const [slackConnecting, setSlackConnecting] = useState(false);
+  const [slackDisconnecting, setSlackDisconnecting] = useState(false);
   const slackDs = useRef(
     ServiceLocator.get<SlackOAuthRemoteDataSource>(DiKeys.SLACK_OAUTH_DATA_SOURCE),
   ).current;
+
+  // Fetch initial connection status on mount so the row reflects the real
+  // state even after app restart (not just after completing OAuth in this session).
+  useEffect(() => {
+    slackDs
+      .getConnectionStatus()
+      .then(connected => setSlackConnected(connected))
+      .catch(() => {}); // silent — worst case shows "Connect" which is safe
+  }, [slackDs]);
 
   // Listen for the deep-link fired by the backend callback redirect.
   useEffect(() => {
@@ -66,6 +76,18 @@ export const ProfileScreen: React.FC = () => {
     } catch {
       setSlackConnecting(false);
       ToastAndroid.show(t('profile.slackConnect.errorToast'), ToastAndroid.SHORT);
+    }
+  }, [slackDs, t]);
+
+  const handleDisconnectSlack = useCallback(async () => {
+    try {
+      setSlackDisconnecting(true);
+      await slackDs.disconnect();
+      setSlackConnected(false);
+    } catch {
+      ToastAndroid.show(t('profile.slackConnect.disconnectErrorToast'), ToastAndroid.SHORT);
+    } finally {
+      setSlackDisconnecting(false);
     }
   }, [slackDs, t]);
 
@@ -108,21 +130,23 @@ export const ProfileScreen: React.FC = () => {
 
           <View style={styles.divider} />
 
-          {/* Slack connect row */}
+          {/* Slack connect / disconnect row */}
           <Pressable
             style={styles.langRow}
-            onPress={slackConnected ? undefined : handleConnectSlack}
-            disabled={slackConnecting}
+            onPress={slackConnected ? handleDisconnectSlack : handleConnectSlack}
+            disabled={slackConnecting || slackDisconnecting}
             hitSlop={4}
           >
             <View style={styles.slackRowLeft}>
               <Link2 size={ws(18)} color={slackConnected ? '#4A154B' : theme.colors.mutedForeground} />
               <AppText variant="body">
-                {slackConnected
-                  ? t('profile.slackConnect.connected')
-                  : slackConnecting
-                    ? t('profile.slackConnect.connecting')
-                    : t('profile.slackConnect.row')}
+                {slackDisconnecting
+                  ? t('profile.slackConnect.disconnecting')
+                  : slackConnected
+                    ? t('profile.slackConnect.connected')
+                    : slackConnecting
+                      ? t('profile.slackConnect.connecting')
+                      : t('profile.slackConnect.row')}
               </AppText>
             </View>
             {slackConnected ? (

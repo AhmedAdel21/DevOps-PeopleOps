@@ -179,6 +179,9 @@ export const en = {
       connected: 'Slack connected',
       connecting: 'Opening Slack…',
       errorToast: 'Could not start Slack connection. Try again.',
+      disconnect: 'Disconnect Slack',
+      disconnecting: 'Disconnecting…',
+      disconnectErrorToast: 'Could not disconnect Slack. Try again.',
     },
     languageSheet: {
       title: 'Select Language',

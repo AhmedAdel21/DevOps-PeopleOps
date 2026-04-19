@@ -178,6 +178,9 @@ export const ar = {
       row: 'ربط حساب Slack',
       connected: 'Slack مرتبط',
       connecting: 'جارٍ فتح Slack…',
+      disconnect: 'قطع ربط Slack',
+      disconnecting: 'جارٍ قطع الربط…',
+      disconnectErrorToast: 'تعذّر قطع ربط Slack. حاول مجدداً.',
       errorToast: 'تعذّر بدء الاتصال بـ Slack. حاول مرة أخرى.',
     },
     languageSheet: {
