@@ -35,8 +35,8 @@ export class AttendanceRemoteDataSource {
     pageSize?: number;
   }): Promise<AttendanceHistoryResponseDto> {
     const query = new URLSearchParams();
-    if (params.before)    query.set('before', params.before);
-    if (params.pageSize)  query.set('pageSize', String(params.pageSize));
+    if (params.before !== undefined)    query.set('before', params.before);
+    if (params.pageSize !== undefined)  query.set('pageSize', String(params.pageSize));
     const qs = query.toString();
     const path = qs ? `${GET_HISTORY_PATH}?${qs}` : GET_HISTORY_PATH;
     attendanceLog.info('data_source', `GET ${path}`);
