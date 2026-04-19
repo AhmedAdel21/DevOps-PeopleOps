@@ -28,12 +28,15 @@ export const ar = {
       passwordPlaceholder: 'أدخل كلمة المرور',
       forgotLink: 'نسيت كلمة المرور؟',
       submit: 'تسجيل الدخول',
+      orDivider: 'أو',
+      zohoSignIn: 'الدخول بحساب Zoho',
       footer: 'ليس لديك حساب؟ تواصل مع الموارد البشرية للحصول على وصول.',
       errors: {
         invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
         accountLocked: 'محاولات كثيرة. حاول مجدداً بعد بضع دقائق.',
         userDisabled: 'تم تعطيل هذا الحساب. تواصل مع الموارد البشرية.',
         network: 'خطأ في الشبكة. تحقق من اتصالك ثم حاول مجدداً.',
+        zohoEmployeeNotLinked: 'لا يوجد ملف موظف مرتبط بحساب Zoho الخاص بك. تواصل مع الموارد البشرية.',
       },
     },
 
@@ -190,6 +193,30 @@ export const ar = {
       languages: {
         en: { title: 'الإنجليزية', body: 'تغيير التطبيق إلى الإنجليزية' },
         ar: { title: 'العربية', body: 'تغيير التطبيق إلى العربية' },
+      },
+    },
+  },
+  attendance: {
+    history: {
+      title: 'سجل الحضور',
+      empty: 'لا يوجد سجل حضور بعد',
+      loadError: 'فشل تحميل السجل.',
+      loadMoreError: 'فشل تحميل المزيد.',
+      retry: 'إعادة المحاولة',
+      workedHours: '{{h}}س {{m}}د',
+      workedHoursOnly: '{{h}}س',
+      workedMinutesOnly: '{{m}}د',
+      status: {
+        inOffice: 'في المكتب',
+        wfh: 'عن بُعد',
+        signedOut: 'انصرف',
+        notCheckedIn: 'لم يسجّل',
+        vacation: 'إجازة',
+        absent: 'غائب',
+      },
+      place: {
+        inOffice: 'مكتب',
+        wfh: 'عن بُعد',
       },
     },
   },

@@ -8,5 +8,7 @@ export const selectIsAuthBootstrapped = (s: RootState) =>
   s.auth.status !== 'uninitialized';
 export const selectLoginStatus = (s: RootState) => s.auth.loginStatus;
 export const selectLoginError = (s: RootState) => s.auth.loginError;
+export const selectZohoLoginStatus = (s: RootState) => s.auth.zohoLoginStatus;
+export const selectZohoLoginError = (s: RootState) => s.auth.zohoLoginError;
 export const selectLogoutStatus = (s: RootState) => s.auth.logoutStatus;
 export const selectLogoutError = (s: RootState) => s.auth.logoutError;

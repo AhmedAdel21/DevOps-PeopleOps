@@ -20,3 +20,14 @@ export const selectIsAttendanceBusy = (s: RootState) =>
   s.attendance.fetchStatus === 'pending' ||
   s.attendance.signInStatus === 'pending' ||
   s.attendance.signOutStatus === 'pending';
+
+export const selectAttendanceHistoryItems = (s: RootState) =>
+  s.attendance.historyItems;
+export const selectAttendanceHistoryHasMore = (s: RootState) =>
+  s.attendance.historyHasMore;
+export const selectAttendanceHistoryNextCursor = (s: RootState) =>
+  s.attendance.historyNextCursor;
+export const selectAttendanceHistoryFetchStatus = (s: RootState) =>
+  s.attendance.historyFetchStatus;
+export const selectAttendanceHistoryFetchError = (s: RootState) =>
+  s.attendance.historyFetchError;

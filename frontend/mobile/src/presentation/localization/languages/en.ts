@@ -28,12 +28,15 @@ export const en = {
       passwordPlaceholder: 'Enter your password',
       forgotLink: 'Forgot password?',
       submit: 'Sign In',
+      orDivider: 'OR',
+      zohoSignIn: 'Sign in with Zoho',
       footer: "Don't have an account? Contact HR to get access.",
       errors: {
         invalidCredentials: 'Invalid email or password',
         accountLocked: 'Too many attempts. Try again in a few minutes.',
         userDisabled: 'This account has been disabled. Contact HR for help.',
         network: 'Network error. Check your connection and try again.',
+        zohoEmployeeNotLinked: 'No employee profile is linked to your Zoho account. Contact HR.',
       },
     },
 
@@ -190,6 +193,30 @@ export const en = {
       languages: {
         en: { title: 'English', body: 'Switch app to English' },
         ar: { title: 'Arabic', body: 'Switch app to Arabic' },
+      },
+    },
+  },
+  attendance: {
+    history: {
+      title: 'Attendance History',
+      empty: 'No attendance history yet',
+      loadError: 'Failed to load history.',
+      loadMoreError: 'Failed to load more.',
+      retry: 'Retry',
+      workedHours: '{{h}}h {{m}}m',
+      workedHoursOnly: '{{h}}h',
+      workedMinutesOnly: '{{m}}m',
+      status: {
+        inOffice: 'In Office',
+        wfh: 'Remote',
+        signedOut: 'Signed Out',
+        notCheckedIn: 'No Check-in',
+        vacation: 'Vacation',
+        absent: 'Absent',
+      },
+      place: {
+        inOffice: 'Office',
+        wfh: 'Remote',
       },
     },
   },

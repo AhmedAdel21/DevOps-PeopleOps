@@ -8,3 +8,4 @@ export * from './app_divider';
 export * from './app_back_button';
 export * from './app_bottom_sheet';
 export * from './app_badge';
+export * from './app_attendance_record_card';

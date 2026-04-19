@@ -28,7 +28,12 @@
       "Read(//c/Users/__TRACKED_VAR__/AppData/Local/**)",
       "Bash(reg query *)",
       "Bash(\"/c/Program Files/Android/Android Studio/jbr/bin/java\" -version)",
-      "Bash(\"/c/Users/DEVOPSolution/AppData/Local/Android/Sdk/platform-tools/adb.exe\" version *)"
+      "Bash(\"/c/Users/DEVOPSolution/AppData/Local/Android/Sdk/platform-tools/adb.exe\" version *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(tee /tmp/tsc.out)",
+      "Bash(echo \"---tsc-exit=$?---\")",
+      "Bash(npx eslint:*)",
+      "Bash(echo \"---eslint-exit=$?---\")"
     ]
   }
 }

@@ -11,6 +11,7 @@ import {
   LoginUseCase,
   LogoutUseCase,
   ObserveAuthStateUseCase,
+  ZohoLoginUseCase,
 } from '@/domain/use_cases';
 import { AuthError } from '@/domain/errors';
 import { authLog } from '@/core/logger';
@@ -24,6 +25,8 @@ export interface AuthState {
   status: AuthStatus;
   loginStatus: ActionStatus;
   loginError: SerializableDomainError | null;
+  zohoLoginStatus: ActionStatus;
+  zohoLoginError: SerializableDomainError | null;
   logoutStatus: ActionStatus;
   logoutError: SerializableDomainError | null;
 }
@@ -33,6 +36,8 @@ const initialState: AuthState = {
   status: 'uninitialized',
   loginStatus: 'idle',
   loginError: null,
+  zohoLoginStatus: 'idle',
+  zohoLoginError: null,
   logoutStatus: 'idle',
   logoutError: null,
 };
@@ -93,6 +98,32 @@ export const loginWithEmail = createAsyncThunk<
   }
 });
 
+export const loginWithZoho = createAsyncThunk<
+  void,
+  void,
+  { rejectValue: SerializableDomainError }
+>('auth/loginWithZoho', async (_, { rejectWithValue }) => {
+  authLog.info('slice', 'loginWithZoho thunk →');
+  try {
+    const useCase = ServiceLocator.get<ZohoLoginUseCase>(
+      DiKeys.ZOHO_LOGIN_USE_CASE,
+    );
+    await useCase.execute();
+    authLog.info('slice', 'loginWithZoho thunk resolved (awaiting observer)');
+  } catch (e) {
+    const serialized = serializeError(e);
+    if (serialized.code === 'auth/zoho-cancelled') {
+      authLog.info('slice', 'loginWithZoho: user cancelled');
+      return; // treat cancel as a no-op, not an error
+    }
+    authLog.error(
+      'slice',
+      `loginWithZoho thunk rejected (code=${serialized.code})`,
+    );
+    return rejectWithValue(serialized);
+  }
+});
+
 export const logout = createAsyncThunk<
   void,
   void,
@@ -135,6 +166,10 @@ const authSlice = createSlice({
       state.loginStatus = 'idle';
       state.loginError = null;
     },
+    clearZohoLoginError(state) {
+      state.zohoLoginStatus = 'idle';
+      state.zohoLoginError = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -148,6 +183,21 @@ const authSlice = createSlice({
       .addCase(loginWithEmail.rejected, (state, action) => {
         state.loginStatus = 'error';
         state.loginError =
+          action.payload ?? {
+            code: 'auth/unknown',
+            message: 'Authentication failed',
+          };
+      })
+      .addCase(loginWithZoho.pending, (state) => {
+        state.zohoLoginStatus = 'pending';
+        state.zohoLoginError = null;
+      })
+      .addCase(loginWithZoho.fulfilled, (state) => {
+        state.zohoLoginStatus = 'idle';
+      })
+      .addCase(loginWithZoho.rejected, (state, action) => {
+        state.zohoLoginStatus = 'error';
+        state.zohoLoginError =
           action.payload ?? {
             code: 'auth/unknown',
             message: 'Authentication failed',
@@ -171,5 +221,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearLoginError } = authSlice.actions;
+export const { clearLoginError, clearZohoLoginError } = authSlice.actions;
 export default authSlice.reducer;

@@ -17,6 +17,7 @@ import {
     AppCard,
     AppTextField,
     AppAlertBanner,
+    AppDivider,
 } from '@/presentation/components/atoms';
 import { AppLogo } from '@/presentation/components/molecules';
 
@@ -25,15 +26,21 @@ export type LoginScreenStatus = 'idle' | 'submitting' | 'error';
 export interface LoginScreenProps {
     onSubmit?: (credentials: { email: string; password: string }) => void;
     onForgotPassword?: () => void;
+    onZohoSignIn?: () => void;
     status?: LoginScreenStatus;
     errorMessage?: string;
+    zohoStatus?: LoginScreenStatus;
+    zohoErrorMessage?: string;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
     onSubmit,
     onForgotPassword,
+    onZohoSignIn,
     status = 'idle',
     errorMessage,
+    zohoStatus = 'idle',
+    zohoErrorMessage,
 }) => {
     const { theme } = useTheme();
     const { t } = useTranslation();
@@ -44,7 +51,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     const [showPassword, setShowPassword] = useState(false);
 
     const isSubmitting = status === 'submitting';
+    const isZohoSubmitting = zohoStatus === 'submitting';
+    const isAnySubmitting = isSubmitting || isZohoSubmitting;
     const hasError = status === 'error' && Boolean(errorMessage);
+    const hasZohoError = zohoStatus === 'error' && Boolean(zohoErrorMessage);
 
     const handleSubmit = useCallback(() => {
         if (!email.trim() || !password.trim()) return;
@@ -97,7 +107,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                             textContentType="emailAddress"
                             autoComplete="email"
                             returnKeyType="next"
-                            editable={!isSubmitting}
+                            editable={!isAnySubmitting}
                         />
 
                         <AppTextField
@@ -113,14 +123,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                             autoComplete="password"
                             returnKeyType="done"
                             onSubmitEditing={handleSubmit}
-                            editable={!isSubmitting}
+                            editable={!isAnySubmitting}
                         />
 
                         <Pressable
                             onPress={onForgotPassword}
                             hitSlop={8}
                             style={styles.forgotRow}
-                            disabled={isSubmitting}
+                            disabled={isAnySubmitting}
                         >
                             <AppText
                                 variant="caption"
@@ -136,9 +146,36 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                         label={t('auth.loginScreen.submit')}
                         onPress={handleSubmit}
                         loading={isSubmitting}
-                        disabled={isSubmitting || !email.trim() || !password.trim()}
+                        disabled={isAnySubmitting || !email.trim() || !password.trim()}
                         fullWidth
                     />
+
+                    <View style={styles.dividerRow}>
+                        <AppDivider style={styles.dividerLine} />
+                        <AppText
+                            variant="caption"
+                            color={theme.colors.mutedForeground}
+                        >
+                            {t('auth.loginScreen.orDivider')}
+                        </AppText>
+                        <AppDivider style={styles.dividerLine} />
+                    </View>
+
+                    <AppButton
+                        label={t('auth.loginScreen.zohoSignIn')}
+                        onPress={onZohoSignIn}
+                        variant="outline"
+                        loading={isZohoSubmitting}
+                        disabled={isAnySubmitting}
+                        fullWidth
+                    />
+
+                    {hasZohoError && (
+                        <AppAlertBanner
+                            variant="error"
+                            message={zohoErrorMessage!}
+                        />
+                    )}
 
                     <AppText
                         variant="caption"
@@ -174,5 +211,13 @@ const createStyles = (theme: AppTheme) =>
         },
         forgotRow: {
             alignSelf: 'flex-end',
+        },
+        dividerRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: theme.spacing.s,
+        },
+        dividerLine: {
+            flex: 1,
         },
     });

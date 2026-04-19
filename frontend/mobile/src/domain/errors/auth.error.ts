@@ -5,7 +5,9 @@ export type AuthErrorCode =
   | 'user-disabled'
   | 'too-many-requests'
   | 'network'
-  | 'unknown';
+  | 'unknown'
+  | 'zoho-cancelled'
+  | 'zoho-employee-not-linked';
 
 export class AuthError extends DomainError {
   constructor(
