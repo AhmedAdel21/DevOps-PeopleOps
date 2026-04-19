@@ -169,6 +169,12 @@ export const en = {
   },
   profile: {
     languageRow: 'Language',
+    slackConnect: {
+      row: 'Connect Slack account',
+      connected: 'Slack connected',
+      connecting: 'Opening Slack…',
+      errorToast: 'Could not start Slack connection. Try again.',
+    },
     languageSheet: {
       title: 'Select Language',
       confirm: 'Apply',
