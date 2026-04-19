@@ -2,12 +2,19 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { AuthError } from '@/domain/errors';
 import { authLog } from '@/core/logger';
 
-// HTTPS URL registered in Zoho + sent to backend for state validation.
-// The backend bounces Zoho's redirect here → devopsolution:// deep link.
-const ZOHO_MOBILE_REDIRECT_URI =
-  'https://devopsolution-c8f7andbbuc9d3hj.westeurope-01.azurewebsites.net/api/auth/zoho/mobile-callback';
-// Custom scheme the app intercepts after the backend bounce.
-const ZOHO_DEEP_LINK = 'devopsolution://auth/zoho/callback';
+/**
+ * Options injected by the DI layer so we can vary URLs per environment.
+ * All three MUST be provided at construction time.
+ */
+export interface ZohoAuthRemoteDataSourceOptions {
+  baseUrl: string;
+  /** HTTPS URL registered in Zoho + sent to backend for state validation. */
+  mobileRedirectUri: string;
+  /** Custom URL scheme the app intercepts after the backend bounce. */
+  deepLink: string;
+  /** Per-attempt timeout (ms) for the warm-up ping. */
+  warmUpTimeoutMs: number;
+}
 
 export interface ZohoLoginResponse {
   accessToken: string;
@@ -38,7 +45,17 @@ function parseCallbackParams(url: string): Record<string, string> {
 }
 
 export class ZohoAuthRemoteDataSource {
-  constructor(private readonly baseUrl: string) {}
+  private readonly baseUrl: string;
+  private readonly mobileRedirectUri: string;
+  private readonly deepLink: string;
+  private readonly warmUpTimeoutMs: number;
+
+  constructor(options: ZohoAuthRemoteDataSourceOptions) {
+    this.baseUrl = options.baseUrl;
+    this.mobileRedirectUri = options.mobileRedirectUri;
+    this.deepLink = options.deepLink;
+    this.warmUpTimeoutMs = options.warmUpTimeoutMs;
+  }
 
   /**
    * Pings the backend's health endpoint until it responds 200, to work around
@@ -47,16 +64,24 @@ export class ZohoAuthRemoteDataSource {
    * for the first 1–2 requests — including Zoho's redirect to
    * `/api/auth/zoho/mobile-callback`, which the user can't retry gracefully.
    *
-   * Retries up to `maxAttempts` with exponential backoff (250ms → ~2s).
-   * Silently gives up if the worker still isn't ready — the subsequent
-   * /zoho/start call will surface the real error.
+   * Retries up to `maxAttempts` with exponential backoff (250ms → ~2s). Each
+   * attempt is bounded by `warmUpTimeoutMs` via AbortController so a stalled
+   * network never blocks the OAuth flow indefinitely. Silently gives up if
+   * the worker still isn't ready — the subsequent /zoho/start call will
+   * surface the real error.
    */
   private async warmUpBackend(maxAttempts = 5): Promise<void> {
     let delayMs = 250;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        this.warmUpTimeoutMs,
+      );
       try {
         const res = await fetch(`${this.baseUrl}/api/health`, {
           method: 'GET',
+          signal: controller.signal,
         });
         if (res.ok) {
           authLog.info(
@@ -75,9 +100,11 @@ export class ZohoAuthRemoteDataSource {
           `ZohoAuth: warm-up threw (attempt=${attempt})`,
           e,
         );
+      } finally {
+        clearTimeout(timeoutId);
       }
       if (attempt < maxAttempts) {
-        await new Promise(r => setTimeout(r, delayMs));
+        await new Promise<void>(r => setTimeout(r, delayMs));
         delayMs = Math.min(delayMs * 2, 2000);
       }
     }
@@ -97,7 +124,7 @@ export class ZohoAuthRemoteDataSource {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         clientType: 'mobile',
-        redirectUri: ZOHO_MOBILE_REDIRECT_URI,
+        redirectUri: this.mobileRedirectUri,
       }),
     });
 
@@ -118,7 +145,7 @@ export class ZohoAuthRemoteDataSource {
     try {
       const result = await InAppBrowser.openAuth(
         authorizationUrl,
-        ZOHO_DEEP_LINK,
+        this.deepLink,
         {
           showTitle: false,
           enableUrlBarHiding: true,
@@ -164,7 +191,7 @@ export class ZohoAuthRemoteDataSource {
       body: JSON.stringify({
         zohoCode: code,
         state: returnedState,
-        redirectUri: ZOHO_MOBILE_REDIRECT_URI,
+        redirectUri: this.mobileRedirectUri,
         clientType: 'mobile',
       }),
     });

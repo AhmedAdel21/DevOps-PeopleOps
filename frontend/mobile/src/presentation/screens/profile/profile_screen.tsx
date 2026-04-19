@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, ToastAndroid, View } from 'react-native';
+import { Alert, I18nManager, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, ChevronRight, Link2, LogOut } from 'lucide-react-native';
+import { CheckCircle, ChevronLeft, ChevronRight, Link2, LogOut } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
@@ -52,7 +52,16 @@ export const ProfileScreen: React.FC = () => {
     slackDs
       .getConnectionStatus()
       .then(connected => setSlackConnected(connected))
-      .catch(() => {}); // silent — worst case shows "Connect" which is safe
+      .catch(e => {
+        // Worst case shows "Connect" which is safe UX, but log so we can
+        // distinguish a backend outage from an actual not-connected state
+        // when diagnosing user reports.
+        authLog.warn(
+          'screen',
+          'ProfileScreen: Slack status check failed on mount',
+          e,
+        );
+      });
   }, [slackDs]);
 
   // Listen for the deep-link fired by the backend callback redirect.
@@ -73,9 +82,10 @@ export const ProfileScreen: React.FC = () => {
       setSlackConnecting(true);
       const authUrl = await slackDs.getAuthorizationUrl();
       await Linking.openURL(authUrl);
-    } catch {
+    } catch (e) {
       setSlackConnecting(false);
-      ToastAndroid.show(t('profile.slackConnect.errorToast'), ToastAndroid.SHORT);
+      authLog.warn('screen', 'ProfileScreen: Slack connect flow failed', e);
+      Alert.alert(t('common.error'), t('profile.slackConnect.errorToast'));
     }
   }, [slackDs, t]);
 
@@ -84,8 +94,9 @@ export const ProfileScreen: React.FC = () => {
       setSlackDisconnecting(true);
       await slackDs.disconnect();
       setSlackConnected(false);
-    } catch {
-      ToastAndroid.show(t('profile.slackConnect.disconnectErrorToast'), ToastAndroid.SHORT);
+    } catch (e) {
+      authLog.warn('screen', 'ProfileScreen: Slack disconnect failed', e);
+      Alert.alert(t('common.error'), t('profile.slackConnect.disconnectErrorToast'));
     } finally {
       setSlackDisconnecting(false);
     }
@@ -151,6 +162,8 @@ export const ProfileScreen: React.FC = () => {
             </View>
             {slackConnected ? (
               <CheckCircle size={ws(18)} color={theme.colors.primary} />
+            ) : I18nManager.isRTL ? (
+              <ChevronLeft size={ws(18)} color={theme.colors.mutedForeground} />
             ) : (
               <ChevronRight size={ws(18)} color={theme.colors.mutedForeground} />
             )}
@@ -168,10 +181,10 @@ export const ProfileScreen: React.FC = () => {
               <AppText variant="body" color={theme.colors.mutedForeground}>
                 {language.toUpperCase()}
               </AppText>
-              <ChevronRight
-                size={ws(18)}
-                color={theme.colors.mutedForeground}
-              />
+              {I18nManager.isRTL
+                ? <ChevronLeft size={ws(18)} color={theme.colors.mutedForeground} />
+                : <ChevronRight size={ws(18)} color={theme.colors.mutedForeground} />
+              }
             </View>
           </Pressable>
         </AppCard>

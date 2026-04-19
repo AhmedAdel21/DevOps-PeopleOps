@@ -39,7 +39,12 @@ export class ServiceLocator {
       firebaseAuthDs,
     );
 
-    const zohoAuthDs = new ZohoAuthRemoteDataSource(AppConfig.API_BASE_URL);
+    const zohoAuthDs = new ZohoAuthRemoteDataSource({
+      baseUrl: AppConfig.API_BASE_URL,
+      mobileRedirectUri: AppConfig.ZOHO_MOBILE_REDIRECT_URI,
+      deepLink: AppConfig.ZOHO_DEEP_LINK,
+      warmUpTimeoutMs: AppConfig.WARM_UP_TIMEOUT_MS,
+    });
     ServiceLocator.register(DiKeys.ZOHO_AUTH_DATA_SOURCE, zohoAuthDs);
 
     const authRepo: AuthRepository = new AuthRepositoryImpl(firebaseAuthDs, zohoAuthDs);
