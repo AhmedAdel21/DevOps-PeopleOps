@@ -1,7 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Alert, I18nManager } from 'react-native';
+import { I18nManager } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import RNRestart from 'react-native-restart';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
+import { RotateCcw } from 'lucide-react-native';
+import { StorageKeys } from '@/core/keys/storage.key';
+import { useDialog } from '@/presentation/components/molecules';
 import './i18n';
 
 interface LanguageContextValue {
@@ -18,29 +23,42 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { t, i18n } = useTranslation();
   const [remountKey, setRemountKey] = useState(0);
   const reconciledRef = useRef(false);
+  const { showDialog } = useDialog();
 
   const isRTL = i18n.language === 'ar';
 
-  // Reconcile native layout direction with the loaded language on app boot.
+  const promptRestart = useCallback(() => {
+    showDialog({
+      title: i18n.t('profile.rtlRestart.title'),
+      message: i18n.t('profile.rtlRestart.body'),
+      confirmLabel: i18n.t('profile.rtlRestart.ok'),
+      icon: RotateCcw,
+      onConfirm: () => RNRestart.restart(),
+    });
+  }, [i18n, showDialog]);
+
+  // Reconcile native layout direction with the persisted language on app boot.
   // After a user switches language, I18nManager.forceRTL may not fully persist
   // before the process is killed, leaving the next launch with text in one
-  // language but layout in the other direction. This catches that mismatch
-  // and prompts the user to restart once more so the two stay in sync.
+  // language but layout in the other direction.
+  //
+  // We read AsyncStorage directly (same source the i18n detector uses) instead
+  // of i18n.language, because i18n.language is initially the fallback ('en')
+  // before the async detector resolves — reading it too early would produce a
+  // false-positive mismatch against the previously saved language.
   useEffect(() => {
     if (reconciledRef.current) return;
-    if (!i18n.language || i18n.language === 'cimode') return;
-
-    const shouldBeRTL = i18n.language === 'ar';
-    if (I18nManager.isRTL !== shouldBeRTL) {
-      I18nManager.forceRTL(shouldBeRTL);
-      Alert.alert(
-        i18n.t('profile.rtlRestart.title'),
-        i18n.t('profile.rtlRestart.body'),
-        [{ text: i18n.t('profile.rtlRestart.ok') }],
-      );
-    }
     reconciledRef.current = true;
-  }, [i18n.language, i18n]);
+
+    AsyncStorage.getItem(StorageKeys.LANGUAGE).then((savedLang) => {
+      const effective = savedLang || 'en';
+      const shouldBeRTL = effective === 'ar';
+      if (I18nManager.isRTL !== shouldBeRTL) {
+        I18nManager.forceRTL(shouldBeRTL);
+        promptRestart();
+      }
+    });
+  }, [promptRestart]);
 
   const changeLanguage = useCallback(
     async (lng: string) => {
@@ -49,17 +67,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (I18nManager.isRTL !== shouldBeRTL) {
         I18nManager.forceRTL(shouldBeRTL);
         setRemountKey((k) => k + 1);
-        // Native layout direction (both iOS and Android) requires a full process
-        // restart after forceRTL. JS remount alone only updates the React tree —
-        // native views keep their old layout direction until relaunch.
-        Alert.alert(
-          i18n.t('profile.rtlRestart.title'),
-          i18n.t('profile.rtlRestart.body'),
-          [{ text: i18n.t('profile.rtlRestart.ok') }],
-        );
+        // Native layout direction requires a full process restart after
+        // forceRTL. The themed dialog triggers RNRestart on confirm.
+        promptRestart();
       }
     },
-    [i18n],
+    [i18n, promptRestart],
   );
 
   const value: LanguageContextValue = {

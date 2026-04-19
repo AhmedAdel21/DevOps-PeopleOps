@@ -9,6 +9,7 @@ export const en = {
     ok: 'OK',
     back: 'Back',
     continue: 'Continue',
+    unknown: 'Unknown',
   },
   auth: {
     login: 'Login',
@@ -36,7 +37,8 @@ export const en = {
         accountLocked: 'Too many attempts. Try again in a few minutes.',
         userDisabled: 'This account has been disabled. Contact HR for help.',
         network: 'Network error. Check your connection and try again.',
-        zohoEmployeeNotLinked: 'No employee profile is linked to your Zoho account. Contact HR.',
+        zohoEmployeeNotLinked:
+          'No employee profile is linked to your Zoho account. Contact HR.',
       },
     },
 
@@ -55,8 +57,8 @@ export const en = {
     otp: {
       title: 'Enter the code',
       sentTo: 'We sent a 6-digit code to',
-      resendIn: 'Didn\'t receive it? Resend in {{time}}',
-      resendNow: 'Didn\'t receive it? Resend now',
+      resendIn: "Didn't receive it? Resend in {{time}}",
+      resendNow: "Didn't receive it? Resend now",
       verify: 'Verify code',
       errors: {
         wrongCode: 'Incorrect code. Please try again.',
@@ -114,6 +116,7 @@ export const en = {
       remote: 'Remote',
     },
     leaveBalance: {
+      title: 'Leave balance',
       annual: 'Annual {{count}}d',
       casual: 'Casual {{count}}d',
       sick: 'Sick —',
@@ -140,8 +143,9 @@ export const en = {
         "We couldn't find your employee profile. Your Firebase email must match your Slack email.",
       invalidState: "That action isn't allowed right now.",
       network: 'Network error. Check your connection and try again.',
-      generic: "Something went wrong. Please try again.",
-      slackOAuthRequired: 'Connect your Slack account before signing in or out.',
+      generic: 'Something went wrong. Please try again.',
+      slackOAuthRequired:
+        'Connect your Slack account before signing in or out.',
     },
     slackBanner: {
       message: 'Connect your Slack account to enable sign-in and sign-out.',
@@ -176,6 +180,19 @@ export const en = {
     body: "We're still building this. Check back soon.",
   },
   profile: {
+    accountDetailsTitle: 'Account details',
+    preferencesTitle: 'Preferences',
+    photoPreview: {
+      hint: 'Tap photo to view full size',
+      close: 'Close',
+      swipeHint: 'Swipe down to close',
+    },
+    fields: {
+      fullName: 'Full name',
+      email: 'Email',
+      department: 'Department',
+      slackId: 'Slack user ID',
+    },
     languageRow: 'Language',
     slackConnect: {
       row: 'Connect Slack account',
@@ -185,6 +202,7 @@ export const en = {
       disconnect: 'Disconnect Slack',
       disconnecting: 'Disconnecting…',
       disconnectErrorToast: 'Could not disconnect Slack. Try again.',
+      hint: 'Tip: sign into slack.com in your browser first for one-tap connect.',
     },
     languageSheet: {
       title: 'Select Language',
@@ -197,8 +215,8 @@ export const en = {
     },
     rtlRestart: {
       title: 'Restart Required',
-      body: 'Please restart the app for the layout direction change to take full effect.',
-      ok: 'OK',
+      body: 'The app needs to restart to apply the new layout direction.',
+      ok: 'Restart now',
     },
   },
   attendance: {

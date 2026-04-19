@@ -6,6 +6,7 @@ import { store } from '@/presentation/store';
 import { bootstrapAuth } from '@/presentation/store/slices';
 import { ThemeProvider, useTheme } from '@themes/theme_context';
 import { LanguageProvider, useLanguage } from '@/presentation/localization/language_context';
+import { DialogProvider } from '@/presentation/components/molecules';
 import { RootNavigation } from '@/presentation/navigation/root_navigation';
 import { ServiceLocator } from '@/di';
 
@@ -38,9 +39,11 @@ export default function App() {
     <ReduxProvider store={store}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <LanguageProvider>
-            <AppRoot />
-          </LanguageProvider>
+          <DialogProvider>
+            <LanguageProvider>
+              <AppRoot />
+            </LanguageProvider>
+          </DialogProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </ReduxProvider>

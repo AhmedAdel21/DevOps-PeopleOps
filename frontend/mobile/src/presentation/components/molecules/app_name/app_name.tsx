@@ -33,7 +33,7 @@ export const AppName: React.FC<AppNameProps> = ({
         <View style={[styles.container, style]}>
             {showLogo ? <AppLogo /> : null}
             <AppText variant="display" align="center">
-                {name ?? 'DevOps PeopleOps'}
+                {name ?? 'DevopTime'}
             </AppText>
             <AppText
                 variant="bodyLg"

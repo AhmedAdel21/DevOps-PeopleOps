@@ -9,6 +9,7 @@ export const ar = {
     ok: 'حسناً',
     back: 'رجوع',
     continue: 'متابعة',
+    unknown: 'غير معروف',
   },
   auth: {
     login: 'تسجيل الدخول',
@@ -36,7 +37,8 @@ export const ar = {
         accountLocked: 'محاولات كثيرة. حاول مجدداً بعد بضع دقائق.',
         userDisabled: 'تم تعطيل هذا الحساب. تواصل مع الموارد البشرية.',
         network: 'خطأ في الشبكة. تحقق من اتصالك ثم حاول مجدداً.',
-        zohoEmployeeNotLinked: 'لا يوجد ملف موظف مرتبط بحساب Zoho الخاص بك. تواصل مع الموارد البشرية.',
+        zohoEmployeeNotLinked:
+          'لا يوجد ملف موظف مرتبط بحساب Zoho الخاص بك. تواصل مع الموارد البشرية.',
       },
     },
 
@@ -114,6 +116,7 @@ export const ar = {
       remote: 'عن بُعد',
     },
     leaveBalance: {
+      title: 'رصيد الإجازات',
       annual: 'سنوية {{count}}ي',
       casual: 'عرضية {{count}}ي',
       sick: 'مرضية —',
@@ -176,6 +179,19 @@ export const ar = {
     body: 'لا تزال هذه الميزة قيد التطوير. ترقّب عودتها قريباً.',
   },
   profile: {
+    accountDetailsTitle: 'تفاصيل الحساب',
+    preferencesTitle: 'التفضيلات',
+    photoPreview: {
+      hint: 'اضغط على الصورة لعرضها بالحجم الكامل',
+      close: 'إغلاق',
+      swipeHint: 'اسحب لأسفل للإغلاق',
+    },
+    fields: {
+      fullName: 'الاسم الكامل',
+      email: 'البريد الإلكتروني',
+      department: 'القسم',
+      slackId: 'معرّف مستخدم Slack',
+    },
     languageRow: 'اللغة',
     slackConnect: {
       row: 'ربط حساب Slack',
@@ -185,6 +201,7 @@ export const ar = {
       disconnecting: 'جارٍ قطع الربط…',
       disconnectErrorToast: 'تعذّر قطع ربط Slack. حاول مجدداً.',
       errorToast: 'تعذّر بدء الاتصال بـ Slack. حاول مرة أخرى.',
+      hint: 'للربط بضغطة واحدة، سجّل دخولك على slack.com من متصفّح الهاتف أولاً.',
     },
     languageSheet: {
       title: 'اختر اللغة',
@@ -197,8 +214,8 @@ export const ar = {
     },
     rtlRestart: {
       title: 'إعادة التشغيل مطلوبة',
-      body: 'يرجى إعادة تشغيل التطبيق لتطبيق تغيير اتجاه التخطيط بالكامل.',
-      ok: 'حسناً',
+      body: 'يحتاج التطبيق لإعادة التشغيل لتطبيق الاتجاه الجديد.',
+      ok: 'إعادة التشغيل الآن',
     },
   },
   attendance: {
