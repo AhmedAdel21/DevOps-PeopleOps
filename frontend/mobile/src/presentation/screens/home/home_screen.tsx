@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, I18nManager, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -49,7 +49,7 @@ import {
 } from '@/presentation/store/selectors';
 import type { AttendanceErrorCode } from '@/domain/errors';
 import type { RootStackParamList } from '@/presentation/navigation/types';
-import { attendanceLog } from '@/core/logger';
+import { attendanceLog, authLog } from '@/core/logger';
 import { ServiceLocator } from '@/di/service_locator';
 import { DiKeys } from '@/core/keys/di.key';
 import type { SlackOAuthRemoteDataSource } from '@/data/data_sources/slack/slack_oauth.remote_data_source';
@@ -143,7 +143,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         slackDs
             .getConnectionStatus()
             .then(connected => setSlackConnected(connected))
-            .catch(() => setSlackConnected(false));
+            .catch(e => {
+                // Don't silently swallow: a network error and "not connected"
+                // look the same to the UI otherwise. Log, then fall back to
+                // the safe default so the sign-in buttons stay disabled and
+                // the banner prompts for re-connect.
+                authLog.warn(
+                    'screen',
+                    'HomeScreen: Slack status check failed, assuming not connected',
+                    e,
+                );
+                setSlackConnected(false);
+            });
     }, []);
 
     // Fetch current status, recent history, and Slack connection status on mount.
@@ -161,7 +172,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     // (e.g. after completing OAuth). Uses the Linking deep-link for connected
     // and also handles the case where the user navigates back normally.
     useEffect(() => {
-        const { Linking } = require('react-native');
         const sub = Linking.addEventListener('url', ({ url }: { url: string }) => {
             if (url === 'devops-peopleops://slack-oauth/connected') {
                 checkSlackStatus();
@@ -284,7 +294,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     <Pressable onPress={onOpenProfile}>
                         <AppAlertBanner
                             variant="warning"
-                            message={`${t('home.slackBanner.message')} ${t('home.slackBanner.cta')} →`}
+                            message={`${t('home.slackBanner.message')} ${t('home.slackBanner.cta')} ${I18nManager.isRTL ? '←' : '→'}`}
                         />
                     </Pressable>
                 )}
@@ -298,7 +308,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <AppCard
                     style={[
                         styles.statusCard,
-                        { borderLeftColor: visuals.accentColor },
+                        { borderStartColor: visuals.accentColor },
                     ]}
                     contentStyle={styles.statusContent}
                 >
@@ -490,7 +500,7 @@ const createStyles = (theme: AppTheme) =>
             gap: hs(4),
         },
         statusCard: {
-            borderLeftWidth: 4,
+            borderStartWidth: 4,
         },
         statusContent: {
             flexDirection: 'row',

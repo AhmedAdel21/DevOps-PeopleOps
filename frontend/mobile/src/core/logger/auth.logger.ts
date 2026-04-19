@@ -8,7 +8,8 @@ type AuthLogScope =
   | 'slice'
   | 'bootstrap'
   | 'observer'
-  | 'navigation';
+  | 'navigation'
+  | 'screen';
 
 const PREFIX = '[auth]';
 
