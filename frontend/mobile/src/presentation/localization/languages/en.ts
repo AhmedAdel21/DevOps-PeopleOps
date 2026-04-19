@@ -138,6 +138,11 @@ export const en = {
       invalidState: "That action isn't allowed right now.",
       network: 'Network error. Check your connection and try again.',
       generic: "Something went wrong. Please try again.",
+      slackOAuthRequired: 'Connect your Slack account before signing in or out.',
+    },
+    slackBanner: {
+      message: 'Connect your Slack account to enable sign-in and sign-out.',
+      cta: 'Connect now',
     },
     signInSheet: {
       title: 'Where are you working from?',

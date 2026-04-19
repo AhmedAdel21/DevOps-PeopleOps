@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Linking, Pressable, ScrollView, StyleSheet, ToastAndroid, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, ChevronRight, LogOut, Slack } from 'lucide-react-native';
+import { CheckCircle, ChevronRight, Link2, LogOut } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
@@ -116,7 +116,7 @@ export const ProfileScreen: React.FC = () => {
             hitSlop={4}
           >
             <View style={styles.slackRowLeft}>
-              <Slack size={ws(18)} color={slackConnected ? '#4A154B' : theme.colors.mutedForeground} />
+              <Link2 size={ws(18)} color={slackConnected ? '#4A154B' : theme.colors.mutedForeground} />
               <AppText variant="body">
                 {slackConnected
                   ? t('profile.slackConnect.connected')
