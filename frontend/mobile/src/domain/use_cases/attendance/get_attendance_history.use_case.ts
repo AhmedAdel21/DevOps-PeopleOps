@@ -16,7 +16,7 @@ export class GetAttendanceHistoryUseCase extends UseCase<
     super();
   }
 
-  async execute(input: GetAttendanceHistoryInput = {}): Promise<AttendanceHistoryPage> {
+  async execute(input: GetAttendanceHistoryInput): Promise<AttendanceHistoryPage> {
     attendanceLog.info(
       'use_case',
       `GetAttendanceHistoryUseCase.execute → before=${input.before ?? 'none'}, pageSize=${input.pageSize ?? 'default'}`,

@@ -9,15 +9,15 @@ export type AttendanceRecordStatus =
 export type AttendanceRecordPlace = 'in_office' | 'wfh';
 
 export interface AttendanceRecord {
-  date: string;                          // yyyy-MM-dd
-  status: AttendanceRecordStatus;
-  place: AttendanceRecordPlace | null;
-  signInAt: Date | null;
-  signOutAt: Date | null;
-  workedMinutes: number | null;
+  readonly date: string;                          // yyyy-MM-dd
+  readonly status: AttendanceRecordStatus;
+  readonly place: AttendanceRecordPlace | null;
+  readonly signInAt: Date | null;
+  readonly signOutAt: Date | null;
+  readonly workedMinutes: number | null;
 }
 
 export interface AttendanceHistoryPage {
-  items: AttendanceRecord[];
-  nextCursor: string | null;             // null = no more pages
+  readonly items: AttendanceRecord[];
+  readonly nextCursor: string | null;             // null = no more pages
 }
