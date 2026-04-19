@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
     Building,
     Clock4,
@@ -12,6 +14,7 @@ import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
     AppAlertBanner,
+    AppAttendanceRecordCard,
     AppBadge,
     AppButton,
     AppCard,
@@ -28,6 +31,7 @@ import {
 } from '@/presentation/store/hooks';
 import {
     fetchAttendanceStatus,
+    fetchAttendanceHistory,
     signInAttendance,
     signOutAttendance,
     clearAttendanceErrors,
@@ -40,39 +44,23 @@ import {
     selectAttendanceSignInStatus,
     selectAttendanceSignOutError,
     selectAttendanceSignOutStatus,
+    selectAttendanceHistoryItems,
+    selectAttendanceHistoryFetchStatus,
 } from '@/presentation/store/selectors';
 import type { AttendanceErrorCode } from '@/domain/errors';
+import type { RootStackParamList } from '@/presentation/navigation/types';
 import { attendanceLog } from '@/core/logger';
 
 export type HomeStatus = 'notSignedIn' | 'signedInOffice' | 'signedInRemote';
-
-export type RecentMode = 'office' | 'remote';
-
-export interface RecentEntry {
-    id: string;
-    date: string;
-    mode: RecentMode;
-    duration: string;
-    complete: boolean;
-    highlight?: boolean;
-}
 
 export interface HomeScreenProps {
     userName?: string;
     annualLeaveDays?: number;
     casualLeaveDays?: number;
     hasUnreadNotifications?: boolean;
-    recentEntries?: RecentEntry[];
     onOpenNotifications?: () => void;
     onOpenProfile?: () => void;
-    onViewHistory?: () => void;
 }
-
-const DEFAULT_RECENT: RecentEntry[] = [
-    { id: '1', date: 'Mon, 7 Apr', mode: 'office', duration: '8h 12m', complete: true, highlight: true },
-    { id: '2', date: 'Sun, 6 Apr', mode: 'remote', duration: '7h 45m', complete: true },
-    { id: '3', date: 'Sat, 5 Apr', mode: 'office', duration: '4h 30m', complete: false },
-];
 
 interface StatusVisuals {
     accentColor: string;
@@ -120,14 +108,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     annualLeaveDays = 18,
     casualLeaveDays = 4,
     hasUnreadNotifications = true,
-    recentEntries = DEFAULT_RECENT,
     onOpenNotifications,
     onOpenProfile,
-    onViewHistory,
 }) => {
     const { theme } = useTheme();
     const { t, i18n } = useTranslation();
     const styles = useMemo(() => createStyles(theme), [theme]);
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
     const dispatch = useAppDispatch();
     const current = useAppSelector(selectAttendanceCurrent);
@@ -137,16 +124,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     const signInError = useAppSelector(selectAttendanceSignInError);
     const signOutStatus = useAppSelector(selectAttendanceSignOutStatus);
     const signOutError = useAppSelector(selectAttendanceSignOutError);
+    const historyItems = useAppSelector(selectAttendanceHistoryItems);
+    const historyFetchStatus = useAppSelector(selectAttendanceHistoryFetchStatus);
 
     const [signInSheetVisible, setSignInSheetVisible] = useState(false);
 
-    // Fetch current status when the screen first mounts.
+    // Fetch current status and recent history when the screen first mounts.
     useEffect(() => {
         attendanceLog.info(
             'screen',
-            'HomeScreen mount → dispatching fetchAttendanceStatus',
+            'HomeScreen mount → dispatching fetchAttendanceStatus + fetchAttendanceHistory',
         );
         dispatch(fetchAttendanceStatus());
+        dispatch(fetchAttendanceHistory({ append: false, pageSize: 5 }));
     }, [dispatch]);
 
     const status: HomeStatus = domainToHomeStatus(
@@ -332,55 +322,39 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 )}
 
                 <View style={styles.recentSection}>
-                    <AppText variant="cardTitle">{t('home.recentTitle')}</AppText>
+                    <View style={styles.recentHeader}>
+                        <AppText variant="cardTitle">{t('home.recentTitle')}</AppText>
+                        <Pressable onPress={() => navigation.navigate('History')} hitSlop={8}>
+                            <AppText variant="caption" color={theme.colors.primary}>
+                                {t('home.historyLink')}
+                            </AppText>
+                        </Pressable>
+                    </View>
 
-                    {recentEntries.map((entry) => (
-                        <View key={entry.id} style={styles.recentRow}>
-                            <AppText
-                                variant="caption"
-                                color={theme.colors.mutedForeground}
-                                style={styles.recentDate}
-                            >
-                                {entry.date}
-                            </AppText>
-                            <AppBadge
-                                label={t(`home.mode.${entry.mode}`)}
-                                variant={entry.highlight ? 'success' : 'neutral'}
-                            />
-                            <AppText
-                                variant="caption"
-                                color={theme.colors.foreground}
-                                weight="medium"
-                                style={styles.recentDuration}
-                            >
-                                {entry.duration}
-                            </AppText>
-                            <View
-                                style={[
-                                    styles.dot,
-                                    {
-                                        backgroundColor: entry.complete
-                                            ? theme.colors.status.success.base
-                                            : theme.colors.mutedForeground,
-                                    },
-                                ]}
-                            />
+                    {historyFetchStatus === 'pending' && historyItems.length === 0 && (
+                        <View style={styles.recentSpinner}>
+                            <ActivityIndicator color={theme.colors.primary} />
                         </View>
-                    ))}
+                    )}
 
-                    <Pressable
-                        onPress={onViewHistory}
-                        hitSlop={8}
-                        disabled={!onViewHistory}
-                    >
-                        <AppText
-                            variant="caption"
-                            color={theme.colors.primary}
-                            align="center"
-                        >
-                            {t('home.historyLink')}
+                    {historyFetchStatus === 'error' && historyItems.length === 0 && (
+                        <Pressable onPress={() => dispatch(fetchAttendanceHistory({ append: false, pageSize: 5 }))}>
+                            <AppAlertBanner
+                                variant="error"
+                                message={t('attendance.history.loadError')}
+                            />
+                        </Pressable>
+                    )}
+
+                    {historyFetchStatus === 'loaded' && historyItems.length === 0 && (
+                        <AppText variant="caption" color={theme.colors.mutedForeground}>
+                            {t('attendance.history.empty')}
                         </AppText>
-                    </Pressable>
+                    )}
+
+                    {historyItems.map((record) => (
+                        <AppAttendanceRecordCard key={record.date} record={record} />
+                    ))}
                 </View>
             </ScrollView>
 
@@ -508,24 +482,13 @@ const createStyles = (theme: AppTheme) =>
         recentSection: {
             gap: hs(12),
         },
-        recentRow: {
+        recentHeader: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            paddingVertical: hs(12),
-            borderBottomWidth: 1,
-            borderBottomColor: theme.colors.border,
-            gap: theme.spacing.s,
         },
-        recentDate: {
-            minWidth: ws(70),
-        },
-        recentDuration: {
-            marginLeft: 'auto',
-        },
-        dot: {
-            width: ws(8),
-            height: ws(8),
-            borderRadius: ws(4),
+        recentSpinner: {
+            paddingVertical: hs(16),
+            alignItems: 'center',
         },
     });
