@@ -397,6 +397,16 @@ export const ProfileScreen: React.FC = () => {
             )}
           </Pressable>
 
+          {!slackConnected && !slackConnecting && !slackDisconnecting ? (
+            <AppText
+              variant="caption"
+              color={theme.colors.mutedForeground}
+              style={styles.slackHint}
+            >
+              {t('profile.slackConnect.hint')}
+            </AppText>
+          ) : null}
+
           <View style={styles.divider} />
 
           <Pressable
@@ -574,6 +584,11 @@ const createStyles = (theme: AppTheme) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: ws(8),
+    },
+    slackHint: {
+      marginTop: hs(-2),
+      marginStart: ws(26),
+      lineHeight: hs(18),
     },
     photoPreviewBackdrop: {
       flex: 1,
