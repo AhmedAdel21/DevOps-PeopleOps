@@ -10,3 +10,9 @@ export type {
   AttendancePlace,
   AttendanceStatus,
 } from './attendance.entity';
+export type {
+  AttendanceRecord,
+  AttendanceHistoryPage,
+  AttendanceRecordStatus,
+  AttendanceRecordPlace,
+} from './attendance_record.entity';

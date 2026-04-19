@@ -1,6 +1,7 @@
 import type {
   Attendance,
   AttendancePlace,
+  AttendanceHistoryPage,
 } from '@/domain/entities';
 import type { AttendanceRepository } from '@/domain/repositories';
 import { AttendanceRemoteDataSource } from '@/data/data_sources/attendance';
@@ -72,5 +73,10 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
       );
       throw mapped;
     }
+  }
+
+  async getHistory(_params: { before?: string; pageSize?: number }): Promise<AttendanceHistoryPage> {
+    // TODO: implement in data layer task
+    throw new Error('AttendanceRepositoryImpl.getHistory not yet implemented');
   }
 }
