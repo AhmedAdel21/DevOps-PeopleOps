@@ -4,6 +4,7 @@ import {
     createBottomTabNavigator,
     type BottomTabNavigationOptions,
 } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import {
     House,
@@ -32,6 +33,7 @@ const buildIcon = (Icon: LucideIcon) =>
 export const MainTabsNavigator: React.FC = () => {
     const { theme } = useTheme();
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
 
     const screenOptions: BottomTabNavigationOptions = {
         headerShown: false,
@@ -41,8 +43,9 @@ export const MainTabsNavigator: React.FC = () => {
             backgroundColor: theme.colors.card,
             borderTopColor: theme.colors.border,
             borderTopWidth: StyleSheet.hairlineWidth,
-            height: hs(64),
+            height: hs(64) + insets.bottom,
             paddingTop: hs(8),
+            paddingBottom: insets.bottom,
         },
         tabBarItemStyle: {
             paddingVertical: hs(4),
