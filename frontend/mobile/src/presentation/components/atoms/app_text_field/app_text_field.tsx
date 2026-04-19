@@ -143,10 +143,10 @@ const buildStyles = (theme: AppTheme) =>
             color: theme.colors.mutedForeground,
         },
         leftIcon: {
-            marginRight: theme.spacing.s,
+            marginEnd: theme.spacing.s,
         },
         rightIcon: {
-            marginLeft: theme.spacing.s,
+            marginStart: theme.spacing.s,
             padding: ws(2),
         },
         errorRow: {

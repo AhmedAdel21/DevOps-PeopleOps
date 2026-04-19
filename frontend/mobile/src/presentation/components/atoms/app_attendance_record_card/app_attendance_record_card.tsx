@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { I18nManager, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
@@ -22,7 +22,7 @@ const STATUS_I18N_KEY: Record<AttendanceRecordStatus, string> = {
 
 const formatDate = (date: string, language: string): string => {
   const d = new Date(`${date}T00:00:00`);
-  return new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+  return new Intl.DateTimeFormat(language, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
@@ -30,7 +30,7 @@ const formatDate = (date: string, language: string): string => {
 };
 
 const formatTime = (iso: string, language: string): string =>
-  new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', {
+  new Intl.DateTimeFormat(language, {
     hour: 'numeric',
     minute: '2-digit',
   }).format(new Date(iso));
@@ -106,7 +106,7 @@ export const AppAttendanceRecordCard: React.FC<AppAttendanceRecordCardProps> = (
             )}
             {record.signInAtIso && record.signOutAtIso && (
               <AppText variant="caption" color={theme.colors.foreground}>
-                {`${formatTime(record.signInAtIso, i18n.language)} → ${formatTime(record.signOutAtIso, i18n.language)}`}
+                {`${formatTime(record.signInAtIso, i18n.language)} ${I18nManager.isRTL ? '←' : '→'} ${formatTime(record.signOutAtIso, i18n.language)}`}
               </AppText>
             )}
             {record.workedMinutes != null && (

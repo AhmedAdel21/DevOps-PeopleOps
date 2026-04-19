@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import { I18nManager } from 'react-native';
+import { Alert, I18nManager, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import './i18n';
@@ -27,6 +27,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (I18nManager.isRTL !== shouldBeRTL) {
         I18nManager.forceRTL(shouldBeRTL);
         setRemountKey((k) => k + 1);
+        if (Platform.OS === 'ios') {
+          Alert.alert(
+            i18n.t('profile.rtlRestart.title'),
+            i18n.t('profile.rtlRestart.body'),
+            [{ text: i18n.t('profile.rtlRestart.ok') }],
+          );
+        }
       }
     },
     [i18n],

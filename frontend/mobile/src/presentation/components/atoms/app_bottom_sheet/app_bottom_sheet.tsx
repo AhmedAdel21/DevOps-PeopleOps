@@ -1,17 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import {
     Animated,
-    Dimensions,
     Modal,
     Pressable,
     StyleSheet,
+    useWindowDimensions,
     View,
     ViewStyle,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@themes/index';
 import { ws, hs } from '@/presentation/utils/scaling';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export interface AppBottomSheetProps {
     visible: boolean;
@@ -30,6 +29,8 @@ export const AppBottomSheet: React.FC<AppBottomSheetProps> = ({
     style,
 }) => {
     const { theme } = useTheme();
+    const insets = useSafeAreaInsets();
+    const { height: screenHeight } = useWindowDimensions();
     const slideAnim = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -63,7 +64,7 @@ export const AppBottomSheet: React.FC<AppBottomSheetProps> = ({
         }
     }, [visible, slideAnim, fadeAnim]);
 
-    const maxHeight = SCREEN_HEIGHT * heightFraction;
+    const maxHeight = screenHeight * heightFraction;
 
     const translateY = slideAnim.interpolate({
         inputRange: [0, 1],
@@ -92,6 +93,7 @@ export const AppBottomSheet: React.FC<AppBottomSheetProps> = ({
                         backgroundColor: theme.colors.card,
                         borderTopLeftRadius: ws(16),
                         borderTopRightRadius: ws(16),
+                        paddingBottom: insets.bottom,
                         transform: [{ translateY }],
                     },
                     style,
