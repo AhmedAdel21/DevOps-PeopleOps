@@ -50,6 +50,9 @@ import {
 import type { AttendanceErrorCode } from '@/domain/errors';
 import type { RootStackParamList } from '@/presentation/navigation/types';
 import { attendanceLog } from '@/core/logger';
+import { ServiceLocator } from '@/di/service_locator';
+import { DiKeys } from '@/core/keys/di.key';
+import type { SlackOAuthRemoteDataSource } from '@/data/data_sources/slack/slack_oauth.remote_data_source';
 
 export type HomeStatus = 'notSignedIn' | 'signedInOffice' | 'signedInRemote';
 
@@ -77,6 +80,7 @@ const ERROR_I18N_KEY: Record<AttendanceErrorCode, string> = {
     unauthenticated: 'home.errors.sessionExpired',
     'employee-not-linked': 'home.errors.employeeNotLinked',
     'invalid-state': 'home.errors.invalidState',
+    'slack-oauth-required': 'home.errors.slackOAuthRequired',
     network: 'home.errors.network',
     unknown: 'home.errors.generic',
 };
@@ -129,7 +133,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
     const [signInSheetVisible, setSignInSheetVisible] = useState(false);
 
-    // Fetch current status and recent history when the screen first mounts.
+    // null = still checking, true/false = result
+    const [slackConnected, setSlackConnected] = useState<boolean | null>(null);
+
+    const checkSlackStatus = useCallback(() => {
+        const slackDs = ServiceLocator.get<SlackOAuthRemoteDataSource>(
+            DiKeys.SLACK_OAUTH_DATA_SOURCE,
+        );
+        slackDs
+            .getConnectionStatus()
+            .then(connected => setSlackConnected(connected))
+            .catch(() => setSlackConnected(false));
+    }, []);
+
+    // Fetch current status, recent history, and Slack connection status on mount.
     useEffect(() => {
         attendanceLog.info(
             'screen',
@@ -137,7 +154,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         );
         dispatch(fetchAttendanceStatus());
         dispatch(fetchAttendanceHistory({ append: false, pageSize: 5 }));
-    }, [dispatch]);
+        checkSlackStatus();
+    }, [dispatch, checkSlackStatus]);
+
+    // Re-check Slack status when the user returns from the profile screen
+    // (e.g. after completing OAuth). Uses the Linking deep-link for connected
+    // and also handles the case where the user navigates back normally.
+    useEffect(() => {
+        const { Linking } = require('react-native');
+        const sub = Linking.addEventListener('url', ({ url }: { url: string }) => {
+            if (url === 'devops-peopleops://slack-oauth/connected') {
+                checkSlackStatus();
+            }
+        });
+        return () => sub.remove();
+    }, [checkSlackStatus]);
 
     const status: HomeStatus = domainToHomeStatus(
         current?.status ?? 'not_signed_in',
@@ -194,6 +225,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         signInStatus === 'pending' ||
         signOutStatus === 'pending';
 
+    // Block attendance actions until the Slack connection check completes and
+    // confirms the user has completed OAuth. null = loading, false = not connected.
+    const slackReady = slackConnected === true;
+
     const handleOpenSignIn = useCallback(() => {
         dispatch(clearAttendanceErrors());
         setSignInSheetVisible(true);
@@ -245,6 +280,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     </AppText>
                 </View>
 
+                {slackConnected === false && (
+                    <Pressable onPress={onOpenProfile}>
+                        <AppAlertBanner
+                            variant="warning"
+                            message={`${t('home.slackBanner.message')} ${t('home.slackBanner.cta')} →`}
+                        />
+                    </Pressable>
+                )}
+
                 {errorMessage && (
                     <Pressable onPress={handleDismissError}>
                         <AppAlertBanner variant="error" message={errorMessage} />
@@ -282,7 +326,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         onPress={handleSignOut}
                         variant="outlineDestructive"
                         loading={signOutStatus === 'pending'}
-                        disabled={isBusy}
+                        disabled={isBusy || !slackReady}
                         fullWidth
                     />
                 ) : (
@@ -290,7 +334,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         label={t('home.notSignedIn.signInCta')}
                         onPress={handleOpenSignIn}
                         loading={fetchStatus === 'pending' && !current}
-                        disabled={isBusy}
+                        disabled={isBusy || !slackReady}
                         fullWidth
                     />
                 )}

@@ -1,8 +1,8 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Linking, Pressable, ScrollView, StyleSheet, ToastAndroid, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { LogOut, ChevronRight } from 'lucide-react-native';
+import { CheckCircle, ChevronRight, Link2, LogOut } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
@@ -21,6 +21,9 @@ import {
 } from '@/presentation/store/selectors';
 import { authLog } from '@/core/logger';
 import { useLanguage } from '@/presentation/localization/language_context';
+import { DiKeys } from '@/core/keys/di.key';
+import { ServiceLocator } from '@/di/service_locator';
+import type { SlackOAuthRemoteDataSource } from '@/data/data_sources/slack/slack_oauth.remote_data_source';
 import { LanguagePickerSheet } from './language_picker_sheet';
 
 export const ProfileScreen: React.FC = () => {
@@ -34,6 +37,59 @@ export const ProfileScreen: React.FC = () => {
 
   const { language, changeLanguage } = useLanguage();
   const [langSheetVisible, setLangSheetVisible] = useState(false);
+
+  // ── Slack Connect ────────────────────────────────────────────────────────
+  const [slackConnected, setSlackConnected] = useState(false);
+  const [slackConnecting, setSlackConnecting] = useState(false);
+  const [slackDisconnecting, setSlackDisconnecting] = useState(false);
+  const slackDs = useRef(
+    ServiceLocator.get<SlackOAuthRemoteDataSource>(DiKeys.SLACK_OAUTH_DATA_SOURCE),
+  ).current;
+
+  // Fetch initial connection status on mount so the row reflects the real
+  // state even after app restart (not just after completing OAuth in this session).
+  useEffect(() => {
+    slackDs
+      .getConnectionStatus()
+      .then(connected => setSlackConnected(connected))
+      .catch(() => {}); // silent — worst case shows "Connect" which is safe
+  }, [slackDs]);
+
+  // Listen for the deep-link fired by the backend callback redirect.
+  useEffect(() => {
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      if (url.startsWith('devops-peopleops://slack-oauth/connected')) {
+        setSlackConnected(true);
+        setSlackConnecting(false);
+      } else if (url.startsWith('devops-peopleops://slack-oauth/error')) {
+        setSlackConnecting(false);
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
+  const handleConnectSlack = useCallback(async () => {
+    try {
+      setSlackConnecting(true);
+      const authUrl = await slackDs.getAuthorizationUrl();
+      await Linking.openURL(authUrl);
+    } catch {
+      setSlackConnecting(false);
+      ToastAndroid.show(t('profile.slackConnect.errorToast'), ToastAndroid.SHORT);
+    }
+  }, [slackDs, t]);
+
+  const handleDisconnectSlack = useCallback(async () => {
+    try {
+      setSlackDisconnecting(true);
+      await slackDs.disconnect();
+      setSlackConnected(false);
+    } catch {
+      ToastAndroid.show(t('profile.slackConnect.disconnectErrorToast'), ToastAndroid.SHORT);
+    } finally {
+      setSlackDisconnecting(false);
+    }
+  }, [slackDs, t]);
 
   // Dispatch logout only — the auth observer will flip authStatus to
   // unauthenticated, and RootNavigation's watcher will reset the stack
@@ -71,6 +127,34 @@ export const ProfileScreen: React.FC = () => {
               {user?.email ?? user?.displayName ?? '—'}
             </AppText>
           </View>
+
+          <View style={styles.divider} />
+
+          {/* Slack connect / disconnect row */}
+          <Pressable
+            style={styles.langRow}
+            onPress={slackConnected ? handleDisconnectSlack : handleConnectSlack}
+            disabled={slackConnecting || slackDisconnecting}
+            hitSlop={4}
+          >
+            <View style={styles.slackRowLeft}>
+              <Link2 size={ws(18)} color={slackConnected ? '#4A154B' : theme.colors.mutedForeground} />
+              <AppText variant="body">
+                {slackDisconnecting
+                  ? t('profile.slackConnect.disconnecting')
+                  : slackConnected
+                    ? t('profile.slackConnect.connected')
+                    : slackConnecting
+                      ? t('profile.slackConnect.connecting')
+                      : t('profile.slackConnect.row')}
+              </AppText>
+            </View>
+            {slackConnected ? (
+              <CheckCircle size={ws(18)} color={theme.colors.primary} />
+            ) : (
+              <ChevronRight size={ws(18)} color={theme.colors.mutedForeground} />
+            )}
+          </Pressable>
 
           <View style={styles.divider} />
 
@@ -146,5 +230,10 @@ const createStyles = (theme: AppTheme) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: ws(4),
+    },
+    slackRowLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: ws(8),
     },
   });

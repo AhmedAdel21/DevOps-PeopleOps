@@ -20,6 +20,7 @@ import {
   AttendanceRemoteDataSource,
   HttpClient,
 } from '@/data/data_sources';
+import { SlackOAuthRemoteDataSource } from '@/data/data_sources/slack/slack_oauth.remote_data_source';
 import {
   AuthRepositoryImpl,
   AttendanceRepositoryImpl,
@@ -67,6 +68,9 @@ export class ServiceLocator {
       () => firebaseAuthDs.getIdToken(),
     );
     ServiceLocator.register(DiKeys.HTTP_CLIENT, httpClient);
+
+    const slackOAuthDs = new SlackOAuthRemoteDataSource(httpClient);
+    ServiceLocator.register(DiKeys.SLACK_OAUTH_DATA_SOURCE, slackOAuthDs);
 
     const attendanceDs = new AttendanceRemoteDataSource(httpClient);
     ServiceLocator.register(

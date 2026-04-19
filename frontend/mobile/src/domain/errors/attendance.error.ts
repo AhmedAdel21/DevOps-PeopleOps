@@ -4,6 +4,7 @@ export type AttendanceErrorCode =
   | 'unauthenticated'
   | 'employee-not-linked'
   | 'invalid-state'
+  | 'slack-oauth-required'
   | 'network'
   | 'unknown';
 

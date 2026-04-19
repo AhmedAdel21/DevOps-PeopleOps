@@ -141,6 +141,11 @@ export const en = {
       invalidState: "That action isn't allowed right now.",
       network: 'Network error. Check your connection and try again.',
       generic: "Something went wrong. Please try again.",
+      slackOAuthRequired: 'Connect your Slack account before signing in or out.',
+    },
+    slackBanner: {
+      message: 'Connect your Slack account to enable sign-in and sign-out.',
+      cta: 'Connect now',
     },
     signInSheet: {
       title: 'Where are you working from?',
@@ -172,6 +177,15 @@ export const en = {
   },
   profile: {
     languageRow: 'Language',
+    slackConnect: {
+      row: 'Connect Slack account',
+      connected: 'Slack connected',
+      connecting: 'Opening Slack…',
+      errorToast: 'Could not start Slack connection. Try again.',
+      disconnect: 'Disconnect Slack',
+      disconnecting: 'Disconnecting…',
+      disconnectErrorToast: 'Could not disconnect Slack. Try again.',
+    },
     languageSheet: {
       title: 'Select Language',
       confirm: 'Apply',

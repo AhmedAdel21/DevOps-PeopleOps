@@ -64,6 +64,14 @@
 				<string>devopsolution</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.devops.peopleops</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>devops-peopleops</string>
+			</array>
+		</dict>
 	</array>
 	<key>UIAppFonts</key>
 	<array>

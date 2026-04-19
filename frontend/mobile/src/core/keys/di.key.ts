@@ -8,6 +8,9 @@ export const DiKeys = {
   OBSERVE_AUTH_STATE_USE_CASE: 'observeAuthStateUseCase',
   ZOHO_LOGIN_USE_CASE: 'zohoLoginUseCase',
 
+  // slack oauth
+  SLACK_OAUTH_DATA_SOURCE: 'slackOAuthDataSource',
+
   // http + attendance
   HTTP_CLIENT: 'httpClient',
   ATTENDANCE_REMOTE_DATA_SOURCE: 'attendanceRemoteDataSource',

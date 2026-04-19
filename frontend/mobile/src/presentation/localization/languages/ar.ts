@@ -141,6 +141,11 @@ export const ar = {
       invalidState: 'هذا الإجراء غير مسموح به حالياً.',
       network: 'خطأ في الشبكة. تحقق من اتصالك ثم حاول مجدداً.',
       generic: 'حدث خطأ ما. الرجاء المحاولة مرة أخرى.',
+      slackOAuthRequired: 'يرجى ربط حساب Slack قبل تسجيل الدخول أو الخروج.',
+    },
+    slackBanner: {
+      message: 'ربط حساب Slack مطلوب لتفعيل تسجيل الدخول والخروج.',
+      cta: 'ربط الآن',
     },
     signInSheet: {
       title: 'من أين تعمل اليوم؟',
@@ -172,6 +177,15 @@ export const ar = {
   },
   profile: {
     languageRow: 'اللغة',
+    slackConnect: {
+      row: 'ربط حساب Slack',
+      connected: 'Slack مرتبط',
+      connecting: 'جارٍ فتح Slack…',
+      disconnect: 'قطع ربط Slack',
+      disconnecting: 'جارٍ قطع الربط…',
+      disconnectErrorToast: 'تعذّر قطع ربط Slack. حاول مجدداً.',
+      errorToast: 'تعذّر بدء الاتصال بـ Slack. حاول مرة أخرى.',
+    },
     languageSheet: {
       title: 'اختر اللغة',
       confirm: 'تطبيق',

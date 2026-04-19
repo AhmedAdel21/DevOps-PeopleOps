@@ -32,6 +32,8 @@ export const mapHttpErrorToAttendance = (e: unknown): AttendanceError => {
       authCode = 'network';
     } else if (e.status === 401) {
       authCode = 'unauthenticated';
+    } else if (e.status === 428) {
+      authCode = 'slack-oauth-required';
     } else if (e.status === 404 && bodyCode === 'employee_not_linked') {
       authCode = 'employee-not-linked';
     } else if (e.status === 409 || e.status === 400) {
