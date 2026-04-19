@@ -31,10 +31,18 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onReady }) => {
         </View>
 
         <View style={styles.brandTextWrap}>
-          <AppText variant="title" align="center" color={theme.colors.foreground}>
+          <AppText
+            variant="title"
+            align="center"
+            color={theme.colors.foreground}
+          >
             DevopTime
           </AppText>
-          <AppText variant="body" align="center" color={theme.colors.mutedForeground}>
+          <AppText
+            variant="body"
+            align="center"
+            color={theme.colors.mutedForeground}
+          >
             {t('auth.splash.tagline')}
           </AppText>
         </View>

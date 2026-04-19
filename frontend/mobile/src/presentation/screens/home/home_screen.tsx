@@ -363,10 +363,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           >
             <View style={styles.leaveRow}>
               <AppBadge
-                label={t('home.leaveBalance.annual', { count: annualLeaveDays })}
+                label={t('home.leaveBalance.annual', {
+                  count: annualLeaveDays,
+                })}
               />
               <AppBadge
-                label={t('home.leaveBalance.casual', { count: casualLeaveDays })}
+                label={t('home.leaveBalance.casual', {
+                  count: casualLeaveDays,
+                })}
               />
               <AppBadge label={t('home.leaveBalance.sick')} />
             </View>
