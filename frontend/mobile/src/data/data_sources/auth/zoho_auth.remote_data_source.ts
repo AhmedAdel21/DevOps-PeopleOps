@@ -40,7 +40,56 @@ function parseCallbackParams(url: string): Record<string, string> {
 export class ZohoAuthRemoteDataSource {
   constructor(private readonly baseUrl: string) {}
 
+  /**
+   * Pings the backend's health endpoint until it responds 200, to work around
+   * Azure Functions Flex Consumption cold-start 404s. Without this, a fresh
+   * deploy (or a scaled-to-zero instance) can return Azure's default 404 page
+   * for the first 1–2 requests — including Zoho's redirect to
+   * `/api/auth/zoho/mobile-callback`, which the user can't retry gracefully.
+   *
+   * Retries up to `maxAttempts` with exponential backoff (250ms → ~2s).
+   * Silently gives up if the worker still isn't ready — the subsequent
+   * /zoho/start call will surface the real error.
+   */
+  private async warmUpBackend(maxAttempts = 5): Promise<void> {
+    let delayMs = 250;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await fetch(`${this.baseUrl}/api/health`, {
+          method: 'GET',
+        });
+        if (res.ok) {
+          authLog.info(
+            'data_source',
+            `ZohoAuth: warm-up ok (attempt=${attempt})`,
+          );
+          return;
+        }
+        authLog.info(
+          'data_source',
+          `ZohoAuth: warm-up got ${res.status} (attempt=${attempt})`,
+        );
+      } catch (e) {
+        authLog.info(
+          'data_source',
+          `ZohoAuth: warm-up threw (attempt=${attempt})`,
+          e,
+        );
+      }
+      if (attempt < maxAttempts) {
+        await new Promise(r => setTimeout(r, delayMs));
+        delayMs = Math.min(delayMs * 2, 2000);
+      }
+    }
+    authLog.info('data_source', 'ZohoAuth: warm-up gave up, proceeding anyway');
+  }
+
   async authenticate(): Promise<ZohoLoginResponse> {
+    // 0. Warm up the Azure Functions worker before kicking off OAuth. This
+    // prevents the classic cold-start 404 on /api/auth/zoho/mobile-callback
+    // that Zoho's redirect would otherwise land on.
+    await this.warmUpBackend();
+
     // 1. Start login — get signed auth URL from backend
     authLog.info('data_source', 'ZohoAuth: startLogin →');
     const startRes = await fetch(`${this.baseUrl}/api/auth/zoho/start`, {
