@@ -5,11 +5,12 @@ import {
 } from '@reduxjs/toolkit';
 import { ServiceLocator } from '@/di';
 import { DiKeys } from '@/core/keys/di.key';
-import type { Attendance, AttendancePlace } from '@/domain/entities';
+import type { Attendance, AttendancePlace, AttendanceRecord, AttendanceRecordStatus, AttendanceRecordPlace } from '@/domain/entities';
 import {
   GetAttendanceStatusUseCase,
   SignInAttendanceUseCase,
   SignOutAttendanceUseCase,
+  GetAttendanceHistoryUseCase,
 } from '@/domain/use_cases';
 import { AttendanceError } from '@/domain/errors';
 import { attendanceLog } from '@/core/logger';
@@ -17,6 +18,15 @@ import type { SerializableDomainError } from '../hooks';
 
 type FetchStatus = 'idle' | 'pending' | 'loaded' | 'error';
 type ActionStatus = 'idle' | 'pending' | 'error';
+
+export interface SerializableAttendanceRecord {
+  date: string;
+  status: AttendanceRecordStatus;
+  place: AttendanceRecordPlace | null;
+  signInAtIso: string | null;
+  signOutAtIso: string | null;
+  workedMinutes: number | null;
+}
 
 interface SerializableAttendance {
   employeeId: string;
@@ -41,6 +51,11 @@ export interface AttendanceState {
   signInError: SerializableDomainError | null;
   signOutStatus: ActionStatus;
   signOutError: SerializableDomainError | null;
+  historyItems: SerializableAttendanceRecord[];
+  historyNextCursor: string | null;
+  historyHasMore: boolean;
+  historyFetchStatus: FetchStatus;
+  historyFetchError: SerializableDomainError | null;
 }
 
 const initialState: AttendanceState = {
@@ -51,6 +66,11 @@ const initialState: AttendanceState = {
   signInError: null,
   signOutStatus: 'idle',
   signOutError: null,
+  historyItems: [],
+  historyNextCursor: null,
+  historyHasMore: false,
+  historyFetchStatus: 'idle',
+  historyFetchError: null,
 };
 
 const toSerializable = (a: Attendance): SerializableAttendance => ({
@@ -66,6 +86,15 @@ const toSerializable = (a: Attendance): SerializableAttendance => ({
   overrideMarkedBy: a.overrideMarkedBy,
   overrideNote: a.overrideNote,
   lastUpdatedAtIso: a.lastUpdatedAt.toISOString(),
+});
+
+const toSerializableRecord = (r: AttendanceRecord): SerializableAttendanceRecord => ({
+  date: r.date,
+  status: r.status,
+  place: r.place,
+  signInAtIso: r.signInAt ? r.signInAt.toISOString() : null,
+  signOutAtIso: r.signOutAt ? r.signOutAt.toISOString() : null,
+  workedMinutes: r.workedMinutes,
 });
 
 const serializeError = (e: unknown): SerializableDomainError => {
@@ -121,6 +150,30 @@ export const signOutAttendance = createAsyncThunk<
     );
     const result = await useCase.execute();
     return toSerializable(result);
+  } catch (e) {
+    return rejectWithValue(serializeError(e));
+  }
+});
+
+export const fetchAttendanceHistory = createAsyncThunk<
+  { items: SerializableAttendanceRecord[]; nextCursor: string | null; append: boolean },
+  { before?: string; pageSize?: number; append: boolean },
+  { rejectValue: SerializableDomainError }
+>('attendance/fetchHistory', async ({ before, pageSize, append }, { rejectWithValue }) => {
+  attendanceLog.info(
+    'slice',
+    `fetchAttendanceHistory thunk → before=${before ?? 'none'}, pageSize=${pageSize ?? 'default'}, append=${append}`,
+  );
+  try {
+    const useCase = ServiceLocator.get<GetAttendanceHistoryUseCase>(
+      DiKeys.GET_ATTENDANCE_HISTORY_USE_CASE,
+    );
+    const page = await useCase.execute({ before, pageSize });
+    return {
+      items: page.items.map(toSerializableRecord),
+      nextCursor: page.nextCursor,
+      append,
+    };
   } catch (e) {
     return rejectWithValue(serializeError(e));
   }
@@ -203,6 +256,29 @@ const attendanceSlice = createSlice({
           action.payload ?? {
             code: 'attendance/unknown',
             message: 'Sign-out failed',
+          };
+      })
+
+      .addCase(fetchAttendanceHistory.pending, (state) => {
+        state.historyFetchStatus = 'pending';
+        state.historyFetchError = null;
+      })
+      .addCase(fetchAttendanceHistory.fulfilled, (state, action) => {
+        const { items, nextCursor, append } = action.payload;
+        state.historyItems = append
+          ? [...state.historyItems, ...items]
+          : items;
+        state.historyNextCursor = nextCursor;
+        state.historyHasMore = nextCursor !== null;
+        state.historyFetchStatus = 'loaded';
+        state.historyFetchError = null;
+      })
+      .addCase(fetchAttendanceHistory.rejected, (state, action) => {
+        state.historyFetchStatus = 'error';
+        state.historyFetchError =
+          action.payload ?? {
+            code: 'attendance/unknown',
+            message: 'Failed to load history',
           };
       });
   },

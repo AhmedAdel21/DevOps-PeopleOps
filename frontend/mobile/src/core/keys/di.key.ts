@@ -13,6 +13,7 @@ export const DiKeys = {
   GET_ATTENDANCE_STATUS_USE_CASE: 'getAttendanceStatusUseCase',
   SIGN_IN_ATTENDANCE_USE_CASE: 'signInAttendanceUseCase',
   SIGN_OUT_ATTENDANCE_USE_CASE: 'signOutAttendanceUseCase',
+  GET_ATTENDANCE_HISTORY_USE_CASE: 'getAttendanceHistoryUseCase',
 } as const;
 
 export type DiKey = (typeof DiKeys)[keyof typeof DiKeys];
