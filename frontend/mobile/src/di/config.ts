@@ -38,4 +38,7 @@ export const AppConfig = {
 
   // Flip to false to silence the attendance/http logger in every layer.
   ATTENDANCE_LOGS_ENABLED: true,
+
+  // Flip to false to silence the Slack OAuth logger in every layer.
+  SLACK_LOGS_ENABLED: true,
 } as const;

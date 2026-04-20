@@ -4,3 +4,4 @@ export {
   AttendanceError,
   type AttendanceErrorCode,
 } from './attendance.error';
+export { SlackError, type SlackErrorCode } from './slack.error';
