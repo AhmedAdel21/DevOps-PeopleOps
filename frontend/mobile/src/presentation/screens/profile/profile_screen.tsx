@@ -99,12 +99,21 @@ export const ProfileScreen: React.FC = () => {
       if (url.startsWith('devops-peopleops://slack-oauth/connected')) {
         setSlackConnected(true);
         setSlackConnecting(false);
+        InAppBrowser.close();
       } else if (url.startsWith('devops-peopleops://slack-oauth/error')) {
         setSlackConnecting(false);
+        InAppBrowser.close();
+        showDialog({
+          title: t('common.error'),
+          message: t('profile.slackConnect.errorToast'),
+          confirmLabel: t('common.ok'),
+          icon: CircleAlert,
+          destructive: true,
+        });
       }
     });
     return () => sub.remove();
-  }, []);
+  }, [t, showDialog]);
 
   const handleConnectSlack = useCallback(async () => {
     try {
@@ -182,10 +191,17 @@ export const ProfileScreen: React.FC = () => {
     }
   }, [slackDs, t, showDialog]);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     authLog.info('navigation', 'ProfileScreen logout button pressed');
+    if (slackConnected) {
+      try {
+        await slackDs.disconnect();
+      } catch {
+        // best-effort: don't block logout if disconnect fails
+      }
+    }
     dispatch(logout());
-  }, [dispatch]);
+  }, [dispatch, slackDs, slackConnected]);
 
   const handleLanguageConfirm = useCallback(
     async (lng: string) => {
