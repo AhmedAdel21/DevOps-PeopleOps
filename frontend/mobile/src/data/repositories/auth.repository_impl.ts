@@ -63,7 +63,7 @@ export class AuthRepositoryImpl implements AuthRepository {
     return user;
   }
 
-  async loginWithZoho(): Promise<void> {
+  async loginWithZoho(): Promise<{ mustChangePassword: boolean }> {
     authLog.info('repository', 'loginWithZoho called');
     try {
       const result = await this.zohoDs.authenticate();
@@ -74,7 +74,8 @@ export class AuthRepositoryImpl implements AuthRepository {
       }
 
       await this.ds.signInWithCustomToken(result.accessToken);
-      authLog.info('repository', 'loginWithZoho succeeded');
+      authLog.info('repository', `loginWithZoho succeeded (mustChangePassword=${result.mustChangePassword})`);
+      return { mustChangePassword: result.mustChangePassword };
     } catch (e) {
       if (e instanceof AuthError) throw e;
       const mapped = mapFirebaseAuthError(e);
