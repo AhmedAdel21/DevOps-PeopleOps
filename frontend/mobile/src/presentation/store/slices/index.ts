@@ -14,11 +14,15 @@ export {
   fetchLeaveBalances,
   fetchLeaveRequests,
   submitLeaveRequest,
+  fetchPermissionRequests,
+  submitPermissionRequest,
   clearLeaveErrors,
   resetLeaveState,
   type LeaveState,
   type SerializableLeaveBalance,
   type SerializableLeaveRequest,
+  type SerializablePermissionRequest,
+  type SerializablePermissionQuota,
 } from './leave.slice';
 
 export {

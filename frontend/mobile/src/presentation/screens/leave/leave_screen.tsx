@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -8,6 +8,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { CalendarX, Plus } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import { AppBadge, AppButton, AppText } from '@/presentation/components/atoms';
@@ -22,6 +24,8 @@ import {
   selectLeaveRequests,
 } from '@/presentation/store/selectors';
 import type { SerializableLeaveBalance, SerializableLeaveRequest } from '@/presentation/store/slices';
+import type { LeaveStackParamList } from '@/presentation/navigation/types';
+import { RequestTypePickerSheet } from './request_type_picker_sheet';
 
 // ── UI-only type ────────────────────────────────────────────────────────────
 
@@ -217,8 +221,25 @@ export const LeaveScreen: React.FC = () => {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const dispatch = useAppDispatch();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<LeaveStackParamList>>();
 
-  const [activeFilter, setActiveFilter] = useState<FilterStatus>('All');
+  const [activeFilter,    setActiveFilter]    = useState<FilterStatus>('All');
+  const [showTypeSheet,   setShowTypeSheet]   = useState(false);
+
+  const openNewRequest = useCallback(() => setShowTypeSheet(true), []);
+
+  const handleTypeSelect = useCallback(
+    (type: 'vacation' | 'permission') => {
+      setShowTypeSheet(false);
+      if (type === 'vacation') {
+        navigation.navigate('NewVacationRequest');
+      } else {
+        navigation.navigate('NewPermissionRequest');
+      }
+    },
+    [navigation],
+  );
 
   const balances = useAppSelector(selectLeaveBalances);
   const allRequests = useAppSelector(selectLeaveRequests);
@@ -283,7 +304,7 @@ export const LeaveScreen: React.FC = () => {
             size="sm"
             leftIcon={Plus}
             label={t('leave.requests.newRequest')}
-            onPress={() => {}}
+            onPress={openNewRequest}
           />
         </View>
 
@@ -341,16 +362,23 @@ export const LeaveScreen: React.FC = () => {
               variant="primary"
               size="sm"
               label={t('leave.requests.empty.cta')}
-              onPress={() => {}}
+              onPress={openNewRequest}
             />
           </View>
         )}
       </ScrollView>
 
       {/* ── FAB ── */}
-      <Pressable style={styles.fab} onPress={() => {}}>
+      <Pressable style={styles.fab} onPress={openNewRequest}>
         <Plus size={ws(24)} color={theme.colors.primaryForeground} />
       </Pressable>
+
+      {/* ── Request type sheet ── */}
+      <RequestTypePickerSheet
+        visible={showTypeSheet}
+        onClose={() => setShowTypeSheet(false)}
+        onSelect={handleTypeSelect}
+      />
     </SafeAreaView>
   );
 };

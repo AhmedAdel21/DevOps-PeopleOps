@@ -17,6 +17,12 @@ export type MainTabsParamList = {
   Profile: undefined;
 };
 
+export type LeaveStackParamList = {
+  LeaveLanding: undefined;
+  NewVacationRequest: undefined;
+  NewPermissionRequest: undefined;
+};
+
 declare global {
   namespace ReactNavigation {
     interface RootParamList extends RootStackParamList { }

@@ -18,7 +18,7 @@ import { useTheme } from '@themes/index';
 import { hs, ws, fs } from '@/presentation/utils/scaling';
 import { HomeScreen } from '@/presentation/screens/home';
 import { AttendanceScreen } from '@/presentation/screens/attendance';
-import { LeaveScreen } from '@/presentation/screens/leave';
+import { LeaveStackNavigator } from './leave_stack_navigator';
 import { TeamScreen } from '@/presentation/screens/team';
 import { ProfileScreen } from '@/presentation/screens/profile';
 import type { MainTabsParamList } from './types';
@@ -82,7 +82,7 @@ export const MainTabsNavigator: React.FC = () => {
             />
             <Tab.Screen
                 name="Leave"
-                component={LeaveScreen}
+                component={LeaveStackNavigator}
                 options={{
                     tabBarLabel: t('tabs.vacations').toUpperCase(),
                     tabBarIcon: buildIcon(CalendarDays),
