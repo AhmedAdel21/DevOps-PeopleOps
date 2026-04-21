@@ -41,6 +41,7 @@ import {
   selectLoginError,
   selectZohoLoginStatus,
   selectZohoLoginError,
+  selectMustChangePassword,
 } from '@/presentation/store/selectors';
 import type { AuthErrorCode } from '@/domain/errors';
 import { authLog } from '@/core/logger';
@@ -104,6 +105,7 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
   const zohoLoginStatus = useAppSelector(selectZohoLoginStatus);
   const zohoLoginError = useAppSelector(selectZohoLoginError);
   const authStatus = useAppSelector(selectAuthStatus);
+  const mustChangePassword = useAppSelector(selectMustChangePassword);
 
   const screenStatus: LoginScreenStatus =
     loginStatus === 'pending'
@@ -137,20 +139,38 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
     dispatch(clearZohoLoginError());
   }, [dispatch]);
 
-  // Once the observer reports the user is authenticated, reset the stack
-  // to MainTabs so Login is dropped from history (no back-swipe into it).
+  // Once the observer reports the user is authenticated, navigate to the
+  // appropriate screen. mustChangePassword (set by loginWithZoho.fulfilled
+  // before the Firebase observer fires) routes first-login Zoho users to
+  // SetPassword; all other logins land on MainTabs.
   useEffect(() => {
     if (authStatus === 'authenticated') {
-      authLog.info(
-        'navigation',
-        'LoginWrapper → auth success, resetting stack to MainTabs',
-      );
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' }],
-      });
+      if (mustChangePassword) {
+        authLog.info(
+          'navigation',
+          'LoginWrapper → mustChangePassword, resetting stack to SetPassword',
+        );
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'SetPassword',
+              params: { mode: 'firstLogin', token: '' },
+            },
+          ],
+        });
+      } else {
+        authLog.info(
+          'navigation',
+          'LoginWrapper → auth success, resetting stack to MainTabs',
+        );
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' }],
+        });
+      }
     }
-  }, [authStatus, navigation]);
+  }, [authStatus, mustChangePassword, navigation]);
 
   const handleSubmit = useCallback(
     (credentials: { email: string; password: string }) => {

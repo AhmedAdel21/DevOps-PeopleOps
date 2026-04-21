@@ -44,7 +44,11 @@ import { authLog } from '@/core/logger';
 import { useLanguage } from '@/presentation/localization/language_context';
 import { DiKeys } from '@/core/keys/di.key';
 import { ServiceLocator } from '@/di/service_locator';
-import type { SlackOAuthRemoteDataSource } from '@/data/data_sources/slack/slack_oauth.remote_data_source';
+import type {
+  GetSlackAuthUrlUseCase,
+  CheckSlackConnectionUseCase,
+  DisconnectSlackUseCase,
+} from '@/domain/use_cases';
 import { LanguagePickerSheet } from './language_picker_sheet';
 
 export const ProfileScreen: React.FC = () => {
@@ -69,15 +73,19 @@ export const ProfileScreen: React.FC = () => {
   const [slackConnected, setSlackConnected] = useState(false);
   const [slackConnecting, setSlackConnecting] = useState(false);
   const [slackDisconnecting, setSlackDisconnecting] = useState(false);
-  const slackDs = useRef(
-    ServiceLocator.get<SlackOAuthRemoteDataSource>(
-      DiKeys.SLACK_OAUTH_DATA_SOURCE,
-    ),
+  const getSlackAuthUrl = useRef(
+    ServiceLocator.get<GetSlackAuthUrlUseCase>(DiKeys.GET_SLACK_AUTH_URL_USE_CASE),
+  ).current;
+  const checkSlackConnection = useRef(
+    ServiceLocator.get<CheckSlackConnectionUseCase>(DiKeys.CHECK_SLACK_CONNECTION_USE_CASE),
+  ).current;
+  const disconnectSlack = useRef(
+    ServiceLocator.get<DisconnectSlackUseCase>(DiKeys.DISCONNECT_SLACK_USE_CASE),
   ).current;
 
   useEffect(() => {
-    slackDs
-      .getConnectionStatus()
+    checkSlackConnection
+      .execute()
       .then(connected => setSlackConnected(connected))
       .catch(e => {
         authLog.warn(
@@ -86,7 +94,7 @@ export const ProfileScreen: React.FC = () => {
           e,
         );
       });
-  }, [slackDs]);
+  }, [checkSlackConnection]);
 
   useEffect(() => {
     if (user && !attendanceCurrent) {
@@ -99,17 +107,26 @@ export const ProfileScreen: React.FC = () => {
       if (url.startsWith('devops-peopleops://slack-oauth/connected')) {
         setSlackConnected(true);
         setSlackConnecting(false);
+        InAppBrowser.close();
       } else if (url.startsWith('devops-peopleops://slack-oauth/error')) {
         setSlackConnecting(false);
+        InAppBrowser.close();
+        showDialog({
+          title: t('common.error'),
+          message: t('profile.slackConnect.errorToast'),
+          confirmLabel: t('common.ok'),
+          icon: CircleAlert,
+          destructive: true,
+        });
       }
     });
     return () => sub.remove();
-  }, []);
+  }, [t, showDialog]);
 
   const handleConnectSlack = useCallback(async () => {
     try {
       setSlackConnecting(true);
-      const authUrl = await slackDs.getAuthorizationUrl();
+      const authUrl = await getSlackAuthUrl.execute();
 
       // Open in an in-app browser (Chrome Custom Tabs on Android,
       // ASWebAuthenticationSession on iOS) instead of the system browser.
@@ -161,12 +178,12 @@ export const ProfileScreen: React.FC = () => {
     } finally {
       setSlackConnecting(false);
     }
-  }, [slackDs, t, showDialog]);
+  }, [getSlackAuthUrl, t, showDialog]);
 
   const handleDisconnectSlack = useCallback(async () => {
     try {
       setSlackDisconnecting(true);
-      await slackDs.disconnect();
+      await disconnectSlack.execute();
       setSlackConnected(false);
     } catch (e) {
       authLog.warn('screen', 'ProfileScreen: Slack disconnect failed', e);
@@ -180,12 +197,19 @@ export const ProfileScreen: React.FC = () => {
     } finally {
       setSlackDisconnecting(false);
     }
-  }, [slackDs, t, showDialog]);
+  }, [disconnectSlack, t, showDialog]);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     authLog.info('navigation', 'ProfileScreen logout button pressed');
+    if (slackConnected) {
+      try {
+        await disconnectSlack.execute();
+      } catch {
+        // best-effort: don't block logout if disconnect fails
+      }
+    }
     dispatch(logout());
-  }, [dispatch]);
+  }, [dispatch, disconnectSlack, slackConnected]);
 
   const handleLanguageConfirm = useCallback(
     async (lng: string) => {

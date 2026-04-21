@@ -3,6 +3,7 @@ import { DiKeys } from '@/core/keys/di.key';
 import type {
   AuthRepository,
   AttendanceRepository,
+  SlackRepository,
 } from '@/domain/repositories';
 import {
   LoginUseCase,
@@ -13,17 +14,21 @@ import {
   SignInAttendanceUseCase,
   SignOutAttendanceUseCase,
   GetAttendanceHistoryUseCase,
+  GetSlackAuthUrlUseCase,
+  CheckSlackConnectionUseCase,
+  DisconnectSlackUseCase,
 } from '@/domain/use_cases';
 import {
   FirebaseAuthRemoteDataSource,
   ZohoAuthRemoteDataSource,
   AttendanceRemoteDataSource,
+  SlackOAuthRemoteDataSource,
   HttpClient,
 } from '@/data/data_sources';
-import { SlackOAuthRemoteDataSource } from '@/data/data_sources/slack/slack_oauth.remote_data_source';
 import {
   AuthRepositoryImpl,
   AttendanceRepositoryImpl,
+  SlackRepositoryImpl,
 } from '@/data/repositories';
 
 export class ServiceLocator {
@@ -76,6 +81,22 @@ export class ServiceLocator {
 
     const slackOAuthDs = new SlackOAuthRemoteDataSource(httpClient);
     ServiceLocator.register(DiKeys.SLACK_OAUTH_DATA_SOURCE, slackOAuthDs);
+
+    const slackRepo: SlackRepository = new SlackRepositoryImpl(slackOAuthDs);
+    ServiceLocator.register(DiKeys.SLACK_REPOSITORY, slackRepo);
+
+    ServiceLocator.register(
+      DiKeys.GET_SLACK_AUTH_URL_USE_CASE,
+      new GetSlackAuthUrlUseCase(slackRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.CHECK_SLACK_CONNECTION_USE_CASE,
+      new CheckSlackConnectionUseCase(slackRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.DISCONNECT_SLACK_USE_CASE,
+      new DisconnectSlackUseCase(slackRepo),
+    );
 
     const attendanceDs = new AttendanceRemoteDataSource(httpClient);
     ServiceLocator.register(

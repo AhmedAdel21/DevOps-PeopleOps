@@ -10,6 +10,10 @@ export const DiKeys = {
 
   // slack oauth
   SLACK_OAUTH_DATA_SOURCE: 'slackOAuthDataSource',
+  SLACK_REPOSITORY: 'slackRepository',
+  GET_SLACK_AUTH_URL_USE_CASE: 'getSlackAuthUrlUseCase',
+  CHECK_SLACK_CONNECTION_USE_CASE: 'checkSlackConnectionUseCase',
+  DISCONNECT_SLACK_USE_CASE: 'disconnectSlackUseCase',
 
   // http + attendance
   HTTP_CLIENT: 'httpClient',

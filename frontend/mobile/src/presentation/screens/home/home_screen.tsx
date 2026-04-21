@@ -50,7 +50,7 @@ import type { RootStackParamList } from '@/presentation/navigation/types';
 import { attendanceLog, authLog } from '@/core/logger';
 import { ServiceLocator } from '@/di/service_locator';
 import { DiKeys } from '@/core/keys/di.key';
-import type { SlackOAuthRemoteDataSource } from '@/data/data_sources/slack/slack_oauth.remote_data_source';
+import type { CheckSlackConnectionUseCase } from '@/domain/use_cases';
 
 export type HomeStatus = 'notSignedIn' | 'signedInOffice' | 'signedInRemote';
 
@@ -137,11 +137,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [slackConnected, setSlackConnected] = useState<boolean | null>(null);
 
   const checkSlackStatus = useCallback(() => {
-    const slackDs = ServiceLocator.get<SlackOAuthRemoteDataSource>(
-      DiKeys.SLACK_OAUTH_DATA_SOURCE,
-    );
-    slackDs
-      .getConnectionStatus()
+    ServiceLocator.get<CheckSlackConnectionUseCase>(
+      DiKeys.CHECK_SLACK_CONNECTION_USE_CASE,
+    )
+      .execute()
       .then(connected => setSlackConnected(connected))
       .catch(e => {
         // Don't silently swallow: a network error and "not connected"

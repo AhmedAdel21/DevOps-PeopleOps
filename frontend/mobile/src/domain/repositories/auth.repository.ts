@@ -11,5 +11,5 @@ export interface AuthRepository {
   observeAuthState(
     onChange: (user: User | null) => void,
   ): AuthStateSubscription;
-  loginWithZoho(): Promise<void>;
+  loginWithZoho(): Promise<{ mustChangePassword: boolean }>;
 }

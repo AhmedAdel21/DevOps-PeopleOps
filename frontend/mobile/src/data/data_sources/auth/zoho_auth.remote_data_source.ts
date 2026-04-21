@@ -108,7 +108,7 @@ export class ZohoAuthRemoteDataSource {
         delayMs = Math.min(delayMs * 2, 2000);
       }
     }
-    authLog.info('data_source', 'ZohoAuth: warm-up gave up, proceeding anyway');
+    authLog.warn('data_source', 'ZohoAuth: warm-up gave up, proceeding anyway');
   }
 
   async authenticate(): Promise<ZohoLoginResponse> {

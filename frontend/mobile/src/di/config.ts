@@ -1,5 +1,15 @@
+// Set to true to use the local ngrok tunnel, false to target production.
+const USE_LOCAL = true;
+
+const LOCAL_BASE_URL =
+  'https://joslyn-sociologistic-demiurgically.ngrok-free.dev';
+const PROD_BASE_URL =
+  'https://devopsolution-c8f7andbbuc9d3hj.westeurope-01.azurewebsites.net';
+
+const BASE_URL = USE_LOCAL ? LOCAL_BASE_URL : PROD_BASE_URL;
+
 export const AppConfig = {
-  API_BASE_URL: 'http://192.168.100.9:7071',
+  API_BASE_URL: BASE_URL,
   USE_MOCK: true,
   MOCK_DELAY_MS: 800,
   PAGE_SIZE: 20,
@@ -11,8 +21,7 @@ export const AppConfig = {
    * `devopsolution://auth/zoho/callback` deep link. Switch per environment
    * (dev / staging / prod) — never hardcode inside a data source.
    */
-  ZOHO_MOBILE_REDIRECT_URI:
-    'https://devopsolution-c8f7andbbuc9d3hj.westeurope-01.azurewebsites.net/api/auth/zoho/mobile-callback',
+  ZOHO_MOBILE_REDIRECT_URI: `${BASE_URL}/api/auth/zoho/mobile-callback`,
 
   /** Custom URL scheme the app intercepts after the backend bounce. */
   ZOHO_DEEP_LINK: 'devopsolution://auth/zoho/callback',
@@ -29,4 +38,7 @@ export const AppConfig = {
 
   // Flip to false to silence the attendance/http logger in every layer.
   ATTENDANCE_LOGS_ENABLED: true,
+
+  // Flip to false to silence the Slack OAuth logger in every layer.
+  SLACK_LOGS_ENABLED: true,
 } as const;

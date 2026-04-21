@@ -29,6 +29,7 @@ export interface AuthState {
   zohoLoginError: SerializableDomainError | null;
   logoutStatus: ActionStatus;
   logoutError: SerializableDomainError | null;
+  mustChangePassword: boolean;
 }
 
 const initialState: AuthState = {
@@ -40,6 +41,7 @@ const initialState: AuthState = {
   zohoLoginError: null,
   logoutStatus: 'idle',
   logoutError: null,
+  mustChangePassword: false,
 };
 
 let authSubscription: AuthStateSubscription | null = null;
@@ -99,7 +101,7 @@ export const loginWithEmail = createAsyncThunk<
 });
 
 export const loginWithZoho = createAsyncThunk<
-  void,
+  { mustChangePassword: boolean },
   void,
   { rejectValue: SerializableDomainError }
 >('auth/loginWithZoho', async (_, { rejectWithValue }) => {
@@ -108,13 +110,14 @@ export const loginWithZoho = createAsyncThunk<
     const useCase = ServiceLocator.get<ZohoLoginUseCase>(
       DiKeys.ZOHO_LOGIN_USE_CASE,
     );
-    await useCase.execute();
+    const result = await useCase.execute();
     authLog.info('slice', 'loginWithZoho thunk resolved (awaiting observer)');
+    return result;
   } catch (e) {
     const serialized = serializeError(e);
     if (serialized.code === 'auth/zoho-cancelled') {
       authLog.info('slice', 'loginWithZoho: user cancelled');
-      return; // treat cancel as a no-op, not an error
+      return { mustChangePassword: false }; // treat cancel as a no-op, not an error
     }
     authLog.error(
       'slice',
@@ -161,6 +164,9 @@ const authSlice = createSlice({
       );
       state.user = action.payload.user;
       state.status = nextStatus;
+      if (!action.payload.user) {
+        state.mustChangePassword = false;
+      }
     },
     clearLoginError(state) {
       state.loginStatus = 'idle';
@@ -192,8 +198,10 @@ const authSlice = createSlice({
         state.zohoLoginStatus = 'pending';
         state.zohoLoginError = null;
       })
-      .addCase(loginWithZoho.fulfilled, (state) => {
+      .addCase(loginWithZoho.fulfilled, (state, action) => {
         state.zohoLoginStatus = 'idle';
+        state.zohoLoginError = null;
+        state.mustChangePassword = action.payload.mustChangePassword;
       })
       .addCase(loginWithZoho.rejected, (state, action) => {
         state.zohoLoginStatus = 'error';
