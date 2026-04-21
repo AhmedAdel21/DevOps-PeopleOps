@@ -256,6 +256,10 @@ export const ar = {
     requests: {
       title: 'طلباتي',
       newRequest: 'طلب جديد',
+      tabs: {
+        leave: 'الإجازات',
+        permission: 'الأذونات',
+      },
       filters: {
         all: 'الكل',
         pending: 'قيد الانتظار',
@@ -271,6 +275,9 @@ export const ar = {
       },
       durationDay: 'يوم واحد',
       durationDays: '{{count}} أيام',
+      durationHoursMinutes: '{{hours}}س {{minutes}}د',
+      durationHoursOnly: '{{hours}}س',
+      durationMinutesOnly: '{{minutes}}د',
       empty: {
         title: 'لا توجد طلبات بعد',
         description: 'قدّم طلب إجازتك الأول للبدء',
@@ -320,6 +327,8 @@ export const ar = {
       selectType: 'اختر النوع',
       dateSection: 'التاريخ',
       timeSection: 'نافذة الوقت',
+      startLabel: 'البداية',
+      endLabel: 'النهاية',
       quotaBanner: 'استُخدم {{used}} من {{allowed}} استئذان هذا الشهر · يُجدَّد {{date}}',
       halfDayBanner: 'نصف اليوم يُخصم من رصيد إجازتك',
       notesSection: 'ملاحظات (اختياري)',

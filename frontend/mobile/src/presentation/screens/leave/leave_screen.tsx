@@ -13,23 +13,36 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import { AppBadge, AppButton, AppText } from '@/presentation/components/atoms';
-import type { LeaveRequestStatus, LeaveType } from '@/domain/entities';
+import type {
+  LeaveRequestStatus,
+  LeaveType,
+  PermissionRequestStatus,
+  PermissionType,
+} from '@/domain/entities';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   fetchLeaveBalances,
   fetchLeaveRequests,
+  fetchPermissionRequests,
 } from '@/presentation/store/slices';
 import {
   selectLeaveBalances,
   selectLeaveRequests,
+  selectPermissionRequests,
 } from '@/presentation/store/selectors';
-import type { SerializableLeaveBalance, SerializableLeaveRequest } from '@/presentation/store/slices';
+import type {
+  SerializableLeaveBalance,
+  SerializableLeaveRequest,
+  SerializablePermissionRequest,
+} from '@/presentation/store/slices';
 import type { LeaveStackParamList } from '@/presentation/navigation/types';
 import { RequestTypePickerSheet } from './request_type_picker_sheet';
+import { PERMISSION_TYPE_KEY } from './permission_type_picker_sheet';
 
 // ── UI-only type ────────────────────────────────────────────────────────────
 
 type FilterStatus = 'All' | 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
+type RequestTab = 'leave' | 'permission';
 
 // ── Date formatting utilities ───────────────────────────────────────────────
 
@@ -103,6 +116,45 @@ const STATUS_I18N_KEY: Record<LeaveRequestStatus, string> = {
   Pending: 'leave.requests.status.pending',
   Rejected: 'leave.requests.status.rejected',
   Cancelled: 'leave.requests.status.cancelled',
+};
+
+const PERMISSION_STATUS_BADGE_VARIANT: Record<
+  PermissionRequestStatus,
+  'success' | 'warning' | 'error' | 'neutral'
+> = {
+  Approved: 'success',
+  Pending: 'warning',
+  Rejected: 'error',
+  Cancelled: 'neutral',
+};
+
+const PERMISSION_STATUS_I18N_KEY: Record<PermissionRequestStatus, string> = {
+  Approved: 'leave.requests.status.approved',
+  Pending: 'leave.requests.status.pending',
+  Rejected: 'leave.requests.status.rejected',
+  Cancelled: 'leave.requests.status.cancelled',
+};
+
+const getPermissionTypeColor = (type: PermissionType, theme: AppTheme): string => {
+  switch (type) {
+    case 'Late':      return theme.colors.status.warning.base;
+    case 'Early':     return theme.colors.status.success.base;
+    case 'MiddleDay': return theme.colors.status.info.base;
+    case 'HalfDay':   return '#8B5CF6';
+  }
+};
+
+const formatPermissionDuration = (
+  minutes: number,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours > 0 && mins > 0) {
+    return t('leave.requests.durationHoursMinutes', { hours, minutes: mins });
+  }
+  if (hours > 0) return t('leave.requests.durationHoursOnly', { hours });
+  return t('leave.requests.durationMinutesOnly', { minutes: mins });
 };
 
 // ── Sub-components ──────────────────────────────────────────────────────────
@@ -214,6 +266,89 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, theme, styles, t }) 
   );
 };
 
+interface PermissionRequestCardProps {
+  request: SerializablePermissionRequest;
+  theme: AppTheme;
+  styles: ReturnType<typeof createStyles>;
+  t: (key: string, opts?: Record<string, unknown>) => string;
+}
+
+const PermissionRequestCard: React.FC<PermissionRequestCardProps> = ({
+  request,
+  theme,
+  styles,
+  t,
+}) => {
+  const dotColor = getPermissionTypeColor(request.permissionType, theme);
+  const timeRange = `${formatDate(request.date)} · ${request.startTime} – ${request.endTime}`;
+  const duration = formatPermissionDuration(request.durationMinutes, t);
+
+  return (
+    <View style={styles.requestCard}>
+      <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
+      <View style={styles.requestInfo}>
+        <AppText variant="label" weight="semibold">
+          {t(PERMISSION_TYPE_KEY[request.permissionType])}
+        </AppText>
+        <AppText variant="small" color={theme.colors.mutedForeground}>
+          {timeRange}
+        </AppText>
+        <AppText variant="micro" color={theme.colors.mutedForeground}>
+          {duration}
+        </AppText>
+      </View>
+      <AppBadge
+        label={t(PERMISSION_STATUS_I18N_KEY[request.status])}
+        variant={PERMISSION_STATUS_BADGE_VARIANT[request.status]}
+      />
+    </View>
+  );
+};
+
+// ── Segmented tab switcher ──────────────────────────────────────────────────
+
+interface SegmentedTabsProps {
+  activeTab: RequestTab;
+  onChange: (tab: RequestTab) => void;
+  styles: ReturnType<typeof createStyles>;
+  theme: AppTheme;
+  t: (key: string) => string;
+}
+
+const SegmentedTabs: React.FC<SegmentedTabsProps> = ({
+  activeTab,
+  onChange,
+  styles,
+  theme,
+  t,
+}) => {
+  const renderSegment = (tab: RequestTab, label: string) => {
+    const isActive = activeTab === tab;
+    return (
+      <Pressable
+        key={tab}
+        style={[styles.segment, isActive && styles.segmentActive]}
+        onPress={() => onChange(tab)}
+      >
+        <AppText
+          variant="small"
+          weight={isActive ? 'semibold' : 'medium'}
+          color={isActive ? theme.colors.foreground : theme.colors.mutedForeground}
+        >
+          {label}
+        </AppText>
+      </Pressable>
+    );
+  };
+
+  return (
+    <View style={styles.segmentedTrack}>
+      {renderSegment('leave', t('leave.requests.tabs.leave'))}
+      {renderSegment('permission', t('leave.requests.tabs.permission'))}
+    </View>
+  );
+};
+
 // ── Main screen ─────────────────────────────────────────────────────────────
 
 export const LeaveScreen: React.FC = () => {
@@ -225,6 +360,7 @@ export const LeaveScreen: React.FC = () => {
     useNavigation<NativeStackNavigationProp<LeaveStackParamList>>();
 
   const [activeFilter,    setActiveFilter]    = useState<FilterStatus>('All');
+  const [activeTab,       setActiveTab]       = useState<RequestTab>('leave');
   const [showTypeSheet,   setShowTypeSheet]   = useState(false);
 
   const openNewRequest = useCallback(() => setShowTypeSheet(true), []);
@@ -242,22 +378,35 @@ export const LeaveScreen: React.FC = () => {
   );
 
   const balances = useAppSelector(selectLeaveBalances);
-  const allRequests = useAppSelector(selectLeaveRequests);
+  const allLeaveRequests = useAppSelector(selectLeaveRequests);
+  const allPermissionRequests = useAppSelector(selectPermissionRequests);
 
   useEffect(() => {
     dispatch(fetchLeaveBalances());
     dispatch(fetchLeaveRequests({ append: false }));
+    dispatch(fetchPermissionRequests({ append: false }));
   }, [dispatch]);
 
-  const filteredRequests = useMemo(
+  const filteredLeaveRequests = useMemo(
     () =>
       activeFilter === 'All'
-        ? allRequests
-        : allRequests.filter(r => r.status === activeFilter),
-    [activeFilter, allRequests],
+        ? allLeaveRequests
+        : allLeaveRequests.filter(r => r.status === activeFilter),
+    [activeFilter, allLeaveRequests],
   );
 
-  const hasRequests = filteredRequests.length > 0;
+  const filteredPermissionRequests = useMemo(
+    () =>
+      activeFilter === 'All'
+        ? allPermissionRequests
+        : allPermissionRequests.filter(r => r.status === activeFilter),
+    [activeFilter, allPermissionRequests],
+  );
+
+  const hasRequests =
+    activeTab === 'leave'
+      ? filteredLeaveRequests.length > 0
+      : filteredPermissionRequests.length > 0;
   const currentYear = new Date().getFullYear().toString();
 
   return (
@@ -294,11 +443,17 @@ export const LeaveScreen: React.FC = () => {
           ))}
         </ScrollView>
 
-        {/* ── Requests section header ── */}
+        {/* ── Requests section header (tab switcher + new request button) ── */}
         <View style={styles.sectionHeader}>
-          <AppText variant="bodyLg" weight="semibold">
-            {t('leave.requests.title')}
-          </AppText>
+          <View style={styles.tabSwitcherWrap}>
+            <SegmentedTabs
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              styles={styles}
+              theme={theme}
+              t={t}
+            />
+          </View>
           <AppButton
             variant="outline"
             size="sm"
@@ -341,9 +496,13 @@ export const LeaveScreen: React.FC = () => {
         {/* ── Request list or empty state ── */}
         {hasRequests ? (
           <View style={styles.requestList}>
-            {filteredRequests.map(r => (
-              <RequestCard key={r.id} request={r} theme={theme} styles={styles} t={t} />
-            ))}
+            {activeTab === 'leave'
+              ? filteredLeaveRequests.map(r => (
+                  <RequestCard key={r.id} request={r} theme={theme} styles={styles} t={t} />
+                ))
+              : filteredPermissionRequests.map(r => (
+                  <PermissionRequestCard key={r.id} request={r} theme={theme} styles={styles} t={t} />
+                ))}
           </View>
         ) : (
           <View style={styles.emptyState}>
@@ -410,6 +569,32 @@ const createStyles = (theme: AppTheme) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: ws(12),
+    },
+    // Segmented tab switcher
+    tabSwitcherWrap: {
+      flex: 1,
+    },
+    segmentedTrack: {
+      flexDirection: 'row',
+      backgroundColor: theme.colors.muted,
+      borderRadius: theme.radius.pill,
+      padding: ws(4),
+    },
+    segment: {
+      flex: 1,
+      paddingVertical: hs(8),
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: theme.radius.pill,
+    },
+    segmentActive: {
+      backgroundColor: theme.colors.card,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.07,
+      shadowRadius: ws(3),
+      elevation: 1,
     },
     // Balance cards
     balanceCardsRow: {

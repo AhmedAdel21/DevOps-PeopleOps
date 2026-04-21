@@ -257,6 +257,10 @@ export const en = {
     requests: {
       title: 'My requests',
       newRequest: 'New request',
+      tabs: {
+        leave: 'Leaves',
+        permission: 'Permissions',
+      },
       filters: {
         all: 'All',
         pending: 'Pending',
@@ -272,6 +276,9 @@ export const en = {
       },
       durationDay: '1 day',
       durationDays: '{{count}} days',
+      durationHoursMinutes: '{{hours}}h {{minutes}}m',
+      durationHoursOnly: '{{hours}}h',
+      durationMinutesOnly: '{{minutes}}m',
       empty: {
         title: 'No requests yet',
         description: 'Submit your first leave request to get started',
@@ -321,6 +328,8 @@ export const en = {
       selectType: 'Select type',
       dateSection: 'Date',
       timeSection: 'Time window',
+      startLabel: 'Start',
+      endLabel: 'End',
       quotaBanner: '{{used}} of {{allowed}} permissions used this month · Resets {{date}}',
       halfDayBanner: 'Half-day deducts from your vacation balance',
       notesSection: 'Notes (optional)',

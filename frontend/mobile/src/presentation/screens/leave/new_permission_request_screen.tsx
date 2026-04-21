@@ -391,33 +391,43 @@ export const NewPermissionRequestScreen: React.FC = () => {
         </AppText>
 
         <View style={styles.timeRow}>
-          <Pressable
-            style={[styles.card, styles.timeCard, timeErr && styles.cardError]}
-            onPress={() => openPicker('startTime')}
-          >
-            <AppText
-              variant="label"
-              color={startTime ? theme.colors.foreground : theme.colors.mutedForeground}
-              align="center"
-            >
-              {startTime ? formatTime(startTime) : '—:——'}
+          <View style={styles.timeColumn}>
+            <AppText variant="small" color={theme.colors.mutedForeground}>
+              {t('leave.newPermissionRequest.startLabel')}
             </AppText>
-          </Pressable>
-
-          <AppText variant="label" color={theme.colors.mutedForeground}>–</AppText>
-
-          <Pressable
-            style={[styles.card, styles.timeCard, timeErr && styles.cardError]}
-            onPress={() => openPicker('endTime')}
-          >
-            <AppText
-              variant="label"
-              color={endTime ? theme.colors.foreground : theme.colors.mutedForeground}
-              align="center"
+            <Pressable
+              style={[styles.card, styles.timeCard, timeErr && styles.cardError]}
+              onPress={() => openPicker('startTime')}
             >
-              {endTime ? formatTime(endTime) : '—:——'}
+              <AppText
+                variant="label"
+                color={startTime ? theme.colors.foreground : theme.colors.mutedForeground}
+                align="center"
+              >
+                {startTime ? formatTime(startTime) : '—:——'}
+              </AppText>
+            </Pressable>
+          </View>
+
+          <AppText variant="label" color={theme.colors.mutedForeground} style={styles.timeDash}>–</AppText>
+
+          <View style={styles.timeColumn}>
+            <AppText variant="small" color={theme.colors.mutedForeground}>
+              {t('leave.newPermissionRequest.endLabel')}
             </AppText>
-          </Pressable>
+            <Pressable
+              style={[styles.card, styles.timeCard, timeErr && styles.cardError]}
+              onPress={() => openPicker('endTime')}
+            >
+              <AppText
+                variant="label"
+                color={endTime ? theme.colors.foreground : theme.colors.mutedForeground}
+                align="center"
+              >
+                {endTime ? formatTime(endTime) : '—:——'}
+              </AppText>
+            </Pressable>
+          </View>
         </View>
 
         {timeErr && (
@@ -501,37 +511,20 @@ export const NewPermissionRequestScreen: React.FC = () => {
         />
       </View>
 
-      {/* ── Pickers ── */}
-      <PickerModal
-        visible={pickerOpen === 'date'}
-        value={pickerValue}
-        mode="date"
-        onConfirm={applyPicker}
-        onCancel={() => setPickerOpen(null)}
-        cancelLabel={t('common.cancel')}
-        confirmLabel={t('common.confirm')}
-        cardBg={theme.colors.card}
-      />
-      <PickerModal
-        visible={pickerOpen === 'startTime'}
-        value={pickerValue}
-        mode="time"
-        onConfirm={applyPicker}
-        onCancel={() => setPickerOpen(null)}
-        cancelLabel={t('common.cancel')}
-        confirmLabel={t('common.confirm')}
-        cardBg={theme.colors.card}
-      />
-      <PickerModal
-        visible={pickerOpen === 'endTime'}
-        value={pickerValue}
-        mode="time"
-        onConfirm={applyPicker}
-        onCancel={() => setPickerOpen(null)}
-        cancelLabel={t('common.cancel')}
-        confirmLabel={t('common.confirm')}
-        cardBg={theme.colors.card}
-      />
+      {/* ── Picker (single instance, keyed per field to force clean state) ── */}
+      {pickerOpen !== null && (
+        <PickerModal
+          key={pickerOpen}
+          visible
+          value={pickerValue}
+          mode={pickerOpen === 'date' ? 'date' : 'time'}
+          onConfirm={applyPicker}
+          onCancel={() => setPickerOpen(null)}
+          cancelLabel={t('common.cancel')}
+          confirmLabel={t('common.confirm')}
+          cardBg={theme.colors.card}
+        />
+      )}
 
       {/* ── Permission type sheet ── */}
       <PermissionTypePickerSheet
@@ -591,14 +584,20 @@ const createStyles = (theme: AppTheme) =>
     },
     timeRow: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-end',
       gap: ws(12),
     },
-    timeCard: {
+    timeColumn: {
       flex: 1,
+      gap: hs(6),
+    },
+    timeCard: {
       height: hs(48),
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    timeDash: {
+      paddingBottom: hs(14),
     },
     durationRow: {
       paddingHorizontal: ws(12),
