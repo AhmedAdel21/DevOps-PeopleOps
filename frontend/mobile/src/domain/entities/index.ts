@@ -16,3 +16,10 @@ export type {
   AttendanceRecordStatus,
   AttendanceRecordPlace,
 } from './attendance_record.entity';
+export type {
+  LeaveType,
+  LeaveRequestStatus,
+  LeaveBalance,
+  LeaveRequest,
+  LeaveRequestsPage,
+} from './leave.entity';

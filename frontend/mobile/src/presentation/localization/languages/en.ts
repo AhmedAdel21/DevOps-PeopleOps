@@ -219,6 +219,50 @@ export const en = {
       ok: 'Restart now',
     },
   },
+  leave: {
+    title: 'Vacations',
+    balances: {
+      title: 'My leave balances',
+      daysRemaining: 'days remaining',
+      usedOf: '{{used}} used of {{total}}',
+      unlimited: 'Unlimited',
+      noLimit: 'No limit',
+      types: {
+        annual: 'Annual',
+        casual: 'Casual',
+        sick: 'Sick',
+      },
+      leaveTypes: {
+        annual: 'Annual Leave',
+        casual: 'Casual Leave',
+        sick: 'Sick Leave',
+      },
+    },
+    requests: {
+      title: 'My requests',
+      newRequest: 'New request',
+      filters: {
+        all: 'All',
+        pending: 'Pending',
+        approved: 'Approved',
+        rejected: 'Rejected',
+        cancelled: 'Cancelled',
+      },
+      status: {
+        approved: 'Approved',
+        pending: 'Pending',
+        rejected: 'Rejected',
+        cancelled: 'Cancelled',
+      },
+      durationDay: '1 day',
+      durationDays: '{{count}} days',
+      empty: {
+        title: 'No requests yet',
+        description: 'Submit your first leave request to get started',
+        cta: '+ New request',
+      },
+    },
+  },
   attendance: {
     history: {
       title: 'Attendance History',

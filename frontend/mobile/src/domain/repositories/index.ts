@@ -4,3 +4,8 @@ export type {
 } from './auth.repository';
 export type { AttendanceRepository } from './attendance.repository';
 export type { SlackRepository } from './slack.repository';
+export type {
+  LeaveRepository,
+  RequestLeaveParams,
+  GetLeaveRequestsParams,
+} from './leave.repository';

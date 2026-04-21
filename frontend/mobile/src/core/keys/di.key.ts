@@ -15,6 +15,13 @@ export const DiKeys = {
   CHECK_SLACK_CONNECTION_USE_CASE: 'checkSlackConnectionUseCase',
   DISCONNECT_SLACK_USE_CASE: 'disconnectSlackUseCase',
 
+  // leave
+  LEAVE_REMOTE_DATA_SOURCE: 'leaveRemoteDataSource',
+  LEAVE_REPOSITORY: 'leaveRepository',
+  GET_LEAVE_BALANCES_USE_CASE: 'getLeaveBalancesUseCase',
+  GET_LEAVE_REQUESTS_USE_CASE: 'getLeaveRequestsUseCase',
+  REQUEST_LEAVE_USE_CASE: 'requestLeaveUseCase',
+
   // http + attendance
   HTTP_CLIENT: 'httpClient',
   ATTENDANCE_REMOTE_DATA_SOURCE: 'attendanceRemoteDataSource',

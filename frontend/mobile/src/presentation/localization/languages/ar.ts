@@ -218,6 +218,50 @@ export const ar = {
       ok: 'إعادة التشغيل الآن',
     },
   },
+  leave: {
+    title: 'الإجازات',
+    balances: {
+      title: 'أرصدة إجازاتي',
+      daysRemaining: 'أيام متبقية',
+      usedOf: '{{used}} مستخدم من {{total}}',
+      unlimited: 'غير محدود',
+      noLimit: 'بلا حد',
+      types: {
+        annual: 'سنوية',
+        casual: 'عرضية',
+        sick: 'مرضية',
+      },
+      leaveTypes: {
+        annual: 'إجازة سنوية',
+        casual: 'إجازة عرضية',
+        sick: 'إجازة مرضية',
+      },
+    },
+    requests: {
+      title: 'طلباتي',
+      newRequest: 'طلب جديد',
+      filters: {
+        all: 'الكل',
+        pending: 'قيد الانتظار',
+        approved: 'مقبول',
+        rejected: 'مرفوض',
+        cancelled: 'ملغى',
+      },
+      status: {
+        approved: 'مقبول',
+        pending: 'قيد الانتظار',
+        rejected: 'مرفوض',
+        cancelled: 'ملغى',
+      },
+      durationDay: 'يوم واحد',
+      durationDays: '{{count}} أيام',
+      empty: {
+        title: 'لا توجد طلبات بعد',
+        description: 'قدّم طلب إجازتك الأول للبدء',
+        cta: '+ طلب جديد',
+      },
+    },
+  },
   attendance: {
     history: {
       title: 'سجل الحضور',

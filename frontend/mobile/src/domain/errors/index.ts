@@ -5,3 +5,4 @@ export {
   type AttendanceErrorCode,
 } from './attendance.error';
 export { SlackError, type SlackErrorCode } from './slack.error';
+export { LeaveError, type LeaveErrorCode } from './leave.error';

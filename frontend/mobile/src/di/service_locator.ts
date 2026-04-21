@@ -4,6 +4,7 @@ import type {
   AuthRepository,
   AttendanceRepository,
   SlackRepository,
+  LeaveRepository,
 } from '@/domain/repositories';
 import {
   LoginUseCase,
@@ -17,18 +18,23 @@ import {
   GetSlackAuthUrlUseCase,
   CheckSlackConnectionUseCase,
   DisconnectSlackUseCase,
+  GetLeaveBalancesUseCase,
+  GetLeaveRequestsUseCase,
+  RequestLeaveUseCase,
 } from '@/domain/use_cases';
 import {
   FirebaseAuthRemoteDataSource,
   ZohoAuthRemoteDataSource,
   AttendanceRemoteDataSource,
   SlackOAuthRemoteDataSource,
+  LeaveRemoteDataSource,
   HttpClient,
 } from '@/data/data_sources';
 import {
   AuthRepositoryImpl,
   AttendanceRepositoryImpl,
   SlackRepositoryImpl,
+  LeaveRepositoryImpl,
 } from '@/data/repositories';
 
 export class ServiceLocator {
@@ -124,6 +130,26 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.GET_ATTENDANCE_HISTORY_USE_CASE,
       new GetAttendanceHistoryUseCase(attendanceRepo),
+    );
+
+    // ── Leave ───────────────────────────────────────────────
+    const leaveDs = new LeaveRemoteDataSource(httpClient);
+    ServiceLocator.register(DiKeys.LEAVE_REMOTE_DATA_SOURCE, leaveDs);
+
+    const leaveRepo: LeaveRepository = new LeaveRepositoryImpl(leaveDs);
+    ServiceLocator.register(DiKeys.LEAVE_REPOSITORY, leaveRepo);
+
+    ServiceLocator.register(
+      DiKeys.GET_LEAVE_BALANCES_USE_CASE,
+      new GetLeaveBalancesUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.GET_LEAVE_REQUESTS_USE_CASE,
+      new GetLeaveRequestsUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.REQUEST_LEAVE_USE_CASE,
+      new RequestLeaveUseCase(leaveRepo),
     );
   }
 

@@ -10,6 +10,18 @@ export {
 } from './auth.slice';
 
 export {
+  default as leaveReducer,
+  fetchLeaveBalances,
+  fetchLeaveRequests,
+  submitLeaveRequest,
+  clearLeaveErrors,
+  resetLeaveState,
+  type LeaveState,
+  type SerializableLeaveBalance,
+  type SerializableLeaveRequest,
+} from './leave.slice';
+
+export {
   default as attendanceReducer,
   fetchAttendanceStatus,
   signInAttendance,
