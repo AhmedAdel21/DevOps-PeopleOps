@@ -148,9 +148,17 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
       if (mustChangePassword) {
         authLog.info(
           'navigation',
-          'LoginWrapper → mustChangePassword, navigating to SetPassword',
+          'LoginWrapper → mustChangePassword, resetting stack to SetPassword',
         );
-        navigation.navigate('SetPassword', { mode: 'firstLogin', token: '' });
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'SetPassword',
+              params: { mode: 'firstLogin', token: '' },
+            },
+          ],
+        });
       } else {
         authLog.info(
           'navigation',
