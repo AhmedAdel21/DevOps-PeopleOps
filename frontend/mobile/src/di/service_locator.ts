@@ -21,6 +21,8 @@ import {
   GetLeaveBalancesUseCase,
   GetLeaveRequestsUseCase,
   RequestLeaveUseCase,
+  GetPermissionRequestsUseCase,
+  RequestPermissionUseCase,
 } from '@/domain/use_cases';
 import {
   FirebaseAuthRemoteDataSource,
@@ -150,6 +152,14 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.REQUEST_LEAVE_USE_CASE,
       new RequestLeaveUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.GET_PERMISSION_REQUESTS_USE_CASE,
+      new GetPermissionRequestsUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.REQUEST_PERMISSION_USE_CASE,
+      new RequestPermissionUseCase(leaveRepo),
     );
   }
 

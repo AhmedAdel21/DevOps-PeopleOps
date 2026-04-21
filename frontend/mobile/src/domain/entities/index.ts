@@ -18,8 +18,13 @@ export type {
 } from './attendance_record.entity';
 export type {
   LeaveType,
+  PermissionType,
   LeaveRequestStatus,
+  PermissionRequestStatus,
   LeaveBalance,
+  PermissionQuota,
   LeaveRequest,
   LeaveRequestsPage,
+  PermissionRequest,
+  PermissionRequestsPage,
 } from './leave.entity';

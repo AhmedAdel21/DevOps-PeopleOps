@@ -67,22 +67,23 @@ const STATUS_BADGE_VARIANT: Record<
 };
 
 const BALANCE_TYPE_KEY: Record<LeaveType, string> = {
-  Annual: 'leave.balances.types.annual',
-  Casual: 'leave.balances.types.casual',
-  Sick: 'leave.balances.types.sick',
+  Annual:       'leave.balances.types.annual',
+  Casual:       'leave.balances.types.casual',
+  Sick:         'leave.balances.types.sick',
+  Compassionate:'leave.balances.types.compassionate',
+  Unpaid:       'leave.balances.types.unpaid',
+  Hajj:         'leave.balances.types.hajj',
+  Marriage:     'leave.balances.types.marriage',
 };
 
 const LEAVE_TYPE_KEY: Record<LeaveType, string> = {
-  Annual: 'leave.balances.leaveTypes.annual',
-  Casual: 'leave.balances.leaveTypes.casual',
-  Sick: 'leave.balances.leaveTypes.sick',
-};
-
-// dot color reflects leave type, not request status
-const LEAVE_TYPE_DOT: Record<LeaveType, 'success' | 'warning'> = {
-  Annual: 'success',
-  Casual: 'warning',
-  Sick: 'warning',
+  Annual:       'leave.balances.leaveTypes.annual',
+  Casual:       'leave.balances.leaveTypes.casual',
+  Sick:         'leave.balances.leaveTypes.sick',
+  Compassionate:'leave.balances.leaveTypes.compassionate',
+  Unpaid:       'leave.balances.leaveTypes.unpaid',
+  Hajj:         'leave.balances.leaveTypes.hajj',
+  Marriage:     'leave.balances.leaveTypes.marriage',
 };
 
 const FILTER_I18N_KEY: Record<FilterStatus, string> = {
@@ -170,12 +171,18 @@ interface RequestCardProps {
   t: (key: string, opts?: Record<string, unknown>) => string;
 }
 
+const LEAVE_TYPE_COLOR_KEY: Record<LeaveType, keyof AppTheme['colors']['leaveTypes']> = {
+  Annual:        'annual',
+  Casual:        'casual',
+  Sick:          'sick',
+  Compassionate: 'compassionate',
+  Unpaid:        'unpaid',
+  Hajj:          'hajj',
+  Marriage:      'marriage',
+};
+
 const RequestCard: React.FC<RequestCardProps> = ({ request, theme, styles, t }) => {
-  const dotVariant = LEAVE_TYPE_DOT[request.leaveType];
-  const dotColor =
-    dotVariant === 'success'
-      ? theme.colors.status.success.base
-      : theme.colors.status.warning.base;
+  const dotColor = theme.colors.leaveTypes[LEAVE_TYPE_COLOR_KEY[request.leaveType]];
   const duration =
     request.durationDays === 1
       ? t('leave.requests.durationDay')

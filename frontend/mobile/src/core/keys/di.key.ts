@@ -21,6 +21,8 @@ export const DiKeys = {
   GET_LEAVE_BALANCES_USE_CASE: 'getLeaveBalancesUseCase',
   GET_LEAVE_REQUESTS_USE_CASE: 'getLeaveRequestsUseCase',
   REQUEST_LEAVE_USE_CASE: 'requestLeaveUseCase',
+  GET_PERMISSION_REQUESTS_USE_CASE: 'getPermissionRequestsUseCase',
+  REQUEST_PERMISSION_USE_CASE: 'requestPermissionUseCase',
 
   // http + attendance
   HTTP_CLIENT: 'httpClient',

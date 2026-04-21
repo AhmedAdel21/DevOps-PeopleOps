@@ -66,6 +66,17 @@ export interface AppTheme {
       info: StatusColor;
     };
 
+    // Leave type dot/badge colors — keyed by LeaveType union member.
+    leaveTypes: {
+      annual: string;
+      casual: string;
+      sick: string;
+      compassionate: string;
+      unpaid: string;
+      hajj: string;
+      marriage: string;
+    };
+
     // Legacy aliases (kept so placeholder_screen.tsx still compiles).
     // Do NOT use in new code.
     text: {

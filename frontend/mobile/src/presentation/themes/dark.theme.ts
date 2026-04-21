@@ -71,6 +71,17 @@ export const darkTheme: AppTheme = {
       },
     },
 
+    // Leave type accent colors
+    leaveTypes: {
+      annual:       '#34D399', // brighter green for dark
+      casual:       '#FBBF24', // brighter amber for dark
+      sick:         '#F87171', // brighter red for dark
+      compassionate:'#A78BFA', // lighter purple for dark
+      unpaid:       '#9CA3AF', // lighter gray for dark
+      hajj:         '#60A5FA', // brighter blue for dark
+      marriage:     '#F472B6', // lighter pink for dark
+    },
+
     // Legacy compat
     text: {
       primary: '#F9FAFB',

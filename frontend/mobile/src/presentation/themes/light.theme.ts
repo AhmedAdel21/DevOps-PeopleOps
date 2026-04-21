@@ -67,6 +67,17 @@ export const lightTheme: AppTheme = {
       },
     },
 
+    // Leave type accent colors
+    leaveTypes: {
+      annual:       '#10B981', // green — same as status.success.base
+      casual:       '#F59E0B', // amber — same as status.warning.base
+      sick:         '#EF4444', // red — same as status.error.base
+      compassionate:'#8B5CF6', // purple
+      unpaid:       '#6B7280', // gray — same as mutedForeground
+      hajj:         '#3B82F6', // blue — same as status.info.base
+      marriage:     '#EC4899', // pink
+    },
+
     // Legacy compat
     text: {
       primary: '#111827',
