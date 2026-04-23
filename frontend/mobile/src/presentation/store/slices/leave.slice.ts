@@ -490,6 +490,7 @@ export const submitLeaveRequest = createAsyncThunk<
       filter: state.requestsFilter,
       status: state.requestsFilter === 'All' ? undefined : state.requestsFilter,
       page: 1,
+      pageSize: state.requestsPageSize,
     }));
     return toSerializableSubmitResult(result);
   } catch (e) {
@@ -514,6 +515,7 @@ export const cancelLeaveRequest = createAsyncThunk<
       filter: state.requestsFilter,
       status: state.requestsFilter === 'All' ? undefined : state.requestsFilter,
       page: state.requestsPage,
+      pageSize: state.requestsPageSize,
     }));
     dispatch(fetchLeaveBalances());
     return params.leaveRequestId;

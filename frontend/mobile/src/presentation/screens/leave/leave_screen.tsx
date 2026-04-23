@@ -13,12 +13,19 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
-import { AppAlertBanner, AppBadge, AppButton, AppText } from '@/presentation/components/atoms';
+import {
+  AppAlertBanner,
+  AppBadge,
+  AppButton,
+  AppSkeleton,
+  AppText,
+} from '@/presentation/components/atoms';
 import type {
   LeaveRequestStatus,
   PermissionRequestStatus,
   PermissionType,
 } from '@/domain/entities';
+import { AppConfig } from '@/di/config';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   clearLastSubmitResult,
@@ -32,11 +39,13 @@ import {
 import {
   selectLastSubmitResult,
   selectLeaveBalances,
+  selectLeaveBalancesFetchStatus,
   selectLeaveBalancesYear,
   selectLeaveRequests,
   selectLeaveRequestsFetchStatus,
   selectLeaveRequestsFilter,
   selectPermissionRequests,
+  selectPermissionRequestsFetchStatus,
 } from '@/presentation/store/selectors';
 import type {
   SerializableLeaveBalance,
@@ -216,6 +225,37 @@ const BalanceCard: React.FC<BalanceCardProps> = ({ balance, theme, styles, t }) 
   </View>
 );
 
+interface BalanceCardSkeletonProps {
+  styles: ReturnType<typeof createStyles>;
+}
+
+const BalanceCardSkeleton: React.FC<BalanceCardSkeletonProps> = ({ styles }) => (
+  <View style={styles.balanceCard}>
+    <AppSkeleton width={ws(72)} height={hs(12)} />
+    <View style={styles.numRow}>
+      <AppSkeleton width={ws(40)} height={hs(28)} />
+    </View>
+    <AppSkeleton width="100%" height={hs(4)} radius={999} />
+    <AppSkeleton width={ws(88)} height={hs(10)} />
+  </View>
+);
+
+interface RequestCardSkeletonProps {
+  styles: ReturnType<typeof createStyles>;
+}
+
+const RequestCardSkeleton: React.FC<RequestCardSkeletonProps> = ({ styles }) => (
+  <View style={styles.requestCard}>
+    <AppSkeleton width={ws(12)} height={ws(12)} radius={ws(6)} />
+    <View style={styles.requestInfo}>
+      <AppSkeleton width={ws(120)} height={hs(14)} />
+      <AppSkeleton width={ws(160)} height={hs(12)} />
+      <AppSkeleton width={ws(70)} height={hs(10)} />
+    </View>
+    <AppSkeleton width={ws(64)} height={hs(22)} radius={999} />
+  </View>
+);
+
 interface RequestCardProps {
   request: SerializableLeaveRequest;
   theme: AppTheme;
@@ -354,6 +394,7 @@ export const LeaveScreen: React.FC = () => {
 
   const [activeTab,     setActiveTab]     = useState<RequestTab>('leave');
   const [showTypeSheet, setShowTypeSheet] = useState(false);
+  const [isRefreshing,  setIsRefreshing]  = useState(false);
 
   const openNewRequest = useCallback(() => setShowTypeSheet(true), []);
 
@@ -369,13 +410,22 @@ export const LeaveScreen: React.FC = () => {
     [navigation],
   );
 
-  const balances              = useAppSelector(selectLeaveBalances);
-  const balancesYear          = useAppSelector(selectLeaveBalancesYear);
-  const leaveRequests         = useAppSelector(selectLeaveRequests);
-  const activeFilter          = useAppSelector(selectLeaveRequestsFilter);
-  const requestsFetchStatus   = useAppSelector(selectLeaveRequestsFetchStatus);
-  const allPermissionRequests = useAppSelector(selectPermissionRequests);
-  const lastSubmitResult      = useAppSelector(selectLastSubmitResult);
+  const balances               = useAppSelector(selectLeaveBalances);
+  const balancesYear           = useAppSelector(selectLeaveBalancesYear);
+  const balancesFetchStatus    = useAppSelector(selectLeaveBalancesFetchStatus);
+  const leaveRequests          = useAppSelector(selectLeaveRequests);
+  const activeFilter           = useAppSelector(selectLeaveRequestsFilter);
+  const requestsFetchStatus    = useAppSelector(selectLeaveRequestsFetchStatus);
+  const allPermissionRequests  = useAppSelector(selectPermissionRequests);
+  const permissionFetchStatus  = useAppSelector(selectPermissionRequestsFetchStatus);
+  const lastSubmitResult       = useAppSelector(selectLastSubmitResult);
+
+  const isBalancesInitialLoading =
+    balancesFetchStatus !== 'loaded' && balancesFetchStatus !== 'error';
+  const isLeaveRequestsInitialLoading =
+    requestsFetchStatus !== 'loaded' && requestsFetchStatus !== 'error';
+  const isPermissionsInitialLoading =
+    permissionFetchStatus !== 'loaded' && permissionFetchStatus !== 'error';
 
   const reloadLeaveList = useCallback(
     (filter: LeaveFilter) =>
@@ -383,6 +433,7 @@ export const LeaveScreen: React.FC = () => {
         filter,
         status: filter === 'All' ? undefined : filter,
         page: 1,
+        pageSize: AppConfig.PAGE_SIZE,
       })),
     [dispatch],
   );
@@ -404,9 +455,18 @@ export const LeaveScreen: React.FC = () => {
     [dispatch, reloadLeaveList],
   );
 
-  const handleRefresh = useCallback(() => {
-    dispatch(fetchLeaveBalances());
-    reloadLeaveList(activeFilter);
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        dispatch(fetchLeaveBalances()),
+        reloadLeaveList(activeFilter),
+        dispatch(fetchPermissionQuota()),
+        dispatch(fetchPermissionRequests({ append: false })),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
   }, [activeFilter, dispatch, reloadLeaveList]);
 
   const openDetail = useCallback(
@@ -422,10 +482,15 @@ export const LeaveScreen: React.FC = () => {
     [activeFilter, allPermissionRequests],
   );
 
+  const isActiveTabLoading =
+    activeTab === 'leave' ? isLeaveRequestsInitialLoading : isPermissionsInitialLoading;
+
   const hasRequests =
     activeTab === 'leave'
       ? leaveRequests.length > 0
       : filteredPermissionRequests.length > 0;
+
+  const showRequestsSkeleton = isActiveTabLoading && !hasRequests;
 
   const submitBanner = useMemo(() => {
     if (!lastSubmitResult) return null;
@@ -464,7 +529,7 @@ export const LeaveScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={requestsFetchStatus === 'pending'}
+            refreshing={isRefreshing}
             onRefresh={handleRefresh}
             tintColor={theme.colors.primary}
           />
@@ -494,9 +559,13 @@ export const LeaveScreen: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.balanceCardsRow}
         >
-          {balances.map(b => (
-            <BalanceCard key={b.typeId} balance={b} theme={theme} styles={styles} t={t} />
-          ))}
+          {isBalancesInitialLoading && balances.length === 0
+            ? Array.from({ length: 2 }).map((_, i) => (
+                <BalanceCardSkeleton key={`bal-skel-${i}`} styles={styles} />
+              ))
+            : balances.map(b => (
+                <BalanceCard key={b.typeId} balance={b} theme={theme} styles={styles} t={t} />
+              ))}
         </ScrollView>
 
         {/* ── Requests section header (tab switcher + new request button) ── */}
@@ -549,8 +618,14 @@ export const LeaveScreen: React.FC = () => {
           ))}
         </ScrollView>
 
-        {/* ── Request list or empty state ── */}
-        {hasRequests ? (
+        {/* ── Request list, skeleton, or empty state ── */}
+        {showRequestsSkeleton ? (
+          <View style={styles.requestList}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <RequestCardSkeleton key={`req-skel-${i}`} styles={styles} />
+            ))}
+          </View>
+        ) : hasRequests ? (
           <View style={styles.requestList}>
             {activeTab === 'leave'
               ? leaveRequests.map(r => (
