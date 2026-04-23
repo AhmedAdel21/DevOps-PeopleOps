@@ -18,9 +18,16 @@ import {
   GetSlackAuthUrlUseCase,
   CheckSlackConnectionUseCase,
   DisconnectSlackUseCase,
+  GetAvailableLeaveTypesUseCase,
   GetLeaveBalancesUseCase,
   GetLeaveRequestsUseCase,
-  RequestLeaveUseCase,
+  GetLeaveRequestDetailUseCase,
+  SubmitLeaveRequestUseCase,
+  CancelLeaveRequestUseCase,
+  AdminGetLeaveRequestsUseCase,
+  ApproveLeaveRequestUseCase,
+  RejectLeaveRequestUseCase,
+  GetPermissionQuotaUseCase,
   GetPermissionRequestsUseCase,
   RequestPermissionUseCase,
 } from '@/domain/use_cases';
@@ -142,6 +149,10 @@ export class ServiceLocator {
     ServiceLocator.register(DiKeys.LEAVE_REPOSITORY, leaveRepo);
 
     ServiceLocator.register(
+      DiKeys.GET_AVAILABLE_LEAVE_TYPES_USE_CASE,
+      new GetAvailableLeaveTypesUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
       DiKeys.GET_LEAVE_BALANCES_USE_CASE,
       new GetLeaveBalancesUseCase(leaveRepo),
     );
@@ -150,8 +161,32 @@ export class ServiceLocator {
       new GetLeaveRequestsUseCase(leaveRepo),
     );
     ServiceLocator.register(
-      DiKeys.REQUEST_LEAVE_USE_CASE,
-      new RequestLeaveUseCase(leaveRepo),
+      DiKeys.GET_LEAVE_REQUEST_DETAIL_USE_CASE,
+      new GetLeaveRequestDetailUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.SUBMIT_LEAVE_REQUEST_USE_CASE,
+      new SubmitLeaveRequestUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.CANCEL_LEAVE_REQUEST_USE_CASE,
+      new CancelLeaveRequestUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.ADMIN_GET_LEAVE_REQUESTS_USE_CASE,
+      new AdminGetLeaveRequestsUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.APPROVE_LEAVE_REQUEST_USE_CASE,
+      new ApproveLeaveRequestUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.REJECT_LEAVE_REQUEST_USE_CASE,
+      new RejectLeaveRequestUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.GET_PERMISSION_QUOTA_USE_CASE,
+      new GetPermissionQuotaUseCase(leaveRepo),
     );
     ServiceLocator.register(
       DiKeys.GET_PERMISSION_REQUESTS_USE_CASE,

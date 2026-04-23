@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   View,
@@ -12,22 +13,29 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
-import { AppBadge, AppButton, AppText } from '@/presentation/components/atoms';
+import { AppAlertBanner, AppBadge, AppButton, AppText } from '@/presentation/components/atoms';
 import type {
   LeaveRequestStatus,
-  LeaveType,
   PermissionRequestStatus,
   PermissionType,
 } from '@/domain/entities';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
+  clearLastSubmitResult,
   fetchLeaveBalances,
   fetchLeaveRequests,
+  fetchPermissionQuota,
   fetchPermissionRequests,
+  setRequestsFilter,
+  type LeaveFilter,
 } from '@/presentation/store/slices';
 import {
+  selectLastSubmitResult,
   selectLeaveBalances,
+  selectLeaveBalancesYear,
   selectLeaveRequests,
+  selectLeaveRequestsFetchStatus,
+  selectLeaveRequestsFilter,
   selectPermissionRequests,
 } from '@/presentation/store/selectors';
 import type {
@@ -39,9 +47,8 @@ import type { LeaveStackParamList } from '@/presentation/navigation/types';
 import { RequestTypePickerSheet } from './request_type_picker_sheet';
 import { PERMISSION_TYPE_KEY } from './permission_type_picker_sheet';
 
-// ── UI-only type ────────────────────────────────────────────────────────────
+// ── UI-only types ───────────────────────────────────────────────────────────
 
-type FilterStatus = 'All' | 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
 type RequestTab = 'leave' | 'permission';
 
 // ── Date formatting utilities ───────────────────────────────────────────────
@@ -65,7 +72,7 @@ const formatDateRange = (fromDate: string, toDate: string): string => {
 
 // ── Presentation-layer lookup maps ──────────────────────────────────────────
 
-const FILTER_CHIPS: FilterStatus[] = [
+const FILTER_CHIPS: LeaveFilter[] = [
   'All',
   'Pending',
   'Approved',
@@ -83,27 +90,7 @@ const STATUS_BADGE_VARIANT: Record<
   Cancelled: 'neutral',
 };
 
-const BALANCE_TYPE_KEY: Record<LeaveType, string> = {
-  Annual:       'leave.balances.types.annual',
-  Casual:       'leave.balances.types.casual',
-  Sick:         'leave.balances.types.sick',
-  Compassionate:'leave.balances.types.compassionate',
-  Unpaid:       'leave.balances.types.unpaid',
-  Hajj:         'leave.balances.types.hajj',
-  Marriage:     'leave.balances.types.marriage',
-};
-
-const LEAVE_TYPE_KEY: Record<LeaveType, string> = {
-  Annual:       'leave.balances.leaveTypes.annual',
-  Casual:       'leave.balances.leaveTypes.casual',
-  Sick:         'leave.balances.leaveTypes.sick',
-  Compassionate:'leave.balances.leaveTypes.compassionate',
-  Unpaid:       'leave.balances.leaveTypes.unpaid',
-  Hajj:         'leave.balances.leaveTypes.hajj',
-  Marriage:     'leave.balances.leaveTypes.marriage',
-};
-
-const FILTER_I18N_KEY: Record<FilterStatus, string> = {
+const FILTER_I18N_KEY: Record<LeaveFilter, string> = {
   All: 'leave.requests.filters.all',
   Pending: 'leave.requests.filters.pending',
   Approved: 'leave.requests.filters.approved',
@@ -157,19 +144,23 @@ const formatPermissionDuration = (
   return t('leave.requests.durationMinutesOnly', { minutes: mins });
 };
 
+/** Pick the localized leave-type name based on the current i18n language. */
+const pickLocalizedName = (nameEn: string, nameAr: string, lang: string): string =>
+  lang.startsWith('ar') ? nameAr : nameEn;
+
 // ── Sub-components ──────────────────────────────────────────────────────────
 
 interface ProgressBarProps {
-  // fill ratio (remaining / total); progress = remaining/total so a full bar = all days left
   progress: number;
+  color: string;
   styles: ReturnType<typeof createStyles>;
 }
 
-const ProgressBar: React.FC<ProgressBarProps> = ({ progress, styles }) => {
+const ProgressBar: React.FC<ProgressBarProps> = ({ progress, color, styles }) => {
   const clamped = Math.min(1, Math.max(0, progress));
   return (
     <View style={styles.progressTrack}>
-      <View style={[styles.progressFill, { width: `${clamped * 100}%` }]} />
+      <View style={[styles.progressFill, { width: `${clamped * 100}%`, backgroundColor: color }]} />
     </View>
   );
 };
@@ -184,11 +175,11 @@ interface BalanceCardProps {
 const BalanceCard: React.FC<BalanceCardProps> = ({ balance, theme, styles, t }) => (
   <View style={styles.balanceCard}>
     <AppText variant="small" weight="semibold">
-      {t(BALANCE_TYPE_KEY[balance.type])}
+      {balance.typeName}
     </AppText>
-    {balance.unlimited ? (
+    {balance.isUnlimited ? (
       <>
-        <AppText variant="subtitle" color={theme.colors.primary}>
+        <AppText variant="subtitle" color={balance.colorHex}>
           {t('leave.balances.unlimited')}
         </AppText>
         <AppText variant="micro" color={theme.colors.mutedForeground}>
@@ -198,21 +189,26 @@ const BalanceCard: React.FC<BalanceCardProps> = ({ balance, theme, styles, t }) 
     ) : (
       <>
         <View style={styles.numRow}>
-          <AppText variant="display" weight="bold" color={theme.colors.primary}>
-            {balance.remaining}
+          <AppText variant="display" weight="bold" color={balance.colorHex}>
+            {balance.remainingDays}
           </AppText>
           <AppText variant="micro" color={theme.colors.mutedForeground}>
             {t('leave.balances.daysRemaining')}
           </AppText>
         </View>
         <ProgressBar
-          progress={(balance.remaining ?? 0) / (balance.total ?? 1)}
+          progress={
+            balance.totalEntitlement > 0
+              ? balance.remainingDays / balance.totalEntitlement
+              : 0
+          }
+          color={balance.colorHex}
           styles={styles}
         />
         <AppText variant="micro" color={theme.colors.mutedForeground}>
           {t('leave.balances.usedOf', {
-            used: balance.used,
-            total: balance.total,
+            used: balance.usedDays,
+            total: balance.totalEntitlement,
           })}
         </AppText>
       </>
@@ -225,34 +221,31 @@ interface RequestCardProps {
   theme: AppTheme;
   styles: ReturnType<typeof createStyles>;
   t: (key: string, opts?: Record<string, unknown>) => string;
+  lang: string;
+  onPress: () => void;
 }
 
-const LEAVE_TYPE_COLOR_KEY: Record<LeaveType, keyof AppTheme['colors']['leaveTypes']> = {
-  Annual:        'annual',
-  Casual:        'casual',
-  Sick:          'sick',
-  Compassionate: 'compassionate',
-  Unpaid:        'unpaid',
-  Hajj:          'hajj',
-  Marriage:      'marriage',
-};
-
-const RequestCard: React.FC<RequestCardProps> = ({ request, theme, styles, t }) => {
-  const dotColor = theme.colors.leaveTypes[LEAVE_TYPE_COLOR_KEY[request.leaveType]];
+const RequestCard: React.FC<RequestCardProps> = ({ request, theme, styles, t, lang, onPress }) => {
   const duration =
-    request.durationDays === 1
+    request.totalDays === 1
       ? t('leave.requests.durationDay')
-      : t('leave.requests.durationDays', { count: request.durationDays });
+      : t('leave.requests.durationDays', { count: request.totalDays });
 
   return (
-    <View style={styles.requestCard}>
-      <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
+    <Pressable
+      style={({ pressed }) => [
+        styles.requestCard,
+        pressed && { backgroundColor: theme.colors.muted },
+      ]}
+      onPress={onPress}
+    >
+      <View style={[styles.statusDot, { backgroundColor: request.colorHex }]} />
       <View style={styles.requestInfo}>
         <AppText variant="label" weight="semibold">
-          {t(LEAVE_TYPE_KEY[request.leaveType])}
+          {pickLocalizedName(request.leaveTypeName, request.leaveTypeNameAr, lang)}
         </AppText>
         <AppText variant="small" color={theme.colors.mutedForeground}>
-          {formatDateRange(request.fromDate, request.toDate)}
+          {formatDateRange(request.startDate, request.endDate)}
         </AppText>
         <AppText variant="micro" color={theme.colors.mutedForeground}>
           {duration}
@@ -262,7 +255,7 @@ const RequestCard: React.FC<RequestCardProps> = ({ request, theme, styles, t }) 
         label={t(STATUS_I18N_KEY[request.status])}
         variant={STATUS_BADGE_VARIANT[request.status]}
       />
-    </View>
+    </Pressable>
   );
 };
 
@@ -353,15 +346,14 @@ const SegmentedTabs: React.FC<SegmentedTabsProps> = ({
 
 export const LeaveScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const dispatch = useAppDispatch();
   const navigation =
     useNavigation<NativeStackNavigationProp<LeaveStackParamList>>();
 
-  const [activeFilter,    setActiveFilter]    = useState<FilterStatus>('All');
-  const [activeTab,       setActiveTab]       = useState<RequestTab>('leave');
-  const [showTypeSheet,   setShowTypeSheet]   = useState(false);
+  const [activeTab,     setActiveTab]     = useState<RequestTab>('leave');
+  const [showTypeSheet, setShowTypeSheet] = useState(false);
 
   const openNewRequest = useCallback(() => setShowTypeSheet(true), []);
 
@@ -377,22 +369,49 @@ export const LeaveScreen: React.FC = () => {
     [navigation],
   );
 
-  const balances = useAppSelector(selectLeaveBalances);
-  const allLeaveRequests = useAppSelector(selectLeaveRequests);
+  const balances              = useAppSelector(selectLeaveBalances);
+  const balancesYear          = useAppSelector(selectLeaveBalancesYear);
+  const leaveRequests         = useAppSelector(selectLeaveRequests);
+  const activeFilter          = useAppSelector(selectLeaveRequestsFilter);
+  const requestsFetchStatus   = useAppSelector(selectLeaveRequestsFetchStatus);
   const allPermissionRequests = useAppSelector(selectPermissionRequests);
+  const lastSubmitResult      = useAppSelector(selectLastSubmitResult);
+
+  const reloadLeaveList = useCallback(
+    (filter: LeaveFilter) =>
+      dispatch(fetchLeaveRequests({
+        filter,
+        status: filter === 'All' ? undefined : filter,
+        page: 1,
+      })),
+    [dispatch],
+  );
 
   useEffect(() => {
     dispatch(fetchLeaveBalances());
-    dispatch(fetchLeaveRequests({ append: false }));
+    dispatch(fetchPermissionQuota());
     dispatch(fetchPermissionRequests({ append: false }));
+    reloadLeaveList(activeFilter);
+    // We only want this on mount; filter reloads are handled via handleFilterChange.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
-  const filteredLeaveRequests = useMemo(
-    () =>
-      activeFilter === 'All'
-        ? allLeaveRequests
-        : allLeaveRequests.filter(r => r.status === activeFilter),
-    [activeFilter, allLeaveRequests],
+  const handleFilterChange = useCallback(
+    (next: LeaveFilter) => {
+      dispatch(setRequestsFilter(next));
+      reloadLeaveList(next);
+    },
+    [dispatch, reloadLeaveList],
+  );
+
+  const handleRefresh = useCallback(() => {
+    dispatch(fetchLeaveBalances());
+    reloadLeaveList(activeFilter);
+  }, [activeFilter, dispatch, reloadLeaveList]);
+
+  const openDetail = useCallback(
+    (id: string) => navigation.navigate('LeaveRequestDetail', { id }),
+    [navigation],
   );
 
   const filteredPermissionRequests = useMemo(
@@ -405,9 +424,30 @@ export const LeaveScreen: React.FC = () => {
 
   const hasRequests =
     activeTab === 'leave'
-      ? filteredLeaveRequests.length > 0
+      ? leaveRequests.length > 0
       : filteredPermissionRequests.length > 0;
-  const currentYear = new Date().getFullYear().toString();
+
+  const submitBanner = useMemo(() => {
+    if (!lastSubmitResult) return null;
+    if (lastSubmitResult.hasAttendanceConflictWarning) {
+      return {
+        variant: 'warning' as const,
+        message: t('leave.requests.warnings.attendanceConflict', {
+          dates: lastSubmitResult.conflictDetails ?? '',
+        }),
+      };
+    }
+    if (lastSubmitResult.hasWeekendWarning) {
+      return {
+        variant: 'info' as const,
+        message: t('leave.requests.warnings.weekend'),
+      };
+    }
+    return {
+      variant: 'success' as const,
+      message: t('leave.requests.warnings.submitted'),
+    };
+  }, [lastSubmitResult, t]);
 
   return (
     <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
@@ -422,14 +462,30 @@ export const LeaveScreen: React.FC = () => {
           !hasRequests && styles.scrollContentGrow,
         ]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={requestsFetchStatus === 'pending'}
+            onRefresh={handleRefresh}
+            tintColor={theme.colors.primary}
+          />
+        }
       >
+        {submitBanner && (
+          <Pressable onPress={() => dispatch(clearLastSubmitResult())}>
+            <AppAlertBanner
+              variant={submitBanner.variant}
+              message={submitBanner.message}
+            />
+          </Pressable>
+        )}
+
         {/* ── Leave balances ── */}
         <View style={styles.sectionHeader}>
           <AppText variant="bodyLg" weight="semibold">
             {t('leave.balances.title')}
           </AppText>
           <AppText variant="labelRegular" color={theme.colors.mutedForeground}>
-            {currentYear}
+            {String(balancesYear ?? new Date().getFullYear())}
           </AppText>
         </View>
 
@@ -439,7 +495,7 @@ export const LeaveScreen: React.FC = () => {
           contentContainerStyle={styles.balanceCardsRow}
         >
           {balances.map(b => (
-            <BalanceCard key={b.type} balance={b} theme={theme} styles={styles} t={t} />
+            <BalanceCard key={b.typeId} balance={b} theme={theme} styles={styles} t={t} />
           ))}
         </ScrollView>
 
@@ -476,7 +532,7 @@ export const LeaveScreen: React.FC = () => {
                 styles.chip,
                 activeFilter === chip ? styles.chipActive : styles.chipInactive,
               ]}
-              onPress={() => setActiveFilter(chip)}
+              onPress={() => handleFilterChange(chip)}
             >
               <AppText
                 variant="small"
@@ -497,8 +553,16 @@ export const LeaveScreen: React.FC = () => {
         {hasRequests ? (
           <View style={styles.requestList}>
             {activeTab === 'leave'
-              ? filteredLeaveRequests.map(r => (
-                  <RequestCard key={r.id} request={r} theme={theme} styles={styles} t={t} />
+              ? leaveRequests.map(r => (
+                  <RequestCard
+                    key={r.id}
+                    request={r}
+                    theme={theme}
+                    styles={styles}
+                    t={t}
+                    lang={i18n.language}
+                    onPress={() => openDetail(r.id)}
+                  />
                 ))
               : filteredPermissionRequests.map(r => (
                   <PermissionRequestCard key={r.id} request={r} theme={theme} styles={styles} t={t} />
@@ -571,7 +635,6 @@ const createStyles = (theme: AppTheme) =>
       justifyContent: 'space-between',
       gap: ws(12),
     },
-    // Segmented tab switcher
     tabSwitcherWrap: {
       flex: 1,
     },
@@ -596,7 +659,6 @@ const createStyles = (theme: AppTheme) =>
       shadowRadius: ws(3),
       elevation: 1,
     },
-    // Balance cards
     balanceCardsRow: {
       gap: ws(12),
     },
@@ -624,9 +686,7 @@ const createStyles = (theme: AppTheme) =>
     progressFill: {
       height: '100%',
       borderRadius: theme.radius.pill,
-      backgroundColor: theme.colors.primary,
     },
-    // Filter chips
     filterChipsRow: {
       gap: ws(8),
     },
@@ -642,7 +702,6 @@ const createStyles = (theme: AppTheme) =>
       borderWidth: 1,
       borderColor: theme.colors.border,
     },
-    // Request cards
     requestList: {
       gap: hs(12),
     },
@@ -666,7 +725,6 @@ const createStyles = (theme: AppTheme) =>
       flex: 1,
       gap: hs(2),
     },
-    // Empty state
     emptyState: {
       flex: 1,
       alignItems: 'center',
@@ -682,7 +740,6 @@ const createStyles = (theme: AppTheme) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    // FAB
     fab: {
       position: 'absolute',
       right: ws(20),

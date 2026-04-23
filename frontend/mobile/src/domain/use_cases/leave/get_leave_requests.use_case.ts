@@ -1,9 +1,15 @@
 import { UseCase } from '@/domain/use_cases/use_case.base';
 import type { LeaveRequestsPage } from '@/domain/entities';
-import type { LeaveRepository, GetLeaveRequestsParams } from '@/domain/repositories';
+import type {
+  GetLeaveRequestsParams,
+  LeaveRepository,
+} from '@/domain/repositories';
 import { leaveLog } from '@/core/logger';
 
-export class GetLeaveRequestsUseCase extends UseCase<GetLeaveRequestsParams, LeaveRequestsPage> {
+export class GetLeaveRequestsUseCase extends UseCase<
+  GetLeaveRequestsParams,
+  LeaveRequestsPage
+> {
   constructor(private readonly repo: LeaveRepository) {
     super();
   }
@@ -11,13 +17,13 @@ export class GetLeaveRequestsUseCase extends UseCase<GetLeaveRequestsParams, Lea
   async execute(input: GetLeaveRequestsParams): Promise<LeaveRequestsPage> {
     leaveLog.info(
       'use_case',
-      `GetLeaveRequestsUseCase.execute → cursor=${input.cursor ?? 'none'}, pageSize=${input.pageSize ?? 'default'}`,
+      `GetLeaveRequestsUseCase.execute → status=${input.status ?? 'all'}, page=${input.page ?? 1}, pageSize=${input.pageSize ?? 'default'}`,
     );
     try {
       const page = await this.repo.getLeaveRequests(input);
       leaveLog.info(
         'use_case',
-        `GetLeaveRequestsUseCase completed → ${page.items.length} items, nextCursor=${page.nextCursor ?? 'none'}`,
+        `GetLeaveRequestsUseCase completed → ${page.items.length} items (${page.totalCount} total)`,
       );
       return page;
     } catch (e) {

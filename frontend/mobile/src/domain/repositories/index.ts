@@ -6,9 +6,13 @@ export type { AttendanceRepository } from './attendance.repository';
 export type { SlackRepository } from './slack.repository';
 export type {
   LeaveRepository,
-  LeaveBalancesResult,
-  RequestLeaveParams,
+  GetAvailableLeaveTypesParams,
+  GetLeaveBalancesParams,
   GetLeaveRequestsParams,
+  GetLeaveRequestDetailParams,
+  SubmitLeaveRequestParams,
+  CancelLeaveRequestParams,
+  ReviewLeaveRequestParams,
   RequestPermissionParams,
   GetPermissionRequestsParams,
 } from './leave.repository';

@@ -1,99 +1,215 @@
 import type {
-  LeaveRequest,
+  AdminLeaveRequestsPage,
+  LeaveBalancesSummary,
+  LeaveRequestDetail,
   LeaveRequestsPage,
+  LeaveTypeMeta,
+  PermissionQuota,
   PermissionRequest,
   PermissionRequestsPage,
+  SubmitLeaveResult,
 } from '@/domain/entities';
 import type {
-  LeaveRepository,
-  LeaveBalancesResult,
-  RequestLeaveParams,
+  CancelLeaveRequestParams,
+  GetAvailableLeaveTypesParams,
+  GetLeaveBalancesParams,
+  GetLeaveRequestDetailParams,
   GetLeaveRequestsParams,
-  RequestPermissionParams,
   GetPermissionRequestsParams,
+  LeaveRepository,
+  RequestPermissionParams,
+  ReviewLeaveRequestParams,
+  SubmitLeaveRequestParams,
 } from '@/domain/repositories';
 import { LeaveRemoteDataSource } from '@/data/data_sources/leave';
 import {
+  adminLeaveRequestsPageDtoToDomain,
   leaveBalancesResponseDtoToDomain,
-  leaveRequestDtoToDomain,
-  leaveRequestsResponseDtoToDomain,
+  leaveRequestDetailDtoToDomain,
+  leaveRequestsPageDtoToDomain,
+  leaveTypeSummaryDtoToDomain,
+  mapHttpErrorToLeave,
+  MOCK_PERMISSION_QUOTA,
   permissionRequestDtoToDomain,
   permissionRequestsResponseDtoToDomain,
-  mapHttpErrorToLeave,
+  submitLeaveRequestSuccessDtoToDomain,
 } from '@/data/mappers/leave';
 import { leaveLog } from '@/core/logger';
 
 export class LeaveRepositoryImpl implements LeaveRepository {
   constructor(private readonly ds: LeaveRemoteDataSource) {}
 
-  async getLeaveBalances(): Promise<LeaveBalancesResult> {
-    leaveLog.info('repository', 'getLeaveBalances called');
+  // ── Leave types ────────────────────────────────────────────────────────────
+
+  async getAvailableLeaveTypes(
+    params: GetAvailableLeaveTypesParams,
+  ): Promise<LeaveTypeMeta[]> {
+    leaveLog.info('repository', `getAvailableLeaveTypes called (startDate=${params.startDate})`);
     try {
-      const dto = await this.ds.getLeaveBalances();
-      const result = leaveBalancesResponseDtoToDomain(dto);
-      leaveLog.info('repository', `getLeaveBalances → ${result.balances.length} balances`);
+      const dtos = await this.ds.getAvailableLeaveTypes(params.startDate);
+      const result = dtos.map(leaveTypeSummaryDtoToDomain);
+      leaveLog.info('repository', `getAvailableLeaveTypes → ${result.length} types`);
       return result;
     } catch (e) {
-      const mapped = mapHttpErrorToLeave(e);
-      leaveLog.error('repository', `getLeaveBalances failed (code=${mapped.leaveCode})`);
-      throw mapped;
+      throw mapAndLog(e, 'getAvailableLeaveTypes');
     }
   }
+
+  // ── Balances ───────────────────────────────────────────────────────────────
+
+  async getLeaveBalances(
+    params: GetLeaveBalancesParams,
+  ): Promise<LeaveBalancesSummary> {
+    leaveLog.info('repository', `getLeaveBalances called (year=${params.year ?? 'current'})`);
+    try {
+      const dto = await this.ds.getLeaveBalances(params.year);
+      const result = leaveBalancesResponseDtoToDomain(dto);
+      leaveLog.info(
+        'repository',
+        `getLeaveBalances → year=${result.year}, ${result.balances.length} balances`,
+      );
+      return result;
+    } catch (e) {
+      throw mapAndLog(e, 'getLeaveBalances');
+    }
+  }
+
+  // ── Employee list + detail ─────────────────────────────────────────────────
 
   async getLeaveRequests(params: GetLeaveRequestsParams): Promise<LeaveRequestsPage> {
     leaveLog.info(
       'repository',
-      `getLeaveRequests called (cursor=${params.cursor ?? 'none'}, pageSize=${params.pageSize ?? 'default'})`,
+      `getLeaveRequests called (status=${params.status ?? 'all'}, page=${params.page ?? 1})`,
     );
     try {
-      const dto = await this.ds.getLeaveRequests(params);
-      const page = leaveRequestsResponseDtoToDomain(dto);
+      const dto = await this.ds.getMyLeaveRequests({
+        status: params.status,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      const page = leaveRequestsPageDtoToDomain(dto);
       leaveLog.info(
         'repository',
-        `getLeaveRequests → ${page.items.length} items, nextCursor=${page.nextCursor ?? 'none'}`,
+        `getLeaveRequests → ${page.items.length}/${page.totalCount} items`,
       );
       return page;
     } catch (e) {
-      const mapped = mapHttpErrorToLeave(e);
-      leaveLog.error('repository', `getLeaveRequests failed (code=${mapped.leaveCode})`);
-      throw mapped;
+      throw mapAndLog(e, 'getLeaveRequests');
     }
   }
 
-  async createLeaveRequest(params: RequestLeaveParams): Promise<LeaveRequest> {
-    leaveLog.info(
-      'repository',
-      `createLeaveRequest called (leaveType=${params.leaveType}, from=${params.fromDate}, to=${params.toDate})`,
-    );
+  async getLeaveRequestDetail(
+    params: GetLeaveRequestDetailParams,
+  ): Promise<LeaveRequestDetail> {
+    leaveLog.info('repository', `getLeaveRequestDetail called (id=${params.leaveRequestId})`);
     try {
-      const dto = await this.ds.createLeaveRequest(params);
-      const entity = leaveRequestDtoToDomain(dto);
-      leaveLog.info('repository', `createLeaveRequest → id=${entity.id}`);
+      const dto = await this.ds.getLeaveRequestDetail(params.leaveRequestId);
+      const entity = leaveRequestDetailDtoToDomain(dto);
+      leaveLog.info('repository', `getLeaveRequestDetail → status=${entity.status}`);
       return entity;
     } catch (e) {
-      const mapped = mapHttpErrorToLeave(e);
-      leaveLog.error('repository', `createLeaveRequest failed (code=${mapped.leaveCode})`);
-      throw mapped;
+      throw mapAndLog(e, 'getLeaveRequestDetail');
     }
   }
 
-  async getPermissionRequests(params: GetPermissionRequestsParams): Promise<PermissionRequestsPage> {
+  // ── Submit + cancel ────────────────────────────────────────────────────────
+
+  async submitLeaveRequest(params: SubmitLeaveRequestParams): Promise<SubmitLeaveResult> {
     leaveLog.info(
       'repository',
-      `getPermissionRequests called (cursor=${params.cursor ?? 'none'})`,
+      `submitLeaveRequest called (typeId=${params.leaveTypeId}, ${params.startDate}→${params.endDate})`,
     );
     try {
-      const dto = await this.ds.getPermissionRequests(params);
-      const page = permissionRequestsResponseDtoToDomain(dto);
+      const dto = await this.ds.submitLeaveRequest({
+        leaveTypeId: params.leaveTypeId,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        notes: params.notes,
+      });
+      const result = submitLeaveRequestSuccessDtoToDomain(dto);
+      leaveLog.info('repository', `submitLeaveRequest → id=${result.leaveRequestId}`);
+      return result;
+    } catch (e) {
+      throw mapAndLog(e, 'submitLeaveRequest');
+    }
+  }
+
+  async cancelLeaveRequest(params: CancelLeaveRequestParams): Promise<void> {
+    leaveLog.info('repository', `cancelLeaveRequest called (id=${params.leaveRequestId})`);
+    try {
+      await this.ds.cancelLeaveRequest(params.leaveRequestId);
+      leaveLog.info('repository', `cancelLeaveRequest → ok`);
+    } catch (e) {
+      throw mapAndLog(e, 'cancelLeaveRequest');
+    }
+  }
+
+  // ── Admin ──────────────────────────────────────────────────────────────────
+
+  async adminGetLeaveRequests(
+    params: GetLeaveRequestsParams,
+  ): Promise<AdminLeaveRequestsPage> {
+    leaveLog.info(
+      'repository',
+      `adminGetLeaveRequests called (status=${params.status ?? 'all'}, page=${params.page ?? 1})`,
+    );
+    try {
+      const dto = await this.ds.adminGetLeaveRequests({
+        status: params.status,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      const page = adminLeaveRequestsPageDtoToDomain(dto);
       leaveLog.info(
         'repository',
-        `getPermissionRequests → ${page.items.length} items, nextCursor=${page.nextCursor ?? 'none'}`,
+        `adminGetLeaveRequests → ${page.items.length}/${page.totalCount} items`,
       );
       return page;
     } catch (e) {
-      const mapped = mapHttpErrorToLeave(e);
-      leaveLog.error('repository', `getPermissionRequests failed (code=${mapped.leaveCode})`);
-      throw mapped;
+      throw mapAndLog(e, 'adminGetLeaveRequests');
+    }
+  }
+
+  async adminApproveLeaveRequest(params: ReviewLeaveRequestParams): Promise<void> {
+    leaveLog.info('repository', `adminApproveLeaveRequest called (id=${params.leaveRequestId})`);
+    try {
+      await this.ds.adminApproveLeaveRequest(params.leaveRequestId, {
+        reviewerComment: params.reviewerComment,
+      });
+      leaveLog.info('repository', `adminApproveLeaveRequest → ok`);
+    } catch (e) {
+      throw mapAndLog(e, 'adminApproveLeaveRequest');
+    }
+  }
+
+  async adminRejectLeaveRequest(params: ReviewLeaveRequestParams): Promise<void> {
+    leaveLog.info('repository', `adminRejectLeaveRequest called (id=${params.leaveRequestId})`);
+    try {
+      await this.ds.adminRejectLeaveRequest(params.leaveRequestId, {
+        reviewerComment: params.reviewerComment,
+      });
+      leaveLog.info('repository', `adminRejectLeaveRequest → ok`);
+    } catch (e) {
+      throw mapAndLog(e, 'adminRejectLeaveRequest');
+    }
+  }
+
+  // ── Permission (mock) ──────────────────────────────────────────────────────
+
+  async getPermissionQuota(): Promise<PermissionQuota | null> {
+    leaveLog.info('repository', 'getPermissionQuota called (mock)');
+    return MOCK_PERMISSION_QUOTA;
+  }
+
+  async getPermissionRequests(
+    params: GetPermissionRequestsParams,
+  ): Promise<PermissionRequestsPage> {
+    leaveLog.info('repository', `getPermissionRequests called (cursor=${params.cursor ?? 'none'})`);
+    try {
+      const dto = await this.ds.getPermissionRequests(params);
+      return permissionRequestsResponseDtoToDomain(dto);
+    } catch (e) {
+      throw mapAndLog(e, 'getPermissionRequests');
     }
   }
 
@@ -104,13 +220,15 @@ export class LeaveRepositoryImpl implements LeaveRepository {
     );
     try {
       const dto = await this.ds.createPermissionRequest(params);
-      const entity = permissionRequestDtoToDomain(dto);
-      leaveLog.info('repository', `createPermissionRequest → id=${entity.id}`);
-      return entity;
+      return permissionRequestDtoToDomain(dto);
     } catch (e) {
-      const mapped = mapHttpErrorToLeave(e);
-      leaveLog.error('repository', `createPermissionRequest failed (code=${mapped.leaveCode})`);
-      throw mapped;
+      throw mapAndLog(e, 'createPermissionRequest');
     }
   }
 }
+
+const mapAndLog = (e: unknown, label: string) => {
+  const mapped = mapHttpErrorToLeave(e);
+  leaveLog.error('repository', `${label} failed (code=${mapped.leaveCode})`);
+  return mapped;
+};

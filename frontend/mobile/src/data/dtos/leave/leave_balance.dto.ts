@@ -1,18 +1,16 @@
-export interface LeaveBalanceDto {
-  leaveType: string;
-  remaining: number | null;
-  used: number | null;
-  total: number | null;
-  unlimited?: boolean;
+// Matches LeaveBalanceItemDto on BE.
+export interface LeaveBalanceItemDto {
+  leaveTypeId: number;
+  leaveTypeName: string;
+  colorHex: string;
+  isUnlimited: boolean;
+  totalEntitlement: number;
+  usedDays: number;
+  remainingDays: number;
 }
 
-export interface PermissionQuotaDto {
-  permissionsUsed: number;
-  permissionsAllowed: number;
-  monthResetsAt: string; // yyyy-MM-dd
-}
-
+// Matches LeaveBalanceSummaryDto on BE.
 export interface LeaveBalancesResponseDto {
-  items: LeaveBalanceDto[];
-  permissionQuota?: PermissionQuotaDto;
+  year: number;
+  balances: LeaveBalanceItemDto[];
 }

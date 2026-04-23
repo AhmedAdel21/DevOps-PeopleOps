@@ -1,40 +1,36 @@
 import type {
+  AdminLeaveRequestListItem,
+  AdminLeaveRequestsPage,
   LeaveBalance,
-  LeaveRequest,
-  LeaveRequestsPage,
-  LeaveType,
+  LeaveBalancesSummary,
+  LeaveRequestDetail,
+  LeaveRequestListItem,
   LeaveRequestStatus,
+  LeaveRequestsPage,
+  LeaveTypeMeta,
   PermissionQuota,
   PermissionRequest,
+  PermissionRequestStatus,
   PermissionRequestsPage,
   PermissionType,
-  PermissionRequestStatus,
+  SubmitLeaveResult,
 } from '@/domain/entities';
 import type {
-  LeaveBalanceDto,
+  AdminLeaveRequestListItemDto,
+  AdminLeaveRequestsPageDto,
+  LeaveBalanceItemDto,
   LeaveBalancesResponseDto,
-  LeaveRequestDto,
-  LeaveRequestsResponseDto,
-  PermissionQuotaDto,
+  LeaveRequestDetailDto,
+  LeaveRequestListItemDto,
+  LeaveRequestsPageDto,
+  LeaveTypeSummaryDto,
   PermissionRequestDto,
   PermissionRequestsResponseDto,
+  SubmitLeaveRequestSuccessDto,
 } from '@/data/dtos/leave';
 import { leaveLog } from '@/core/logger';
 
-const toLeaveType = (raw: string): LeaveType => {
-  switch (raw) {
-    case 'Annual':        return 'Annual';
-    case 'Casual':        return 'Casual';
-    case 'Sick':          return 'Sick';
-    case 'Compassionate': return 'Compassionate';
-    case 'Unpaid':        return 'Unpaid';
-    case 'Hajj':          return 'Hajj';
-    case 'Marriage':      return 'Marriage';
-    default:
-      leaveLog.warn('mapper', `Unknown leaveType "${raw}", falling back to 'Annual'`);
-      return 'Annual';
-  }
-};
+// ── Status ───────────────────────────────────────────────────────────────────
 
 const toLeaveRequestStatus = (raw: string): LeaveRequestStatus => {
   switch (raw) {
@@ -72,44 +68,120 @@ const toPermissionRequestStatus = (raw: string): PermissionRequestStatus => {
   }
 };
 
-export const leaveBalanceDtoToDomain = (dto: LeaveBalanceDto): LeaveBalance => ({
-  type: toLeaveType(dto.leaveType),
-  remaining: dto.remaining,
-  used: dto.used,
-  total: dto.total,
-  unlimited: dto.unlimited,
+// ── Leave types ──────────────────────────────────────────────────────────────
+
+export const leaveTypeSummaryDtoToDomain = (dto: LeaveTypeSummaryDto): LeaveTypeMeta => ({
+  id: dto.leaveTypeId,
+  nameEn: dto.nameEn,
+  nameAr: dto.nameAr,
+  colorHex: dto.colorHex,
+  requiresMedicalCertificate: dto.requiresMedicalCertificate,
+  isOncePerCareer: dto.isOncePerCareer,
+  maxConsecutiveDays: dto.maxConsecutiveDays,
+  allowSameDay: dto.allowSameDay,
 });
 
-export const permissionQuotaDtoToDomain = (dto: PermissionQuotaDto): PermissionQuota => ({
-  permissionsUsed: dto.permissionsUsed,
-  permissionsAllowed: dto.permissionsAllowed,
-  monthResetsAt: dto.monthResetsAt,
+// ── Balances ─────────────────────────────────────────────────────────────────
+
+export const leaveBalanceItemDtoToDomain = (dto: LeaveBalanceItemDto): LeaveBalance => ({
+  typeId: dto.leaveTypeId,
+  typeName: dto.leaveTypeName,
+  colorHex: dto.colorHex,
+  isUnlimited: dto.isUnlimited,
+  totalEntitlement: dto.totalEntitlement,
+  usedDays: dto.usedDays,
+  remainingDays: dto.remainingDays,
 });
 
 export const leaveBalancesResponseDtoToDomain = (
   dto: LeaveBalancesResponseDto,
-): { balances: LeaveBalance[]; permissionQuota: PermissionQuota | null } => ({
-  balances: dto.items.map(leaveBalanceDtoToDomain),
-  permissionQuota: dto.permissionQuota
-    ? permissionQuotaDtoToDomain(dto.permissionQuota)
-    : null,
+): LeaveBalancesSummary => ({
+  year: dto.year,
+  balances: dto.balances.map(leaveBalanceItemDtoToDomain),
 });
 
-export const leaveRequestDtoToDomain = (dto: LeaveRequestDto): LeaveRequest => ({
-  id: dto.id,
-  leaveType: toLeaveType(dto.leaveType),
-  fromDate: dto.fromDate,
-  toDate: dto.toDate,
-  durationDays: dto.durationDays,
+// ── List + detail ────────────────────────────────────────────────────────────
+
+export const leaveRequestListItemDtoToDomain = (
+  dto: LeaveRequestListItemDto,
+): LeaveRequestListItem => ({
+  id: dto.leaveRequestId,
+  leaveTypeName: dto.leaveTypeName,
+  leaveTypeNameAr: dto.leaveTypeNameAr,
+  colorHex: dto.colorHex,
+  startDate: dto.startDate,
+  endDate: dto.endDate,
+  totalDays: dto.totalDays,
   status: toLeaveRequestStatus(dto.status),
+  hasAttendanceConflict: dto.hasAttendanceConflict,
+  createdAt: dto.createdAt,
 });
 
-export const leaveRequestsResponseDtoToDomain = (
-  dto: LeaveRequestsResponseDto,
+export const leaveRequestsPageDtoToDomain = (
+  dto: LeaveRequestsPageDto,
 ): LeaveRequestsPage => ({
-  items: dto.items.map(leaveRequestDtoToDomain),
-  nextCursor: dto.nextCursor,
+  items: dto.items.map(leaveRequestListItemDtoToDomain),
+  totalCount: dto.totalCount,
+  page: dto.page,
+  pageSize: dto.pageSize,
 });
+
+export const leaveRequestDetailDtoToDomain = (
+  dto: LeaveRequestDetailDto,
+): LeaveRequestDetail => ({
+  id: dto.leaveRequestId,
+  leaveTypeName: dto.leaveTypeName,
+  leaveTypeNameAr: dto.leaveTypeNameAr,
+  colorHex: dto.colorHex,
+  startDate: dto.startDate,
+  endDate: dto.endDate,
+  totalDays: dto.totalDays,
+  status: toLeaveRequestStatus(dto.status),
+  notes: dto.notes,
+  hasAttendanceConflict: dto.hasAttendanceConflict,
+  conflictDetails: dto.conflictDetails,
+  reviewerComment: dto.reviewerComment,
+  reviewedAt: dto.reviewedAt,
+  createdAt: dto.createdAt,
+  balanceAfterApproval: dto.balanceAfterApproval,
+});
+
+// ── Submit result ────────────────────────────────────────────────────────────
+
+export const submitLeaveRequestSuccessDtoToDomain = (
+  dto: SubmitLeaveRequestSuccessDto,
+): SubmitLeaveResult => ({
+  leaveRequestId: dto.leaveRequestId,
+  hasWeekendWarning: dto.hasWeekendWarning,
+  hasAttendanceConflictWarning: dto.hasAttendanceConflictWarning,
+  conflictDetails: dto.conflictDetails,
+});
+
+// ── Admin ────────────────────────────────────────────────────────────────────
+
+export const adminLeaveRequestListItemDtoToDomain = (
+  dto: AdminLeaveRequestListItemDto,
+): AdminLeaveRequestListItem => ({
+  ...leaveRequestListItemDtoToDomain(dto),
+  employeeId: dto.employeeId,
+  employeeName: dto.employeeName,
+  employeeCode: dto.employeeCode,
+  notes: dto.notes,
+  conflictDetails: dto.conflictDetails,
+  reviewerComment: dto.reviewerComment,
+  reviewedAt: dto.reviewedAt,
+});
+
+export const adminLeaveRequestsPageDtoToDomain = (
+  dto: AdminLeaveRequestsPageDto,
+): AdminLeaveRequestsPage => ({
+  items: dto.items.map(adminLeaveRequestListItemDtoToDomain),
+  totalCount: dto.totalCount,
+  page: dto.page,
+  pageSize: dto.pageSize,
+});
+
+// ── Permission (mock, unchanged shapes) ──────────────────────────────────────
 
 export const permissionRequestDtoToDomain = (dto: PermissionRequestDto): PermissionRequest => ({
   id: dto.id,
@@ -127,3 +199,15 @@ export const permissionRequestsResponseDtoToDomain = (
   items: dto.items.map(permissionRequestDtoToDomain),
   nextCursor: dto.nextCursor,
 });
+
+/** Mock quota — held in the repository impl until BE exposes permissions. */
+export const MOCK_PERMISSION_QUOTA: PermissionQuota = {
+  permissionsUsed: 1,
+  permissionsAllowed: 2,
+  monthResetsAt: (() => {
+    const now = new Date();
+    const y = now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
+    const m = now.getMonth() === 11 ? 1 : now.getMonth() + 2;
+    return `${y}-${String(m).padStart(2, '0')}-01`;
+  })(),
+};

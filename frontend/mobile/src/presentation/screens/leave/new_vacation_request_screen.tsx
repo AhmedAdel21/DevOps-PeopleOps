@@ -30,27 +30,21 @@ import {
   AppDivider,
   AppText,
 } from '@/presentation/components/atoms';
-import type { LeaveType } from '@/domain/entities';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
-import { submitLeaveRequest } from '@/presentation/store/slices';
 import {
-  selectRequestLeaveStatus,
-  selectRequestLeaveError,
+  fetchAvailableLeaveTypes,
+  submitLeaveRequest,
+} from '@/presentation/store/slices';
+import type { SerializableLeaveType } from '@/presentation/store/slices';
+import {
+  selectAvailableLeaveTypes,
+  selectAvailableLeaveTypesFetchStatus,
+  selectLastSubmitResult,
+  selectSubmitLeaveError,
+  selectSubmitLeaveStatus,
 } from '@/presentation/store/selectors';
 import type { LeaveStackParamList } from '@/presentation/navigation/types';
 import { LeaveTypePickerSheet } from './leave_type_picker_sheet';
-
-// ── i18n key map ─────────────────────────────────────────────────────────────
-
-const LEAVE_TYPE_KEY: Record<LeaveType, string> = {
-  Annual:        'leave.balances.leaveTypes.annual',
-  Casual:        'leave.balances.leaveTypes.casual',
-  Sick:          'leave.balances.leaveTypes.sick',
-  Compassionate: 'leave.balances.leaveTypes.compassionate',
-  Unpaid:        'leave.balances.leaveTypes.unpaid',
-  Hajj:          'leave.balances.leaveTypes.hajj',
-  Marriage:      'leave.balances.leaveTypes.marriage',
-};
 
 // ── Date helpers ─────────────────────────────────────────────────────────────
 
@@ -69,12 +63,46 @@ const toIsoDate = (d: Date): string => {
 const computeDays = (from: Date, to: Date): number =>
   Math.round((to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000)) + 1;
 
+const addDays = (d: Date, days: number): Date => {
+  const result = new Date(d);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+const isSameLocalDay = (a: Date, b: Date): boolean =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
+const pickLocalizedName = (t: SerializableLeaveType, lang: string): string =>
+  lang.startsWith('ar') ? t.nameAr : t.nameEn;
+
+// ── Map domain error codes to i18n keys ─────────────────────────────────────
+
+/**
+ * Codes whose message is generic; we translate via a fixed i18n key.
+ * Codes that carry dynamic detail (past-date-exceeded, insufficient-balance,
+ * consecutive-limit) should use the BE-provided errorMessage directly because
+ * it embeds the relevant number/date.
+ */
+const ERROR_CODE_I18N_KEY: Partial<Record<string, string>> = {
+  'invalid-leave-type':     'leave.newVacationRequest.errors.codes.invalidLeaveType',
+  'leave-type-inactive':    'leave.newVacationRequest.errors.codes.leaveTypeInactive',
+  'once-per-career':        'leave.newVacationRequest.errors.codes.oncePerCareer',
+  'same-day-not-allowed':   'leave.newVacationRequest.errors.codes.sameDayNotAllowed',
+  'past-date-not-allowed':  'leave.newVacationRequest.errors.codes.pastDateNotAllowed',
+  'date-overlap':           'leave.newVacationRequest.errors.codes.dateOverlap',
+  'unauthenticated':        'leave.newVacationRequest.errors.codes.unauthenticated',
+  'network':                'leave.newVacationRequest.errors.codes.network',
+};
+
 // ── Picker modal ─────────────────────────────────────────────────────────────
 
 interface PickerModalProps {
   visible: boolean;
   value: Date;
   min?: Date;
+  max?: Date;
   onConfirm: (d: Date) => void;
   onCancel: () => void;
   cancelLabel: string;
@@ -86,6 +114,7 @@ const PickerModal: React.FC<PickerModalProps> = ({
   visible,
   value,
   min,
+  max,
   onConfirm,
   onCancel,
   cancelLabel,
@@ -106,6 +135,7 @@ const PickerModal: React.FC<PickerModalProps> = ({
         mode="date"
         display="default"
         minimumDate={min}
+        maximumDate={max}
         onChange={(evt, d) => {
           if (evt.type === 'set' && d) onConfirm(d);
           else onCancel();
@@ -132,6 +162,7 @@ const PickerModal: React.FC<PickerModalProps> = ({
             mode="date"
             display="spinner"
             minimumDate={min}
+            maximumDate={max}
             onChange={(_, d) => { if (d) setPending(d); }}
           />
         </View>
@@ -162,24 +193,27 @@ const pickerStyles = StyleSheet.create({
   },
 });
 
-// ── Screen ────────────────────────────────────────────────────────────────────
+// ── Screen ───────────────────────────────────────────────────────────────────
 
 export const NewVacationRequestScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation =
     useNavigation<NativeStackNavigationProp<LeaveStackParamList>>();
 
   const dispatch = useAppDispatch();
-  const submitStatus = useAppSelector(selectRequestLeaveStatus);
-  const submitError  = useAppSelector(selectRequestLeaveError);
+  const submitStatus    = useAppSelector(selectSubmitLeaveStatus);
+  const submitError     = useAppSelector(selectSubmitLeaveError);
+  const submitResult    = useAppSelector(selectLastSubmitResult);
+  const availableTypes  = useAppSelector(selectAvailableLeaveTypes);
+  const availableStatus = useAppSelector(selectAvailableLeaveTypesFetchStatus);
 
   // Form state
   const [fromDate,   setFromDate]   = useState<Date | null>(null);
   const [toDate,     setToDate]     = useState<Date | null>(null);
-  const [leaveType,  setLeaveType]  = useState<LeaveType | null>(null);
+  const [leaveType,  setLeaveType]  = useState<SerializableLeaveType | null>(null);
   const [notes,      setNotes]      = useState('');
   const [dateErr,    setDateErr]    = useState<string | undefined>();
   const [typeErr,    setTypeErr]    = useState<string | undefined>();
@@ -189,14 +223,33 @@ export const NewVacationRequestScreen: React.FC = () => {
   const [pickerValue, setPickerValue] = useState(new Date());
   const [sheetOpen,   setSheetOpen]   = useState(false);
 
-  // Navigate back after successful submit
+  // Fetch available leave types whenever the start date changes.
+  useEffect(() => {
+    if (fromDate) {
+      dispatch(fetchAvailableLeaveTypes({ startDate: toIsoDate(fromDate) }));
+    }
+  }, [dispatch, fromDate]);
+
+  // Drop the selected leave type if it is no longer returned by the BE.
+  useEffect(() => {
+    if (leaveType && availableStatus === 'loaded') {
+      const stillAvailable = availableTypes.some(x => x.id === leaveType.id);
+      if (!stillAvailable) setLeaveType(null);
+    }
+  }, [availableTypes, availableStatus, leaveType]);
+
+  // Navigate back after successful submit. The submit result stays in the
+  // store so the list screen can show the weekend / attendance-conflict
+  // banner — it's cleared there on dismiss or on the next submit.
   const prevStatus = useRef(submitStatus);
   useEffect(() => {
-    if (prevStatus.current === 'pending' && submitStatus === 'idle') {
+    if (prevStatus.current === 'pending' && submitStatus === 'idle' && submitResult) {
       navigation.goBack();
     }
     prevStatus.current = submitStatus;
-  }, [submitStatus, navigation]);
+  }, [submitStatus, submitResult, navigation]);
+
+  // ── Date helpers ────────────────────────────────────────────────────────────
 
   const durationDays = useMemo(() => {
     if (!fromDate || !toDate) return null;
@@ -204,15 +257,40 @@ export const NewVacationRequestScreen: React.FC = () => {
     return d > 0 ? d : null;
   }, [fromDate, toDate]);
 
+  const isStartDateToday = useMemo(() => {
+    if (!fromDate) return false;
+    return isSameLocalDay(fromDate, new Date());
+  }, [fromDate]);
+
+  const sameDayBlocked = Boolean(
+    leaveType && !leaveType.allowSameDay && isStartDateToday,
+  );
+
+  const endDateMax = useMemo(() => {
+    if (!fromDate || !leaveType?.maxConsecutiveDays) return undefined;
+    return addDays(fromDate, leaveType.maxConsecutiveDays - 1);
+  }, [fromDate, leaveType]);
+
+  // Cap toDate if a max-consecutive rule shrinks below the currently selected range.
+  useEffect(() => {
+    if (toDate && endDateMax && toDate > endDateMax) {
+      setToDate(endDateMax);
+    }
+  }, [toDate, endDateMax]);
+
   const openFromPicker = useCallback(() => {
     setPickerValue(fromDate ?? new Date());
     setPickerOpen('from');
   }, [fromDate]);
 
   const openToPicker = useCallback(() => {
-    setPickerValue(toDate ?? fromDate ?? new Date());
+    if (!fromDate) {
+      setDateErr(t('leave.newVacationRequest.errors.startDateFirst'));
+      return;
+    }
+    setPickerValue(toDate ?? fromDate);
     setPickerOpen('to');
-  }, [toDate, fromDate]);
+  }, [toDate, fromDate, t]);
 
   const applyDate = useCallback(
     (d: Date) => {
@@ -228,11 +306,19 @@ export const NewVacationRequestScreen: React.FC = () => {
     [pickerOpen, toDate],
   );
 
-  const handleLeaveTypeSelect = useCallback((type: LeaveType) => {
+  const handleLeaveTypeSelect = useCallback((type: SerializableLeaveType) => {
     setLeaveType(type);
     setSheetOpen(false);
     setTypeErr(undefined);
   }, []);
+
+  const openTypeSheet = useCallback(() => {
+    if (!fromDate) {
+      setDateErr(t('leave.newVacationRequest.errors.startDateFirst'));
+      return;
+    }
+    setSheetOpen(true);
+  }, [fromDate, t]);
 
   const handleSubmit = useCallback(() => {
     let hasError = false;
@@ -244,24 +330,38 @@ export const NewVacationRequestScreen: React.FC = () => {
       setTypeErr(t('leave.newVacationRequest.errors.leaveTypeRequired'));
       hasError = true;
     }
+    if (sameDayBlocked) {
+      setTypeErr(t('leave.newVacationRequest.errors.codes.sameDayNotAllowed'));
+      hasError = true;
+    }
     if (hasError) return;
 
     dispatch(submitLeaveRequest({
-      leaveType: leaveType!,
-      fromDate: toIsoDate(fromDate!),
-      toDate: toIsoDate(toDate!),
+      leaveTypeId: leaveType!.id,
+      startDate: toIsoDate(fromDate!),
+      endDate: toIsoDate(toDate!),
+      notes: notes.trim() || undefined,
     }));
-  }, [fromDate, toDate, leaveType, dispatch, t]);
+  }, [fromDate, toDate, leaveType, sameDayBlocked, notes, dispatch, t]);
 
   const isSubmitting = submitStatus === 'pending';
+
+  // Compose a user-facing error message from the submit error.
+  const errorMessage = useMemo(() => {
+    if (!submitError) return null;
+    const i18nKey = ERROR_CODE_I18N_KEY[submitError.leaveCode];
+    if (i18nKey) return t(i18nKey);
+    // Fallback to BE-provided dynamic message (insufficient-balance, past-date-exceeded, consecutive-limit).
+    return submitError.message;
+  }, [submitError, t]);
 
   const submitSummary = useMemo(() => {
     if (!durationDays || !leaveType) return null;
     return t('leave.newVacationRequest.submitSummary', {
       count: durationDays,
-      leaveType: t(LEAVE_TYPE_KEY[leaveType]),
+      leaveType: pickLocalizedName(leaveType, i18n.language),
     });
-  }, [durationDays, leaveType, t]);
+  }, [durationDays, leaveType, t, i18n.language]);
 
   return (
     <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
@@ -326,14 +426,16 @@ export const NewVacationRequestScreen: React.FC = () => {
 
         <Pressable
           style={[styles.card, styles.selectRow, typeErr && styles.cardError]}
-          onPress={() => setSheetOpen(true)}
+          onPress={openTypeSheet}
         >
           <AppText
             variant="label"
             color={leaveType ? theme.colors.foreground : theme.colors.mutedForeground}
             style={{ flex: 1 }}
           >
-            {leaveType ? t(LEAVE_TYPE_KEY[leaveType]) : t('leave.newVacationRequest.selectLeaveType')}
+            {leaveType
+              ? pickLocalizedName(leaveType, i18n.language)
+              : t('leave.newVacationRequest.selectLeaveType')}
           </AppText>
           <ChevronDown size={ws(16)} color={theme.colors.mutedForeground} />
         </Pressable>
@@ -342,9 +444,38 @@ export const NewVacationRequestScreen: React.FC = () => {
           <AppText variant="small" color={theme.colors.status.error.base}>{typeErr}</AppText>
         )}
 
+        {/* Leave-type-specific warnings */}
+        {leaveType?.requiresMedicalCertificate && (
+          <AppAlertBanner
+            variant="info"
+            message={t('leave.newVacationRequest.medicalCertificateNote')}
+          />
+        )}
+        {leaveType?.isOncePerCareer && (
+          <AppAlertBanner
+            variant="info"
+            message={t('leave.newVacationRequest.oncePerCareerNote')}
+          />
+        )}
+        {leaveType && !leaveType.allowSameDay && isStartDateToday && (
+          <AppAlertBanner
+            variant="warning"
+            message={t('leave.newVacationRequest.errors.codes.sameDayNotAllowed')}
+          />
+        )}
+        {leaveType?.maxConsecutiveDays !== undefined &&
+          leaveType?.maxConsecutiveDays !== null && (
+            <AppAlertBanner
+              variant="info"
+              message={t('leave.newVacationRequest.maxConsecutiveNote', {
+                count: leaveType.maxConsecutiveDays,
+              })}
+            />
+          )}
+
         {/* API error */}
-        {submitError && (
-          <AppAlertBanner variant="error" message={submitError.message} />
+        {errorMessage && (
+          <AppAlertBanner variant="error" message={errorMessage} />
         )}
 
         {/* ── Notes ── */}
@@ -374,7 +505,7 @@ export const NewVacationRequestScreen: React.FC = () => {
             <View style={styles.card}>
               <SummaryRow
                 label={t('leave.newVacationRequest.summaryLeaveType')}
-                value={t(LEAVE_TYPE_KEY[leaveType])}
+                value={pickLocalizedName(leaveType, i18n.language)}
                 theme={theme}
               />
               <AppDivider />
@@ -392,7 +523,11 @@ export const NewVacationRequestScreen: React.FC = () => {
               <AppDivider />
               <SummaryRow
                 label={t('leave.newVacationRequest.summaryDuration')}
-                value={`${durationDays} ${durationDays === 1 ? t('leave.requests.durationDay') : t('leave.requests.durationDays', { count: durationDays })}`}
+                value={`${durationDays} ${
+                  durationDays === 1
+                    ? t('leave.requests.durationDay')
+                    : t('leave.requests.durationDays', { count: durationDays })
+                }`}
                 theme={theme}
               />
             </View>
@@ -422,6 +557,7 @@ export const NewVacationRequestScreen: React.FC = () => {
           fullWidth
           onPress={handleSubmit}
           loading={isSubmitting}
+          disabled={sameDayBlocked}
         />
       </View>
 
@@ -439,6 +575,7 @@ export const NewVacationRequestScreen: React.FC = () => {
         visible={pickerOpen === 'to'}
         value={pickerValue}
         min={fromDate ?? undefined}
+        max={endDateMax}
         onConfirm={applyDate}
         onCancel={() => setPickerOpen(null)}
         cancelLabel={t('common.cancel')}
@@ -452,6 +589,7 @@ export const NewVacationRequestScreen: React.FC = () => {
         onClose={() => setSheetOpen(false)}
         onSelect={handleLeaveTypeSelect}
         selected={leaveType}
+        showStartDateRequired={!fromDate}
       />
     </SafeAreaView>
   );

@@ -18,9 +18,16 @@ export const DiKeys = {
   // leave
   LEAVE_REMOTE_DATA_SOURCE: 'leaveRemoteDataSource',
   LEAVE_REPOSITORY: 'leaveRepository',
+  GET_AVAILABLE_LEAVE_TYPES_USE_CASE: 'getAvailableLeaveTypesUseCase',
   GET_LEAVE_BALANCES_USE_CASE: 'getLeaveBalancesUseCase',
   GET_LEAVE_REQUESTS_USE_CASE: 'getLeaveRequestsUseCase',
-  REQUEST_LEAVE_USE_CASE: 'requestLeaveUseCase',
+  GET_LEAVE_REQUEST_DETAIL_USE_CASE: 'getLeaveRequestDetailUseCase',
+  SUBMIT_LEAVE_REQUEST_USE_CASE: 'submitLeaveRequestUseCase',
+  CANCEL_LEAVE_REQUEST_USE_CASE: 'cancelLeaveRequestUseCase',
+  ADMIN_GET_LEAVE_REQUESTS_USE_CASE: 'adminGetLeaveRequestsUseCase',
+  APPROVE_LEAVE_REQUEST_USE_CASE: 'approveLeaveRequestUseCase',
+  REJECT_LEAVE_REQUEST_USE_CASE: 'rejectLeaveRequestUseCase',
+  GET_PERMISSION_QUOTA_USE_CASE: 'getPermissionQuotaUseCase',
   GET_PERMISSION_REQUESTS_USE_CASE: 'getPermissionRequestsUseCase',
   REQUEST_PERMISSION_USE_CASE: 'requestPermissionUseCase',
 

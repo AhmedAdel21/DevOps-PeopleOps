@@ -4,6 +4,7 @@ import type { LeaveStackParamList } from './types';
 import { LeaveScreen } from '@/presentation/screens/leave';
 import { NewVacationRequestScreen } from '@/presentation/screens/leave/new_vacation_request_screen';
 import { NewPermissionRequestScreen } from '@/presentation/screens/leave/new_permission_request_screen';
+import { LeaveRequestDetailScreen } from '@/presentation/screens/leave/leave_request_detail_screen';
 
 const LeaveStack = createNativeStackNavigator<LeaveStackParamList>();
 
@@ -14,5 +15,6 @@ export const LeaveStackNavigator: React.FC = () => (
     <LeaveStack.Screen name="LeaveLanding" component={LeaveScreen} />
     <LeaveStack.Screen name="NewVacationRequest" component={NewVacationRequestScreen} />
     <LeaveStack.Screen name="NewPermissionRequest" component={NewPermissionRequestScreen} />
+    <LeaveStack.Screen name="LeaveRequestDetail" component={LeaveRequestDetailScreen} />
   </LeaveStack.Navigator>
 );

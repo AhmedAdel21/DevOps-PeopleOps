@@ -1,19 +1,29 @@
 import { UseCase } from '@/domain/use_cases/use_case.base';
-import type { LeaveRepository, LeaveBalancesResult } from '@/domain/repositories';
+import type { LeaveBalancesSummary } from '@/domain/entities';
+import type {
+  GetLeaveBalancesParams,
+  LeaveRepository,
+} from '@/domain/repositories';
 import { leaveLog } from '@/core/logger';
 
-export class GetLeaveBalancesUseCase extends UseCase<void, LeaveBalancesResult> {
+export class GetLeaveBalancesUseCase extends UseCase<
+  GetLeaveBalancesParams,
+  LeaveBalancesSummary
+> {
   constructor(private readonly repo: LeaveRepository) {
     super();
   }
 
-  async execute(): Promise<LeaveBalancesResult> {
-    leaveLog.info('use_case', 'GetLeaveBalancesUseCase.execute →');
+  async execute(input: GetLeaveBalancesParams): Promise<LeaveBalancesSummary> {
+    leaveLog.info(
+      'use_case',
+      `GetLeaveBalancesUseCase.execute → year=${input.year ?? 'current'}`,
+    );
     try {
-      const result = await this.repo.getLeaveBalances();
+      const result = await this.repo.getLeaveBalances(input);
       leaveLog.info(
         'use_case',
-        `GetLeaveBalancesUseCase completed → ${result.balances.length} balances, quota=${result.permissionQuota ? `${result.permissionQuota.permissionsUsed}/${result.permissionQuota.permissionsAllowed}` : 'none'}`,
+        `GetLeaveBalancesUseCase completed → year=${result.year}, ${result.balances.length} balances`,
       );
       return result;
     } catch (e) {

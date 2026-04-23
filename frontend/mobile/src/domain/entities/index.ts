@@ -17,14 +17,20 @@ export type {
   AttendanceRecordPlace,
 } from './attendance_record.entity';
 export type {
-  LeaveType,
+  LeaveTypeRef,
+  LeaveTypeMeta,
   PermissionType,
   LeaveRequestStatus,
   PermissionRequestStatus,
   LeaveBalance,
-  PermissionQuota,
-  LeaveRequest,
+  LeaveBalancesSummary,
+  LeaveRequestListItem,
   LeaveRequestsPage,
+  LeaveRequestDetail,
+  SubmitLeaveResult,
+  AdminLeaveRequestListItem,
+  AdminLeaveRequestsPage,
+  PermissionQuota,
   PermissionRequest,
   PermissionRequestsPage,
 } from './leave.entity';

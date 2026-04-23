@@ -15,6 +15,14 @@ export const AppConfig = {
   PAGE_SIZE: 20,
 
   /**
+   * Per-feature mock toggles — let us wire real backends one feature at a
+   * time without touching the global USE_MOCK. Leaves are live; permissions
+   * are still mocked because the BE does not expose them yet.
+   */
+  USE_MOCK_LEAVE: false,
+  USE_MOCK_PERMISSIONS: true,
+
+  /**
    * HTTPS URL registered in the Zoho developer console as the mobile OAuth
    * redirect target. Zoho redirects the browser here on success; the backend
    * serves an HTML bounce page that `<meta refresh>`es to the
