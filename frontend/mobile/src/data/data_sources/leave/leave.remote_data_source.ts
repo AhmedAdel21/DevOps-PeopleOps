@@ -6,6 +6,7 @@ import type {
   LeaveRequestDetailDto,
   LeaveRequestsPageDto,
   LeaveTypeSummaryDto,
+  PermissionQuotaDto,
   PermissionRequestDto,
   PermissionRequestsResponseDto,
   ReviewLeaveRequestDto,
@@ -21,7 +22,8 @@ const LEAVE_TYPES_PATH   = '/api/vacations/leave-types';
 const BALANCES_PATH      = '/api/vacations/balances';
 const VACATIONS_PATH     = '/api/vacations';
 const ADMIN_VACATIONS    = '/api/admin/vacations';
-const PERMISSIONS_PATH   = '/api/leave/permissions'; // mock-only
+const PERMISSIONS_PATH       = '/api/leave/permissions';
+const PERMISSIONS_QUOTA_PATH = '/api/leave/permissions/quota';
 
 // ── Mock helpers ─────────────────────────────────────────────────────────────
 
@@ -191,7 +193,19 @@ export class LeaveRemoteDataSource {
     await this.http.put<void>(path, body);
   }
 
-  // ── Permissions (mock-only) ────────────────────────────────────────────────
+  // ── Permissions ────────────────────────────────────────────────────────────
+
+  async getPermissionQuota(): Promise<PermissionQuotaDto> {
+    if (AppConfig.USE_MOCK_PERMISSIONS) {
+      leaveLog.info('data_source', `[MOCK] GET ${PERMISSIONS_QUOTA_PATH}`);
+      await mockDelay();
+      // Mock falls through to repo impl's static value when this is called;
+      // shape kept identical so the live → mock flip stays seamless.
+      return { permissionsUsed: 1, permissionsAllowed: 2, monthResetsAt: '' };
+    }
+    leaveLog.info('data_source', `GET ${PERMISSIONS_QUOTA_PATH}`);
+    return this.http.get<PermissionQuotaDto>(PERMISSIONS_QUOTA_PATH);
+  }
 
   async getPermissionRequests(params: {
     cursor?: string;

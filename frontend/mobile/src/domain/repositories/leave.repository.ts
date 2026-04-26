@@ -33,6 +33,8 @@ export interface SubmitLeaveRequestParams {
   startDate: string;        // yyyy-MM-dd
   endDate: string;          // yyyy-MM-dd
   notes?: string;
+  /** Ids returned by POST /api/attachments. */
+  attachmentIds?: string[];
 }
 
 export interface CancelLeaveRequestParams {
@@ -48,13 +50,17 @@ export interface ReviewLeaveRequestParams {
   reviewerComment?: string;
 }
 
-// ── Permission (mock-only; unchanged) ──────────────────────────────────────
+// ── Permission ─────────────────────────────────────────────────────────────
 
 export interface RequestPermissionParams {
   permissionType: PermissionType;
   date: string;       // yyyy-MM-dd
-  startTime: string;  // HH:mm
-  endTime: string;    // HH:mm
+  startTime: string;  // HH:mm — ignored by backend for HalfDay
+  endTime: string;    // HH:mm — ignored by backend for HalfDay
+  notes?: string;
+  /** Ids returned by POST /api/attachments. Populated once the file picker
+   *  ships in Phase B; today this is always empty/undefined. */
+  attachmentIds?: string[];
 }
 
 export interface GetPermissionRequestsParams {

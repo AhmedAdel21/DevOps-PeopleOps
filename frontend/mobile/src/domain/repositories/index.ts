@@ -1,4 +1,9 @@
 export type {
+  AttachmentRepository,
+  LocalAttachment,
+  UploadedAttachment,
+} from './attachment.repository';
+export type {
   AuthRepository,
   AuthStateSubscription,
 } from './auth.repository';

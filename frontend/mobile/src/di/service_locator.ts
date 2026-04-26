@@ -1,6 +1,7 @@
 import { AppConfig } from '@/di/config';
 import { DiKeys } from '@/core/keys/di.key';
 import type {
+  AttachmentRepository,
   AuthRepository,
   AttendanceRepository,
   SlackRepository,
@@ -32,6 +33,7 @@ import {
   RequestPermissionUseCase,
 } from '@/domain/use_cases';
 import {
+  AttachmentRemoteDataSource,
   FirebaseAuthRemoteDataSource,
   ZohoAuthRemoteDataSource,
   AttendanceRemoteDataSource,
@@ -40,6 +42,7 @@ import {
   HttpClient,
 } from '@/data/data_sources';
 import {
+  AttachmentRepositoryImpl,
   AuthRepositoryImpl,
   AttendanceRepositoryImpl,
   SlackRepositoryImpl,
@@ -140,6 +143,13 @@ export class ServiceLocator {
       DiKeys.GET_ATTENDANCE_HISTORY_USE_CASE,
       new GetAttendanceHistoryUseCase(attendanceRepo),
     );
+
+    // ── Attachments (shared by leaves & permissions) ────────
+    const attachmentDs = new AttachmentRemoteDataSource(httpClient);
+    ServiceLocator.register(DiKeys.ATTACHMENT_REMOTE_DATA_SOURCE, attachmentDs);
+
+    const attachmentRepo: AttachmentRepository = new AttachmentRepositoryImpl(attachmentDs);
+    ServiceLocator.register(DiKeys.ATTACHMENT_REPOSITORY, attachmentRepo);
 
     // ── Leave ───────────────────────────────────────────────
     const leaveDs = new LeaveRemoteDataSource(httpClient);

@@ -35,6 +35,7 @@ import {
   submitLeaveRequestSuccessDtoToDomain,
 } from '@/data/mappers/leave';
 import { leaveLog } from '@/core/logger';
+import { AppConfig } from '@/di/config';
 
 export class LeaveRepositoryImpl implements LeaveRepository {
   constructor(private readonly ds: LeaveRemoteDataSource) {}
@@ -125,6 +126,7 @@ export class LeaveRepositoryImpl implements LeaveRepository {
         startDate: params.startDate,
         endDate: params.endDate,
         notes: params.notes,
+        attachmentIds: params.attachmentIds,
       });
       const result = submitLeaveRequestSuccessDtoToDomain(dto);
       leaveLog.info('repository', `submitLeaveRequest → id=${result.leaveRequestId}`);
@@ -194,11 +196,24 @@ export class LeaveRepositoryImpl implements LeaveRepository {
     }
   }
 
-  // ── Permission (mock) ──────────────────────────────────────────────────────
+  // ── Permission ─────────────────────────────────────────────────────────────
 
   async getPermissionQuota(): Promise<PermissionQuota | null> {
-    leaveLog.info('repository', 'getPermissionQuota called (mock)');
-    return MOCK_PERMISSION_QUOTA;
+    if (AppConfig.USE_MOCK_PERMISSIONS) {
+      leaveLog.info('repository', 'getPermissionQuota called (mock)');
+      return MOCK_PERMISSION_QUOTA;
+    }
+    leaveLog.info('repository', 'getPermissionQuota called');
+    try {
+      const dto = await this.ds.getPermissionQuota();
+      return {
+        permissionsUsed: dto.permissionsUsed,
+        permissionsAllowed: dto.permissionsAllowed,
+        monthResetsAt: dto.monthResetsAt,
+      };
+    } catch (e) {
+      throw mapAndLog(e, 'getPermissionQuota');
+    }
   }
 
   async getPermissionRequests(

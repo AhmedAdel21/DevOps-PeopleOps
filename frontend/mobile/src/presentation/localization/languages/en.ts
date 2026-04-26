@@ -267,9 +267,19 @@ export const en = {
         attendanceConflict: 'You had attendance records on some of these days: {{dates}}',
       },
       empty: {
-        title: 'No requests yet',
+        title: 'No leave requests yet',
         description: 'Submit your first leave request to get started',
         cta: '+ New request',
+        permission: {
+          title: 'No permissions yet',
+          description: 'Request short time off — like an early leave or a doctor’s appointment.',
+          cta: '+ New permission',
+        },
+        filtered: {
+          title: 'No matches',
+          description: 'No requests match this filter. Try a different status.',
+          cta: 'Show all',
+        },
       },
     },
     newRequest: {

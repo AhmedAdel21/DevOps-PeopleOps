@@ -16,11 +16,11 @@ export const AppConfig = {
 
   /**
    * Per-feature mock toggles — let us wire real backends one feature at a
-   * time without touching the global USE_MOCK. Leaves are live; permissions
-   * are still mocked because the BE does not expose them yet.
+   * time without touching the global USE_MOCK. Both leaves and permissions
+   * are live as of the permissions feature launch.
    */
   USE_MOCK_LEAVE: false,
-  USE_MOCK_PERMISSIONS: true,
+  USE_MOCK_PERMISSIONS: false,
 
   /**
    * HTTPS URL registered in the Zoho developer console as the mobile OAuth

@@ -30,6 +30,8 @@ import {
   AppDivider,
   AppText,
 } from '@/presentation/components/atoms';
+import { AppAttachmentPicker } from '@/presentation/components/molecules';
+import type { UploadedAttachment } from '@/domain/repositories';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   fetchAvailableLeaveTypes,
@@ -215,6 +217,7 @@ export const NewVacationRequestScreen: React.FC = () => {
   const [toDate,     setToDate]     = useState<Date | null>(null);
   const [leaveType,  setLeaveType]  = useState<SerializableLeaveType | null>(null);
   const [notes,      setNotes]      = useState('');
+  const [attachments, setAttachments] = useState<UploadedAttachment[]>([]);
   const [dateErr,    setDateErr]    = useState<string | undefined>();
   const [typeErr,    setTypeErr]    = useState<string | undefined>();
 
@@ -341,8 +344,9 @@ export const NewVacationRequestScreen: React.FC = () => {
       startDate: toIsoDate(fromDate!),
       endDate: toIsoDate(toDate!),
       notes: notes.trim() || undefined,
+      attachmentIds: attachments.length > 0 ? attachments.map(a => a.id) : undefined,
     }));
-  }, [fromDate, toDate, leaveType, sameDayBlocked, notes, dispatch, t]);
+  }, [fromDate, toDate, leaveType, sameDayBlocked, notes, attachments, dispatch, t]);
 
   const isSubmitting = submitStatus === 'pending';
 
@@ -495,6 +499,16 @@ export const NewVacationRequestScreen: React.FC = () => {
             style={[styles.notesInput, { color: theme.colors.foreground }]}
           />
         </View>
+
+        {/* ── Attachments ── */}
+        <AppText variant="bodyLg" weight="semibold">
+          Attachments
+        </AppText>
+        <AppAttachmentPicker
+          attachments={attachments}
+          onChange={setAttachments}
+          disabled={isSubmitting}
+        />
 
         {/* ── Summary ── */}
         {fromDate && toDate && leaveType && durationDays && (

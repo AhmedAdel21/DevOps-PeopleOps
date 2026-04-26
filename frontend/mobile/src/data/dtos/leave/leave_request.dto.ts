@@ -45,6 +45,7 @@ export interface SubmitLeaveRequestDto {
   startDate: string;
   endDate: string;
   notes?: string;
+  attachmentIds?: string[];
 }
 
 export interface SubmitLeaveRequestSuccessDto {

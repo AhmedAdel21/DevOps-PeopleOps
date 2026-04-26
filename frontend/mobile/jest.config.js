@@ -15,5 +15,9 @@ module.exports = {
       __dirname,
       '__mocks__/@react-native-firebase/auth.js',
     ),
+    '^@react-native-documents/picker$': path.resolve(
+      __dirname,
+      '__mocks__/@react-native-documents/picker.js',
+    ),
   },
 };

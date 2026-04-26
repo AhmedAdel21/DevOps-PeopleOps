@@ -108,4 +108,59 @@ export class HttpClient {
   delete<T>(path: string): Promise<T> {
     return this.request<T>({ method: 'DELETE', path });
   }
+
+  /**
+   * POST a multipart/form-data body. Distinct from request<T>() because
+   * fetch must NOT set Content-Type for multipart — the runtime needs to
+   * generate it with the boundary token. Same auth + logging as the JSON
+   * code path.
+   */
+  async postMultipart<T>(path: string, form: FormData): Promise<T> {
+    const url = `${this.baseUrl}${path}`;
+    let token: string | null = null;
+    try {
+      token = await this.tokenProvider();
+    } catch (e) {
+      attendanceLog.warn('http', 'tokenProvider threw, sending request without auth', e);
+    }
+
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+    };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    // Intentionally NO Content-Type header — fetch() fills it in with the
+    // generated boundary when body is FormData.
+
+    attendanceLog.info(
+      'http',
+      `→ POST ${url} (multipart, auth=${token ? 'bearer' : 'none'})`,
+    );
+
+    let response: Response;
+    try {
+      response = await fetch(url, { method: 'POST', headers, body: form });
+    } catch (e) {
+      attendanceLog.error('http', `× POST ${url} multipart network failure`, e);
+      throw new HttpError(0, null, 'Network request failed');
+    }
+
+    const text = await response.text();
+    let data: unknown = null;
+    if (text.length > 0) {
+      try { data = JSON.parse(text); } catch { data = text; }
+    }
+
+    attendanceLog.info('http', `← POST ${url} ${response.status}`);
+
+    if (!response.ok) {
+      throw new HttpError(
+        response.status,
+        data,
+        `Request failed with status ${response.status}`,
+      );
+    }
+    return data as T;
+  }
 }

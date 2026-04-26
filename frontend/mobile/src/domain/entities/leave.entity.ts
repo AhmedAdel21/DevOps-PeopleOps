@@ -109,12 +109,20 @@ export interface AdminLeaveRequestsPage {
   readonly pageSize: number;
 }
 
-// ── Permission feature (mock-only, untouched) ──────────────────────────────
+// ── Permission feature ─────────────────────────────────────────────────────
 
 export interface PermissionQuota {
   readonly permissionsUsed: number;
   readonly permissionsAllowed: number;
   readonly monthResetsAt: string; // yyyy-MM-dd
+}
+
+/** Snapshot of a file attached to a permission/leave request. */
+export interface AttachmentSnapshot {
+  readonly id: string;
+  readonly fileName: string;
+  readonly contentType: string;
+  readonly sizeBytes: number;
 }
 
 export interface PermissionRequest {
@@ -124,7 +132,9 @@ export interface PermissionRequest {
   readonly startTime: string;     // HH:mm
   readonly endTime: string;       // HH:mm
   readonly durationMinutes: number;
+  readonly notes?: string;
   readonly status: PermissionRequestStatus;
+  readonly attachments: readonly AttachmentSnapshot[];
 }
 
 export interface PermissionRequestsPage {

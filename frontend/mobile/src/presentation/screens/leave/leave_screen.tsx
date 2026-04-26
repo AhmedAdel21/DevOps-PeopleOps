@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { CalendarX, Plus } from 'lucide-react-native';
+import { CalendarX, Clock, Plus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, type AppTheme } from '@themes/index';
@@ -438,14 +438,26 @@ export const LeaveScreen: React.FC = () => {
     [dispatch],
   );
 
+  // Mount-only fetch: leave tab is the default, so its data is loaded
+  // eagerly. Permission data is loaded lazily — see the next effect.
   useEffect(() => {
     dispatch(fetchLeaveBalances());
-    dispatch(fetchPermissionQuota());
-    dispatch(fetchPermissionRequests({ append: false }));
     reloadLeaveList(activeFilter);
     // We only want this on mount; filter reloads are handled via handleFilterChange.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
+
+  // Lazy fetch on first switch to the permission tab, plus an automatic
+  // retry if the previous fetch errored. We deliberately skip refetching
+  // when status is 'pending' (already in flight) or 'loaded' (cached) —
+  // pull-to-refresh exists for a forced reload.
+  useEffect(() => {
+    if (activeTab !== 'permission') return;
+    if (permissionFetchStatus === 'idle' || permissionFetchStatus === 'error') {
+      dispatch(fetchPermissionQuota());
+      dispatch(fetchPermissionRequests({ append: false }));
+    }
+  }, [activeTab, permissionFetchStatus, dispatch]);
 
   const handleFilterChange = useCallback(
     (next: LeaveFilter) => {
@@ -644,25 +656,58 @@ export const LeaveScreen: React.FC = () => {
                 ))}
           </View>
         ) : (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIconCircle}>
-              <CalendarX size={ws(36)} color={theme.colors.mutedForeground} />
-            </View>
-            <AppText variant="cardTitle">{t('leave.requests.empty.title')}</AppText>
-            <AppText
-              variant="labelRegular"
-              color={theme.colors.mutedForeground}
-              align="center"
-            >
-              {t('leave.requests.empty.description')}
-            </AppText>
-            <AppButton
-              variant="primary"
-              size="sm"
-              label={t('leave.requests.empty.cta')}
-              onPress={openNewRequest}
-            />
-          </View>
+          (() => {
+            // Distinguish "really nothing yet" from "filter hid everything".
+            // The unfiltered list size tells us which: an active filter on a
+            // non-empty list means relax the filter, not submit a new request.
+            const isPermissionTab = activeTab === 'permission';
+            const totalForActiveTab = isPermissionTab
+              ? allPermissionRequests.length
+              : leaveRequests.length;
+            const isFilterEmpty = totalForActiveTab > 0 && activeFilter !== 'All';
+
+            const Icon = isPermissionTab ? Clock : CalendarX;
+            const titleKey = isFilterEmpty
+              ? 'leave.requests.empty.filtered.title'
+              : isPermissionTab
+                ? 'leave.requests.empty.permission.title'
+                : 'leave.requests.empty.title';
+            const descriptionKey = isFilterEmpty
+              ? 'leave.requests.empty.filtered.description'
+              : isPermissionTab
+                ? 'leave.requests.empty.permission.description'
+                : 'leave.requests.empty.description';
+            const ctaKey = isFilterEmpty
+              ? 'leave.requests.empty.filtered.cta'
+              : isPermissionTab
+                ? 'leave.requests.empty.permission.cta'
+                : 'leave.requests.empty.cta';
+            const onCtaPress = isFilterEmpty
+              ? () => handleFilterChange('All')
+              : openNewRequest;
+
+            return (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyIconCircle}>
+                  <Icon size={ws(36)} color={theme.colors.mutedForeground} />
+                </View>
+                <AppText variant="cardTitle">{t(titleKey)}</AppText>
+                <AppText
+                  variant="labelRegular"
+                  color={theme.colors.mutedForeground}
+                  align="center"
+                >
+                  {t(descriptionKey)}
+                </AppText>
+                <AppButton
+                  variant="primary"
+                  size="sm"
+                  label={t(ctaKey)}
+                  onPress={onCtaPress}
+                />
+              </View>
+            );
+          })()
         )}
       </ScrollView>
 

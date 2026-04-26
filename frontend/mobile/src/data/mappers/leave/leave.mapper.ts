@@ -181,7 +181,7 @@ export const adminLeaveRequestsPageDtoToDomain = (
   pageSize: dto.pageSize,
 });
 
-// ── Permission (mock, unchanged shapes) ──────────────────────────────────────
+// ── Permission ────────────────────────────────────────────────────────────────
 
 export const permissionRequestDtoToDomain = (dto: PermissionRequestDto): PermissionRequest => ({
   id: dto.id,
@@ -190,7 +190,14 @@ export const permissionRequestDtoToDomain = (dto: PermissionRequestDto): Permiss
   startTime: dto.startTime,
   endTime: dto.endTime,
   durationMinutes: dto.durationMinutes,
+  notes: dto.notes ?? undefined,
   status: toPermissionRequestStatus(dto.status),
+  attachments: (dto.attachments ?? []).map(a => ({
+    id: a.id,
+    fileName: a.fileName,
+    contentType: a.contentType,
+    sizeBytes: a.sizeBytes,
+  })),
 });
 
 export const permissionRequestsResponseDtoToDomain = (

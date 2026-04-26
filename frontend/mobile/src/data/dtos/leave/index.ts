@@ -18,4 +18,6 @@ export type {
   PermissionRequestDto,
   PermissionRequestsResponseDto,
   CreatePermissionRequestDto,
+  PermissionQuotaDto,
+  AttachmentSnapshotDto,
 } from './permission.dto';

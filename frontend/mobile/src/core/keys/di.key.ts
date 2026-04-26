@@ -31,6 +31,10 @@ export const DiKeys = {
   GET_PERMISSION_REQUESTS_USE_CASE: 'getPermissionRequestsUseCase',
   REQUEST_PERMISSION_USE_CASE: 'requestPermissionUseCase',
 
+  // attachments (shared between leaves & permissions)
+  ATTACHMENT_REMOTE_DATA_SOURCE: 'attachmentRemoteDataSource',
+  ATTACHMENT_REPOSITORY: 'attachmentRepository',
+
   // http + attendance
   HTTP_CLIENT: 'httpClient',
   ATTENDANCE_REMOTE_DATA_SOURCE: 'attendanceRemoteDataSource',
