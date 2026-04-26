@@ -125,28 +125,41 @@ differs slightly:
 | `isCancel(e)` | `isErrorWithCode(e) && e.code === errorCodes.OPERATION_CANCELED` |
 | `picked.fileCopyUri ?? picked.uri` | `picked.uri` (call `keepLocalCopy` separately if needed; see next item) |
 
-### Multipart uploads on Android need `keepLocalCopy`
+### Multipart uploads on Android: use `react-native-blob-util`, not JS `FormData`
 
-The picker returns a `content://` URI on Android with a transient read
-permission. RN's `fetch` *should* be able to stream it through `FormData`
-according to the docs, but in practice this fails with `TypeError:
-Network request failed` once the permission expires. Defensive fix: on
-Android, call `keepLocalCopy({ files, destination: 'cachesDirectory' })`
-to convert to a stable `file://` URI, then upload.
+**Symptom:** `fetch()` with a `FormData` body whose entries are
+`{ uri, name, type }` objects fails with `TypeError: Network request
+failed` on Android RN ≥0.85 — **even with a valid `file://` URI** from
+`keepLocalCopy`. The request never leaves the device (your BE never
+logs an entry; RN DevTools' Network panel shows "0 / N requests ·
+0 bytes transferred").
+
+**Why:** RN's JS-side FormData polyfill is brittle for file uploads on
+Android. It works on some RN versions, falls over on others. There is
+no URI shape, content-type setting, or `keepLocalCopy` invocation that
+fixes it once your version lands in the broken bucket. Don't waste hours
+chasing the URI — fix the transport.
+
+**Fix:** Use `react-native-blob-util` for the multipart POST. Native-side
+multipart upload, same Bearer auth, same backend endpoint. The canonical
+shape lives in `AttachmentRemoteDataSource.uploadFile`:
 
 ```ts
-let uploadUri = picked.uri;
-if (Platform.OS === 'android') {
-  const [copy] = await keepLocalCopy({
-    files: [{ uri: picked.uri, fileName }],
-    destination: 'cachesDirectory',
-  });
-  if (copy.status === 'success') uploadUri = copy.localUri;
-}
+const response = await ReactNativeBlobUtil.fetch(
+  'POST', url, headers,
+  [{ name: 'file', filename, type, data: ReactNativeBlobUtil.wrap(filePath) }],
+);
 ```
 
-iOS already returns `file://`, so the copy is a no-op — only run on
-Android.
+Notes:
+- `wrap()` expects a raw filesystem path — strip `file://` first.
+- The picker still uses `keepLocalCopy` from `@react-native-documents/picker`
+  on Android to convert `content://` → `file://`. `wrap()` doesn't accept
+  `content://`, so the copy step is still required.
+- GET / DELETE / JSON POST stay on the JSON `HttpClient`. **Only file
+  uploads use `react-native-blob-util`.**
+- iOS already returns `file://`, so the picker's copy step is a no-op
+  there; the upload path is the same.
 
 ### Lazy-fetch tab data; never fetch all tabs on mount
 

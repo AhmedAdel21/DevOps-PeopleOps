@@ -145,7 +145,14 @@ export class ServiceLocator {
     );
 
     // ── Attachments (shared by leaves & permissions) ────────
-    const attachmentDs = new AttachmentRemoteDataSource(httpClient);
+    // Takes the same baseUrl + tokenProvider HttpClient was built from so
+    // the native multipart upload (react-native-blob-util) carries the
+    // same Bearer auth.
+    const attachmentDs = new AttachmentRemoteDataSource(
+      httpClient,
+      AppConfig.API_BASE_URL,
+      () => firebaseAuthDs.getIdToken(),
+    );
     ServiceLocator.register(DiKeys.ATTACHMENT_REMOTE_DATA_SOURCE, attachmentDs);
 
     const attachmentRepo: AttachmentRepository = new AttachmentRepositoryImpl(attachmentDs);

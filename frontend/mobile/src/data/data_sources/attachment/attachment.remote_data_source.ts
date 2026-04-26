@@ -1,5 +1,7 @@
-import type { HttpClient } from '@/data/data_sources/http';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import type { HttpClient, TokenProvider } from '@/data/data_sources/http';
 import type { AttachmentMetadataDto, AttachmentDownloadDto } from '@/data/dtos/attachment';
+import { HttpError } from '@/data/data_sources/http';
 import { attendanceLog } from '@/core/logger';
 
 const ATTACHMENTS_PATH = '/api/attachments';
@@ -19,26 +21,78 @@ export interface LocalAttachmentFile {
  * permission flows: pick a file locally → call uploadFile → keep the
  * returned `id` → include it in `attachmentIds` when submitting the parent
  * request.
+ *
+ * Note: GET / DELETE go through the JSON HttpClient, but `uploadFile` uses
+ * `react-native-blob-util` for the multipart POST. RN's JS-side FormData +
+ * fetch is brittle on Android — it fails with `Network request failed`
+ * before the request leaves the device, even with a valid `file://` URI.
+ * Native upload sidesteps the JS FormData polyfill entirely.
  */
 export class AttachmentRemoteDataSource {
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly baseUrl: string,
+    private readonly tokenProvider: TokenProvider,
+  ) {}
 
   async uploadFile(file: LocalAttachmentFile): Promise<AttachmentMetadataDto> {
     attendanceLog.info(
       'data_source',
-      `POST ${ATTACHMENTS_PATH} (file=${file.fileName}, ${file.sizeBytes} bytes)`,
+      `POST ${ATTACHMENTS_PATH} (file=${file.fileName}, ${file.sizeBytes} bytes, native multipart)`,
     );
 
-    // RN's FormData accepts { uri, type, name } objects directly — fetch
-    // streams the file from disk without loading it into JS memory.
-    const form = new FormData();
-    form.append('file', {
-      uri: file.uri,
-      name: file.fileName,
-      type: file.contentType,
-    } as unknown as Blob);
+    let token: string | null = null;
+    try {
+      token = await this.tokenProvider();
+    } catch (e) {
+      attendanceLog.warn('data_source', 'tokenProvider threw, sending upload without auth', e);
+    }
 
-    return this.http.postMultipart<AttachmentMetadataDto>(ATTACHMENTS_PATH, form);
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    // ReactNativeBlobUtil.wrap() expects a raw filesystem path, not a
+    // file:// URI — strip the scheme. content:// URIs aren't supported by
+    // wrap(); the picker is expected to have already converted via
+    // keepLocalCopy on Android.
+    const filePath = file.uri.replace(/^file:\/\//, '');
+
+    const url = `${this.baseUrl}${ATTACHMENTS_PATH}`;
+
+    let response;
+    try {
+      response = await ReactNativeBlobUtil.fetch(
+        'POST',
+        url,
+        headers,
+        [
+          {
+            name: 'file',
+            filename: file.fileName,
+            type: file.contentType,
+            data: ReactNativeBlobUtil.wrap(filePath),
+          },
+        ],
+      );
+    } catch (e) {
+      attendanceLog.error('data_source', `× POST ${url} native upload threw`, e);
+      throw new HttpError(0, null, 'Network request failed');
+    }
+
+    const status = response.respInfo.status;
+    const rawText = response.text();
+    const text: string = typeof rawText === 'string' ? rawText : await rawText;
+    let data: unknown = null;
+    if (text && text.length > 0) {
+      try { data = JSON.parse(text); } catch { data = text; }
+    }
+
+    attendanceLog.info('data_source', `← POST ${url} ${status}`);
+
+    if (status < 200 || status >= 300) {
+      throw new HttpError(status, data, `Request failed with status ${status}`);
+    }
+    return data as AttachmentMetadataDto;
   }
 
   async getDownloadUrl(attachmentId: string): Promise<AttachmentDownloadDto> {
