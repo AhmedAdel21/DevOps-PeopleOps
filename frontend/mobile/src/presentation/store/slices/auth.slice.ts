@@ -16,6 +16,7 @@ import {
 import { AuthError } from '@/domain/errors';
 import { authLog } from '@/core/logger';
 import type { SerializableDomainError } from '../hooks';
+import { fetchCurrentUser, clearCurrentUser } from './me.slice';
 
 type AuthStatus = 'uninitialized' | 'authenticated' | 'unauthenticated';
 type ActionStatus = 'idle' | 'pending' | 'error';
@@ -29,7 +30,6 @@ export interface AuthState {
   zohoLoginError: SerializableDomainError | null;
   logoutStatus: ActionStatus;
   logoutError: SerializableDomainError | null;
-  mustChangePassword: boolean;
 }
 
 const initialState: AuthState = {
@@ -41,7 +41,6 @@ const initialState: AuthState = {
   zohoLoginError: null,
   logoutStatus: 'idle',
   logoutError: null,
-  mustChangePassword: false,
 };
 
 let authSubscription: AuthStateSubscription | null = null;
@@ -71,6 +70,14 @@ export const bootstrapAuth = createAsyncThunk<void, void>(
           `auth state changed → ${user ? `authenticated (uid=${user.id})` : 'unauthenticated'}`,
         );
         dispatch(authSlice.actions.authStateChanged({ user }));
+        // Identity (am I logged in?) and profile (who am I?) are split:
+        // Firebase tells us the former, /api/auth/me tells us the latter.
+        // Fan out from this single observer so both login paths converge.
+        if (user) {
+          dispatch(fetchCurrentUser());
+        } else {
+          dispatch(clearCurrentUser());
+        }
       },
     });
     authLog.info('bootstrap', 'bootstrapAuth installed subscription');
@@ -101,7 +108,7 @@ export const loginWithEmail = createAsyncThunk<
 });
 
 export const loginWithZoho = createAsyncThunk<
-  { mustChangePassword: boolean },
+  void,
   void,
   { rejectValue: SerializableDomainError }
 >('auth/loginWithZoho', async (_, { rejectWithValue }) => {
@@ -110,14 +117,13 @@ export const loginWithZoho = createAsyncThunk<
     const useCase = ServiceLocator.get<ZohoLoginUseCase>(
       DiKeys.ZOHO_LOGIN_USE_CASE,
     );
-    const result = await useCase.execute();
+    await useCase.execute();
     authLog.info('slice', 'loginWithZoho thunk resolved (awaiting observer)');
-    return result;
   } catch (e) {
     const serialized = serializeError(e);
     if (serialized.code === 'auth/zoho-cancelled') {
       authLog.info('slice', 'loginWithZoho: user cancelled');
-      return { mustChangePassword: false }; // treat cancel as a no-op, not an error
+      return; // treat cancel as a no-op, not an error
     }
     authLog.error(
       'slice',
@@ -131,9 +137,13 @@ export const logout = createAsyncThunk<
   void,
   void,
   { rejectValue: SerializableDomainError }
->('auth/logout', async (_, { rejectWithValue }) => {
+>('auth/logout', async (_, { dispatch, rejectWithValue }) => {
   authLog.info('slice', 'logout thunk →');
   try {
+    // Wipe profile FIRST so any reactive observer never sees a signed-out
+    // Firebase state next to a populated currentUser. The observer-triggered
+    // clearCurrentUser later is then a no-op.
+    dispatch(clearCurrentUser());
     const useCase = ServiceLocator.get<LogoutUseCase>(DiKeys.LOGOUT_USE_CASE);
     await useCase.execute();
     authLog.info('slice', 'logout thunk resolved (awaiting observer)');
@@ -164,9 +174,6 @@ const authSlice = createSlice({
       );
       state.user = action.payload.user;
       state.status = nextStatus;
-      if (!action.payload.user) {
-        state.mustChangePassword = false;
-      }
     },
     clearLoginError(state) {
       state.loginStatus = 'idle';
@@ -198,10 +205,9 @@ const authSlice = createSlice({
         state.zohoLoginStatus = 'pending';
         state.zohoLoginError = null;
       })
-      .addCase(loginWithZoho.fulfilled, (state, action) => {
+      .addCase(loginWithZoho.fulfilled, (state) => {
         state.zohoLoginStatus = 'idle';
         state.zohoLoginError = null;
-        state.mustChangePassword = action.payload.mustChangePassword;
       })
       .addCase(loginWithZoho.rejected, (state, action) => {
         state.zohoLoginStatus = 'error';

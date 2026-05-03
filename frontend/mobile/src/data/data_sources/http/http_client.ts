@@ -21,11 +21,35 @@ export interface HttpRequestOptions {
   body?: unknown;
 }
 
+export type UnauthorizedHandler = () => void;
+
 export class HttpClient {
+  /**
+   * Optional callback fired exactly once per 401 response, before the
+   * HttpError is thrown. DI wires it to the session-clear flow so any
+   * thunk that hits 401 anywhere in the app drops the user back to the
+   * login screen — without each thunk having to remember to do it.
+   */
+  private onUnauthorized: UnauthorizedHandler | null = null;
+
   constructor(
     private readonly baseUrl: string,
     private readonly tokenProvider: TokenProvider,
   ) {}
+
+  setOnUnauthorized(handler: UnauthorizedHandler | null): void {
+    this.onUnauthorized = handler;
+  }
+
+  private handleUnauthorized(method: HttpMethod, url: string): void {
+    if (!this.onUnauthorized) return;
+    attendanceLog.warn('http', `× ${method} ${url} 401 → invoking onUnauthorized handler`);
+    try {
+      this.onUnauthorized();
+    } catch (e) {
+      attendanceLog.error('http', 'onUnauthorized handler threw', e);
+    }
+  }
 
   async request<T>({ method, path, body }: HttpRequestOptions): Promise<T> {
     const url = `${this.baseUrl}${path}`;
@@ -83,6 +107,7 @@ export class HttpClient {
     );
 
     if (!response.ok) {
+      if (response.status === 401) this.handleUnauthorized(method, url);
       throw new HttpError(
         response.status,
         data,
@@ -155,6 +180,7 @@ export class HttpClient {
     attendanceLog.info('http', `← POST ${url} ${response.status}`);
 
     if (!response.ok) {
+      if (response.status === 401) this.handleUnauthorized('POST', url);
       throw new HttpError(
         response.status,
         data,

@@ -2,9 +2,9 @@ const path = require('path');
 
 module.exports = {
   preset: '@react-native/jest-preset',
-  // Extends @react-native/jest-preset's default — also transforms @react-native-async-storage (ships ESM), react-redux, and @react-navigation
+  // Extends @react-native/jest-preset's default — also transforms ESM-shipping deps
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native-async-storage|@react-navigation|react-redux|@reduxjs/toolkit|immer)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native-async-storage|@react-navigation|react-redux|@reduxjs/toolkit|immer|react-native-inappbrowser-reborn)/)',
   ],
   moduleNameMapper: {
     '^@react-native-async-storage/async-storage$': path.resolve(
@@ -18,6 +18,10 @@ module.exports = {
     '^@react-native-documents/picker$': path.resolve(
       __dirname,
       '__mocks__/@react-native-documents/picker.js',
+    ),
+    '^react-native-blob-util$': path.resolve(
+      __dirname,
+      '__mocks__/react-native-blob-util.js',
     ),
   },
 };

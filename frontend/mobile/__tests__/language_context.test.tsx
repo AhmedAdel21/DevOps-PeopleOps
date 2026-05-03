@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { LanguageProvider, useLanguage } from '../src/presentation/localization/language_context';
+import { DialogProvider } from '../src/presentation/components/molecules';
+import { ThemeProvider } from '../src/presentation/themes/theme_context';
 
 // Capture context values from inside the tree
 let captured: ReturnType<typeof useLanguage> | null = null;
@@ -10,11 +12,18 @@ const Consumer = () => {
   return null;
 };
 
+// LanguageProvider's RTL-flip flow shows a confirmation dialog, which
+// requires DialogProvider (and DialogProvider's content uses theme,
+// requiring ThemeProvider too) above it. Wrap so the hooks resolve.
 const renderTree = () =>
   ReactTestRenderer.create(
-    <LanguageProvider>
-      <Consumer />
-    </LanguageProvider>,
+    <ThemeProvider>
+      <DialogProvider>
+        <LanguageProvider>
+          <Consumer />
+        </LanguageProvider>
+      </DialogProvider>
+    </ThemeProvider>,
   );
 
 beforeEach(() => {

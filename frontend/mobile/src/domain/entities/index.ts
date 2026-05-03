@@ -5,6 +5,7 @@ export interface BaseEntity {
 }
 
 export type { User } from './user.entity';
+export type { Me, MeEmployee, Role, Provider } from './me.entity';
 export type {
   Attendance,
   AttendancePlace,

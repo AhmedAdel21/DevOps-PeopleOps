@@ -4,3 +4,4 @@ export * from './attendance';
 export * from './http';
 export * from './slack';
 export * from './leave';
+export * from './me';

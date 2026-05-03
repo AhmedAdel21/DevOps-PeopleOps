@@ -11,6 +11,17 @@ export const en = {
     continue: 'Continue',
     unknown: 'Unknown',
   },
+  me: {
+    profileNotProvisioned: {
+      title: 'Profile not ready yet',
+      message:
+        'Your account is signed in but no employee profile is linked to it yet. Please contact HR.',
+    },
+    errors: {
+      fetchFailed: 'Could not load your profile. Pull to retry.',
+      sessionExpired: 'Your session has expired. Please sign in again.',
+    },
+  },
   auth: {
     login: 'Login',
     logout: 'Logout',

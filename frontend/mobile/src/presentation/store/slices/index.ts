@@ -53,3 +53,14 @@ export {
   type SerializableAttendance,
   type SerializableAttendanceRecord,
 } from './attendance.slice';
+
+export {
+  default as meReducer,
+  bootstrapMe,
+  fetchCurrentUser,
+  refreshCurrentUser,
+  clearCurrentUser,
+  clearFetchError,
+  markPasswordChanged,
+  type MeState,
+} from './me.slice';

@@ -63,7 +63,7 @@ export class AuthRepositoryImpl implements AuthRepository {
     return user;
   }
 
-  async loginWithZoho(): Promise<{ mustChangePassword: boolean }> {
+  async loginWithZoho(): Promise<void> {
     authLog.info('repository', 'loginWithZoho called');
     try {
       const result = await this.zohoDs.authenticate();
@@ -73,9 +73,11 @@ export class AuthRepositoryImpl implements AuthRepository {
         throw new AuthError('user-disabled', 'Account is inactive');
       }
 
+      // Mint the Firebase session from the BE-issued custom token. Profile
+      // fields (mustChangePassword, role, etc.) come from /api/auth/me after
+      // the auth observer fires — not from the Zoho login response.
       await this.ds.signInWithCustomToken(result.accessToken);
-      authLog.info('repository', `loginWithZoho succeeded (mustChangePassword=${result.mustChangePassword})`);
-      return { mustChangePassword: result.mustChangePassword };
+      authLog.info('repository', 'loginWithZoho succeeded');
     } catch (e) {
       if (e instanceof AuthError) throw e;
       const mapped = mapFirebaseAuthError(e);

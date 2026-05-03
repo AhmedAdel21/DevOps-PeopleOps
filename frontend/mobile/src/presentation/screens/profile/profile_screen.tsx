@@ -220,10 +220,13 @@ export const ProfileScreen: React.FC = () => {
   );
 
   const profileDisplayName =
-    attendanceCurrent?.displayName ?? user?.displayName ?? t('common.unknown');
+    attendanceCurrent?.displayName ??
+    user?.employee?.displayName ??
+    user?.displayName ??
+    t('common.unknown');
   const profileEmail = user?.email ?? t('common.unknown');
   const profileAvatarUrl =
-    attendanceCurrent?.avatarUrl ?? user?.photoUrl ?? null;
+    attendanceCurrent?.avatarUrl ?? user?.employee?.avatarUrl ?? null;
   const profileDepartment =
     attendanceCurrent?.departmentName ?? t('common.unknown');
   const profileSlackId = attendanceCurrent?.employeeId ?? t('common.unknown');

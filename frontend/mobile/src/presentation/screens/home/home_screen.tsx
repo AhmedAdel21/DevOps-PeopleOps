@@ -185,7 +185,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const isSignedIn = status !== 'notSignedIn';
 
   const userName = current?.displayName ?? userNameProp ?? 'there';
-  const userAvatarUrl = current?.avatarUrl ?? authUser?.photoUrl ?? null;
+  const userAvatarUrl =
+    current?.avatarUrl ?? authUser?.employee?.avatarUrl ?? null;
 
   const signedInSince = useMemo(() => {
     if (!current?.signInAtIso) return null;

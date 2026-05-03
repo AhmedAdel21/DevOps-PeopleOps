@@ -7,6 +7,7 @@ export type {
   AuthRepository,
   AuthStateSubscription,
 } from './auth.repository';
+export type { MeRepository } from './me.repository';
 export type { AttendanceRepository } from './attendance.repository';
 export type { SlackRepository } from './slack.repository';
 export type {

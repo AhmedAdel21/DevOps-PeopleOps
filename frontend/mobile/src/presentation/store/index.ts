@@ -1,10 +1,16 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { authReducer, attendanceReducer, leaveReducer } from './slices';
+import {
+  authReducer,
+  attendanceReducer,
+  leaveReducer,
+  meReducer,
+} from './slices';
 
 const rootReducer = combineReducers({
   auth: authReducer,
   attendance: attendanceReducer,
   leave: leaveReducer,
+  me: meReducer,
 });
 
 export const store = configureStore({

@@ -42,6 +42,8 @@ import {
   selectZohoLoginStatus,
   selectZohoLoginError,
   selectMustChangePassword,
+  selectCurrentUser,
+  selectMeFetchStatus,
 } from '@/presentation/store/selectors';
 import type { AuthErrorCode } from '@/domain/errors';
 import { authLog } from '@/core/logger';
@@ -71,6 +73,9 @@ const resolveErrorCode = (code: string | undefined): AuthErrorCode => {
 
 const SplashWrapper: React.FC<ScreenProps<'Splash'>> = ({ navigation }) => {
   const authStatus = useAppSelector(selectAuthStatus);
+  const currentUser = useAppSelector(selectCurrentUser);
+  const meFetchStatus = useAppSelector(selectMeFetchStatus);
+  const mustChangePassword = useAppSelector(selectMustChangePassword);
   const [minDelayElapsed, setMinDelayElapsed] = useState(false);
 
   const handleReady = useCallback(() => {
@@ -86,13 +91,41 @@ const SplashWrapper: React.FC<ScreenProps<'Splash'>> = ({ navigation }) => {
       );
       return;
     }
-    const target = authStatus === 'authenticated' ? 'MainTabs' : 'Login';
-    authLog.info(
-      'navigation',
-      `SplashWrapper routing → ${target} (authStatus=${authStatus})`,
-    );
-    navigation.replace(target);
-  }, [minDelayElapsed, authStatus, navigation]);
+    if (authStatus === 'unauthenticated') {
+      authLog.info('navigation', 'SplashWrapper routing → Login');
+      navigation.replace('Login');
+      return;
+    }
+    // authenticated: hold the splash until /me has settled. The cache
+    // hydration in bootstrapMe usually populates currentUser before this
+    // point; if not, we wait for fetchCurrentUser to complete (success or
+    // error). meFetchStatus === 'error' falls through to Login (the 401
+    // handler will already have signed the user out by then).
+    if (!currentUser) {
+      if (meFetchStatus === 'pending') {
+        authLog.info('navigation', 'SplashWrapper waiting on /me');
+        return;
+      }
+      if (meFetchStatus === 'error') {
+        authLog.warn('navigation', 'SplashWrapper → /me errored, sending to Login');
+        navigation.replace('Login');
+        return;
+      }
+      // idle + no user: the observer should have dispatched fetchCurrentUser
+      // by now. Wait one more tick.
+      return;
+    }
+    if (mustChangePassword) {
+      authLog.info('navigation', 'SplashWrapper → mustChangePassword, routing to SetPassword');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'SetPassword', params: { mode: 'firstLogin', token: '' } }],
+      });
+      return;
+    }
+    authLog.info('navigation', 'SplashWrapper routing → MainTabs');
+    navigation.replace('MainTabs');
+  }, [minDelayElapsed, authStatus, currentUser, meFetchStatus, mustChangePassword, navigation]);
 
   return <SplashScreen onReady={handleReady} />;
 };
@@ -139,38 +172,38 @@ const LoginWrapper: React.FC<ScreenProps<'Login'>> = ({ navigation }) => {
     dispatch(clearZohoLoginError());
   }, [dispatch]);
 
-  // Once the observer reports the user is authenticated, navigate to the
-  // appropriate screen. mustChangePassword (set by loginWithZoho.fulfilled
-  // before the Firebase observer fires) routes first-login Zoho users to
-  // SetPassword; all other logins land on MainTabs.
+  // Once the observer reports the user is authenticated AND /me has loaded,
+  // route to the appropriate screen. Holding for currentUser (instead of
+  // routing on authStatus alone) ensures mustChangePassword has its real
+  // value — it now comes from /me, not from the Zoho login response.
+  const currentUser = useAppSelector(selectCurrentUser);
   useEffect(() => {
-    if (authStatus === 'authenticated') {
-      if (mustChangePassword) {
-        authLog.info(
-          'navigation',
-          'LoginWrapper → mustChangePassword, resetting stack to SetPassword',
-        );
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'SetPassword',
-              params: { mode: 'firstLogin', token: '' },
-            },
-          ],
-        });
-      } else {
-        authLog.info(
-          'navigation',
-          'LoginWrapper → auth success, resetting stack to MainTabs',
-        );
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'MainTabs' }],
-        });
-      }
+    if (authStatus !== 'authenticated' || !currentUser) return;
+    if (mustChangePassword) {
+      authLog.info(
+        'navigation',
+        'LoginWrapper → mustChangePassword, resetting stack to SetPassword',
+      );
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'SetPassword',
+            params: { mode: 'firstLogin', token: '' },
+          },
+        ],
+      });
+    } else {
+      authLog.info(
+        'navigation',
+        'LoginWrapper → auth success, resetting stack to MainTabs',
+      );
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
     }
-  }, [authStatus, mustChangePassword, navigation]);
+  }, [authStatus, currentUser, mustChangePassword, navigation]);
 
   const handleSubmit = useCallback(
     (credentials: { email: string; password: string }) => {

@@ -35,6 +35,11 @@ export const DiKeys = {
   ATTACHMENT_REMOTE_DATA_SOURCE: 'attachmentRemoteDataSource',
   ATTACHMENT_REPOSITORY: 'attachmentRepository',
 
+  // me (BE-shaped profile + permissions)
+  ME_REMOTE_DATA_SOURCE: 'meRemoteDataSource',
+  ME_REPOSITORY: 'meRepository',
+  FETCH_ME_USE_CASE: 'fetchMeUseCase',
+
   // http + attendance
   HTTP_CLIENT: 'httpClient',
   ATTENDANCE_REMOTE_DATA_SOURCE: 'attendanceRemoteDataSource',

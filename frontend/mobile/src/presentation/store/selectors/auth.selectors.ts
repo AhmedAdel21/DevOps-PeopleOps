@@ -1,7 +1,11 @@
 import type { RootState } from '../index';
 
 export const selectAuthStatus = (s: RootState) => s.auth.status;
-export const selectCurrentUser = (s: RootState) => s.auth.user;
+/** Bare Firebase identity. Use `selectCurrentUser` (from me.selectors) for
+ * the BE-shaped profile + permissions; this is only for code that needs the
+ * raw Firebase auth credential (uid, photoURL, displayName as known by the
+ * IdP). */
+export const selectAuthUser = (s: RootState) => s.auth.user;
 export const selectIsAuthenticated = (s: RootState) =>
   s.auth.status === 'authenticated';
 export const selectIsAuthBootstrapped = (s: RootState) =>
@@ -12,4 +16,3 @@ export const selectZohoLoginStatus = (s: RootState) => s.auth.zohoLoginStatus;
 export const selectZohoLoginError = (s: RootState) => s.auth.zohoLoginError;
 export const selectLogoutStatus = (s: RootState) => s.auth.logoutStatus;
 export const selectLogoutError = (s: RootState) => s.auth.logoutError;
-export const selectMustChangePassword = (s: RootState) => s.auth.mustChangePassword;

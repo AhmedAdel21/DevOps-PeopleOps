@@ -13,8 +13,11 @@ Read this **before** making changes.
 React Native 0.85 + React 19 + Redux Toolkit + i18next bare app (no Expo).
 Targets Android and iOS. Connects to the Slack-Daily-Attendance .NET
 backend via JWT-authenticated REST. Authentication is Firebase (email +
-password) or Zoho OAuth; the JWT carries a `role` custom claim that gates
-features.
+password) or Zoho OAuth; identity (am I logged in?) is owned by the auth
+slice + Firebase SDK, while profile + permissions (who am I, what can I
+do?) come from `GET /api/auth/me` and live in the `me` slice. The Firebase
+JWT does NOT carry role/permission claims — never decode it for that;
+read from `selectCurrentUser` / `selectHasPermission`.
 
 Layered structure (clean architecture):
 
@@ -204,17 +207,6 @@ npx react-native run-ios
 
 The Metro bundler hot-reload alone does **not** pick up new native code.
 
-### Pre-existing test-suite failures from `react-native-inappbrowser-reborn`
-
-Three test suites (`App.test.tsx`, `language_context.test.tsx`,
-`attendance_history.slice.test.ts`) currently fail with
-`SyntaxError: Cannot use import statement outside a module` because
-`react-native-inappbrowser-reborn` ships ESM and isn't in jest's
-`transformIgnorePatterns` allowlist. **This is pre-existing**, not caused
-by recent feature work, and the 8 actual tests inside those suites do
-pass when run in isolation. To fix permanently, add
-`react-native-inappbrowser-reborn` to the allowlist in `jest.config.js`.
-
 ### Native modules + jest
 
 Any package that does native bindings will fail to load in jest unless
@@ -237,3 +229,12 @@ follows the same pattern.
 - Don't hardcode the API base URL — it lives in `AppConfig.API_BASE_URL`.
 - Don't ship with `console.log` calls or commented-out code blocks; use
   the per-feature loggers (they respect `*_LOGS_ENABLED` config flags).
+- Don't decode the Firebase ID token to find role/permissions/email — they
+  are not in the token. Read from `selectCurrentUser` (in `me.selectors`)
+  or `selectHasPermission(state, 'leave:approve')` instead. The token is
+  for auth only; identity comes from `/api/auth/me`.
+- Don't gate UI on `user.role === 'X'`. Use
+  `<AppPermissionGate permission="...">` or `selectHasPermission` —
+  permission strings (`leave:approve`, `attendance:override`, etc.) are
+  the canonical client-side check. The backend re-authorizes every action
+  regardless, so handle 403 gracefully even when the gate is open.

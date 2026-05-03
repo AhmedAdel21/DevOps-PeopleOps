@@ -6,6 +6,7 @@ import type {
   AttendanceRepository,
   SlackRepository,
   LeaveRepository,
+  MeRepository,
 } from '@/domain/repositories';
 import {
   LoginUseCase,
@@ -31,6 +32,7 @@ import {
   GetPermissionQuotaUseCase,
   GetPermissionRequestsUseCase,
   RequestPermissionUseCase,
+  FetchMeUseCase,
 } from '@/domain/use_cases';
 import {
   AttachmentRemoteDataSource,
@@ -39,6 +41,7 @@ import {
   AttendanceRemoteDataSource,
   SlackOAuthRemoteDataSource,
   LeaveRemoteDataSource,
+  MeRemoteDataSource,
   HttpClient,
 } from '@/data/data_sources';
 import {
@@ -47,6 +50,7 @@ import {
   AttendanceRepositoryImpl,
   SlackRepositoryImpl,
   LeaveRepositoryImpl,
+  MeRepositoryImpl,
 } from '@/data/repositories';
 
 export class ServiceLocator {
@@ -212,6 +216,20 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.REQUEST_PERMISSION_USE_CASE,
       new RequestPermissionUseCase(leaveRepo),
+    );
+
+    // ── Me (GET /api/auth/me) ──────────────────────────────
+    // Single source of truth for the BE-shaped user identity + permissions.
+    // The me.slice fetches via this use case after the auth observer fires
+    // (regardless of which login path was taken), normalising what was
+    // previously a Firebase-vs-Zoho shape divergence.
+    const meDs = new MeRemoteDataSource(httpClient);
+    ServiceLocator.register(DiKeys.ME_REMOTE_DATA_SOURCE, meDs);
+    const meRepo: MeRepository = new MeRepositoryImpl(meDs);
+    ServiceLocator.register(DiKeys.ME_REPOSITORY, meRepo);
+    ServiceLocator.register(
+      DiKeys.FETCH_ME_USE_CASE,
+      new FetchMeUseCase(meRepo),
     );
   }
 
