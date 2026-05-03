@@ -18,11 +18,16 @@ export interface AppPermissionGateProps {
 /**
  * Conditional renderer driven by /api/auth/me permissions. UI-gating only —
  * the backend re-authorizes every action, so a dropped permission still
- * results in a 403 even if the gate is open.
+ * results in a 403 even if the gate is open. Always pass values from
+ * `Permissions` (in `@/core/auth`) — never raw strings.
  *
  * Usage:
- *   <AppPermissionGate permission="leave:approve"><ApproveButton /></AppPermissionGate>
- *   <AppPermissionGate anyOf={['leave:approve', 'leave:reject']}>...</AppPermissionGate>
+ *   <AppPermissionGate permission={Permissions.Leave.Approve}>
+ *     <ApproveButton />
+ *   </AppPermissionGate>
+ *   <AppPermissionGate anyOf={[Permissions.Leave.Approve, Permissions.Leave.Reject]}>
+ *     ...
+ *   </AppPermissionGate>
  */
 export const AppPermissionGate: React.FC<AppPermissionGateProps> = ({
   permission,

@@ -28,9 +28,11 @@ import {
   AppBackButton,
   AppButton,
   AppDivider,
+  AppPermissionGate,
   AppText,
 } from '@/presentation/components/atoms';
 import { AppAttachmentPicker } from '@/presentation/components/molecules';
+import { Permissions } from '@/core/auth';
 import type { UploadedAttachment } from '@/domain/repositories';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
@@ -501,14 +503,16 @@ export const NewVacationRequestScreen: React.FC = () => {
         </View>
 
         {/* ── Attachments ── */}
-        <AppText variant="bodyLg" weight="semibold">
-          Attachments
-        </AppText>
-        <AppAttachmentPicker
-          attachments={attachments}
-          onChange={setAttachments}
-          disabled={isSubmitting}
-        />
+        <AppPermissionGate permission={Permissions.Attachment.Upload}>
+          <AppText variant="bodyLg" weight="semibold">
+            Attachments
+          </AppText>
+          <AppAttachmentPicker
+            attachments={attachments}
+            onChange={setAttachments}
+            disabled={isSubmitting}
+          />
+        </AppPermissionGate>
 
         {/* ── Summary ── */}
         {fromDate && toDate && leaveType && durationDays && (

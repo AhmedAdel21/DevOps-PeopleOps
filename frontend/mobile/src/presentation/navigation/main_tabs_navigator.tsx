@@ -22,6 +22,9 @@ import { LeaveStackNavigator } from './leave_stack_navigator';
 import { TeamScreen } from '@/presentation/screens/team';
 import { ProfileScreen } from '@/presentation/screens/profile';
 import type { MainTabsParamList } from './types';
+import { useAppSelector } from '@/presentation/store/hooks';
+import { selectHasAnyPermission } from '@/presentation/store/selectors';
+import { Permissions } from '@/core/auth';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
@@ -34,6 +37,17 @@ export const MainTabsNavigator: React.FC = () => {
     const { theme } = useTheme();
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+    // Team is the canonical "manage your people" surface — show it for any
+    // user holding an admin-ish permission. When the screen ships and we
+    // know which features it actually contains, narrow these accordingly.
+    const showTeamTab = useAppSelector((s) =>
+        selectHasAnyPermission(
+            s,
+            Permissions.Employee.ViewOthers,
+            Permissions.Leave.Approve,
+            Permissions.Attendance.ViewOthers,
+        ),
+    );
 
     const screenOptions: BottomTabNavigationOptions = {
         headerShown: false,
@@ -88,14 +102,16 @@ export const MainTabsNavigator: React.FC = () => {
                     tabBarIcon: buildIcon(CalendarDays),
                 }}
             />
-            <Tab.Screen
-                name="Team"
-                component={TeamScreen}
-                options={{
-                    tabBarLabel: t('tabs.team').toUpperCase(),
-                    tabBarIcon: buildIcon(Users),
-                }}
-            />
+            {showTeamTab && (
+                <Tab.Screen
+                    name="Team"
+                    component={TeamScreen}
+                    options={{
+                        tabBarLabel: t('tabs.team').toUpperCase(),
+                        tabBarIcon: buildIcon(Users),
+                    }}
+                />
+            )}
             <Tab.Screen
                 name="Profile"
                 component={ProfileScreen}

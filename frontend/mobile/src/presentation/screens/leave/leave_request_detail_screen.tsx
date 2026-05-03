@@ -20,8 +20,10 @@ import {
   AppBadge,
   AppButton,
   AppDivider,
+  AppPermissionGate,
   AppText,
 } from '@/presentation/components/atoms';
+import { Permissions } from '@/core/auth';
 import type { LeaveRequestStatus } from '@/domain/entities';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
@@ -288,24 +290,26 @@ export const LeaveRequestDetailScreen: React.FC = () => {
       </ScrollView>
 
       {detail?.status === 'Pending' && (
-        <View
-          style={[
-            styles.footer,
-            {
-              backgroundColor: theme.colors.background,
-              borderTopColor: theme.colors.border,
-              paddingBottom: hs(16) + insets.bottom,
-            },
-          ]}
-        >
-          <AppButton
-            label={t('leave.detail.cancelButton')}
-            variant="outline"
-            fullWidth
-            loading={isCancelling}
-            onPress={handleCancel}
-          />
-        </View>
+        <AppPermissionGate permission={Permissions.Leave.Cancel}>
+          <View
+            style={[
+              styles.footer,
+              {
+                backgroundColor: theme.colors.background,
+                borderTopColor: theme.colors.border,
+                paddingBottom: hs(16) + insets.bottom,
+              },
+            ]}
+          >
+            <AppButton
+              label={t('leave.detail.cancelButton')}
+              variant="outline"
+              fullWidth
+              loading={isCancelling}
+              onPress={handleCancel}
+            />
+          </View>
+        </AppPermissionGate>
       )}
     </SafeAreaView>
   );

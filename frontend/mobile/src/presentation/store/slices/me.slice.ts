@@ -8,9 +8,9 @@ import { ServiceLocator } from '@/di';
 import { DiKeys } from '@/core/keys/di.key';
 import { StorageKeys } from '@/core/keys/storage.key';
 import type { Me } from '@/domain/entities';
-import type { FetchMeUseCase } from '@/domain/use_cases';
+import type { FetchMeUseCase, LogoutUseCase } from '@/domain/use_cases';
 import { authLog } from '@/core/logger';
-import { HttpError } from '@/data/data_sources/http';
+import { MeError } from '@/domain/errors';
 import type { SerializableDomainError } from '../hooks';
 
 type FetchStatus = 'idle' | 'pending' | 'error';
@@ -39,8 +39,8 @@ const initialState: MeState = {
 };
 
 const serializeError = (e: unknown): SerializableDomainError => {
-  if (e instanceof HttpError) {
-    return { code: `http/${e.status}`, message: e.message };
+  if (e instanceof MeError) {
+    return { code: e.code, message: e.message };
   }
   if (e instanceof Error) {
     return { code: 'me/unknown', message: e.message };
@@ -92,17 +92,26 @@ export const bootstrapMe = createAsyncThunk<Me | null, void>(
   },
 );
 
+type StateShape = { me: { currentUser: Me | null } };
+
 /**
  * Initial /me fetch after login. Sets fetchStatus and replaces cache on
- * success. 401 is handled by the HttpClient onUnauthorized hook (clears
- * the slice + signs Firebase out); we still record the rejection so the
- * caller can surface a toast.
+ * success.
+ *
+ * Failure handling:
+ * - 401 is handled synchronously by the HttpClient onUnauthorized hook
+ *   (clears the slice + signs Firebase out) before this catch runs; we
+ *   still record the rejection so the splash/login can surface it.
+ * - For 403 / 5xx-after-retry / unknown: if there's NO cached user, we
+ *   sign out (we'd otherwise be stuck on the splash with no profile).
+ *   If there IS a cached user, we keep it — the next foreground refresh
+ *   will retry. This matches the spec's "5xx → keep cached copy" rule.
  */
 export const fetchCurrentUser = createAsyncThunk<
   Me,
   void,
   { rejectValue: SerializableDomainError }
->('me/fetch', async (_, { rejectWithValue }) => {
+>('me/fetch', async (_, { getState, rejectWithValue }) => {
   authLog.info('slice', 'fetchCurrentUser thunk →');
   try {
     const useCase = ServiceLocator.get<FetchMeUseCase>(DiKeys.FETCH_ME_USE_CASE);
@@ -112,6 +121,24 @@ export const fetchCurrentUser = createAsyncThunk<
   } catch (e) {
     const serialized = serializeError(e);
     authLog.error('slice', `fetchCurrentUser rejected (code=${serialized.code})`);
+
+    const isUnauthorized = serialized.code === 'me/unauthorized';
+    const hasCachedUser = (getState() as StateShape).me.currentUser !== null;
+    const shouldSignOut = !isUnauthorized && !hasCachedUser;
+
+    if (shouldSignOut) {
+      authLog.warn(
+        'slice',
+        `fetchCurrentUser → signing out (code=${serialized.code}, no cached user)`,
+      );
+      try {
+        const logoutUseCase = ServiceLocator.get<LogoutUseCase>(DiKeys.LOGOUT_USE_CASE);
+        await logoutUseCase.execute();
+      } catch (signOutErr) {
+        authLog.warn('slice', 'fetchCurrentUser cleanup signOut threw (non-fatal)', signOutErr);
+      }
+    }
+
     return rejectWithValue(serialized);
   }
 });

@@ -319,7 +319,9 @@ const SetPasswordWrapper: React.FC<ScreenProps<'SetPassword'>> = ({
 
 export const RootNavigation: React.FC = () => {
   const authStatus = useAppSelector(selectAuthStatus);
+  const mustChangePassword = useAppSelector(selectMustChangePassword);
   const prevAuthStatusRef = useRef(authStatus);
+  const prevMustChangePasswordRef = useRef(mustChangePassword);
 
   // Centralised auth-driven routing: whenever the observer reports the user
   // has lost authentication (explicit logout, token revocation, session
@@ -346,6 +348,38 @@ export const RootNavigation: React.FC = () => {
       );
     }
   }, [authStatus]);
+
+  // mustChangePassword can flip from false → true mid-session if a /me
+  // refresh discovers the BE has flagged the account (e.g. forced password
+  // reset). The splash + login wrappers handle the first-render case;
+  // this effect catches the mid-session flip and forces the stack to
+  // SetPassword regardless of where the user currently is.
+  useEffect(() => {
+    const previous = prevMustChangePasswordRef.current;
+    prevMustChangePasswordRef.current = mustChangePassword;
+
+    if (
+      mustChangePassword &&
+      !previous &&
+      authStatus === 'authenticated' &&
+      navigationRef.isReady()
+    ) {
+      const currentRoute = navigationRef.getCurrentRoute()?.name;
+      if (currentRoute === 'SetPassword') return;
+      authLog.info(
+        'navigation',
+        `RootNavigation → mustChangePassword flipped true (current=${currentRoute}), resetting to SetPassword`,
+      );
+      navigationRef.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            { name: 'SetPassword', params: { mode: 'firstLogin', token: '' } },
+          ],
+        }),
+      );
+    }
+  }, [mustChangePassword, authStatus]);
 
   return (
     <NavigationContainer ref={navigationRef}>

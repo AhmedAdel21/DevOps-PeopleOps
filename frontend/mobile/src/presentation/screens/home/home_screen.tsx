@@ -21,8 +21,10 @@ import {
   AppBadge,
   AppButton,
   AppCard,
+  AppPermissionGate,
   AppText,
 } from '@/presentation/components/atoms';
+import { Permissions } from '@/core/auth';
 import { AppHeaderBar } from '@/presentation/components/organisms';
 import { SignInLocationSheet, type WorkMode } from './sign_in_location_sheet';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
@@ -324,24 +326,26 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </AppCard>
 
         <AppCard contentStyle={styles.actionsCardContent}>
-          {isSignedIn ? (
-            <AppButton
-              label={t('home.signOut')}
-              onPress={handleSignOut}
-              variant="outlineDestructive"
-              loading={signOutStatus === 'pending'}
-              disabled={isBusy || !slackReady}
-              fullWidth
-            />
-          ) : (
-            <AppButton
-              label={t('home.notSignedIn.signInCta')}
-              onPress={handleOpenSignIn}
-              loading={fetchStatus === 'pending' && !current}
-              disabled={isBusy || !slackReady}
-              fullWidth
-            />
-          )}
+          <AppPermissionGate permission={Permissions.Attendance.PostOwn}>
+            {isSignedIn ? (
+              <AppButton
+                label={t('home.signOut')}
+                onPress={handleSignOut}
+                variant="outlineDestructive"
+                loading={signOutStatus === 'pending'}
+                disabled={isBusy || !slackReady}
+                fullWidth
+              />
+            ) : (
+              <AppButton
+                label={t('home.notSignedIn.signInCta')}
+                onPress={handleOpenSignIn}
+                loading={fetchStatus === 'pending' && !current}
+                disabled={isBusy || !slackReady}
+                fullWidth
+              />
+            )}
+          </AppPermissionGate>
 
           {isSignedIn && (
             <View style={styles.todayStrip}>

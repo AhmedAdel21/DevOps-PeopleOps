@@ -17,9 +17,11 @@ import {
   AppAlertBanner,
   AppBadge,
   AppButton,
+  AppPermissionGate,
   AppSkeleton,
   AppText,
 } from '@/presentation/components/atoms';
+import { Permissions } from '@/core/auth';
 import type {
   LeaveRequestStatus,
   PermissionRequestStatus,
@@ -591,13 +593,17 @@ export const LeaveScreen: React.FC = () => {
               t={t}
             />
           </View>
-          <AppButton
-            variant="outline"
-            size="sm"
-            leftIcon={Plus}
-            label={t('leave.requests.newRequest')}
-            onPress={openNewRequest}
-          />
+          <AppPermissionGate
+            anyOf={[Permissions.Leave.Submit, Permissions.PermissionRequest.Submit]}
+          >
+            <AppButton
+              variant="outline"
+              size="sm"
+              leftIcon={Plus}
+              label={t('leave.requests.newRequest')}
+              onPress={openNewRequest}
+            />
+          </AppPermissionGate>
         </View>
 
         {/* ── Filter chips ── */}
@@ -699,12 +705,29 @@ export const LeaveScreen: React.FC = () => {
                 >
                   {t(descriptionKey)}
                 </AppText>
-                <AppButton
-                  variant="primary"
-                  size="sm"
-                  label={t(ctaKey)}
-                  onPress={onCtaPress}
-                />
+                {isFilterEmpty ? (
+                  <AppButton
+                    variant="primary"
+                    size="sm"
+                    label={t(ctaKey)}
+                    onPress={onCtaPress}
+                  />
+                ) : (
+                  <AppPermissionGate
+                    permission={
+                      isPermissionTab
+                        ? Permissions.PermissionRequest.Submit
+                        : Permissions.Leave.Submit
+                    }
+                  >
+                    <AppButton
+                      variant="primary"
+                      size="sm"
+                      label={t(ctaKey)}
+                      onPress={onCtaPress}
+                    />
+                  </AppPermissionGate>
+                )}
               </View>
             );
           })()
@@ -712,9 +735,13 @@ export const LeaveScreen: React.FC = () => {
       </ScrollView>
 
       {/* ── FAB ── */}
-      <Pressable style={styles.fab} onPress={openNewRequest}>
-        <Plus size={ws(24)} color={theme.colors.primaryForeground} />
-      </Pressable>
+      <AppPermissionGate
+        anyOf={[Permissions.Leave.Submit, Permissions.PermissionRequest.Submit]}
+      >
+        <Pressable style={styles.fab} onPress={openNewRequest}>
+          <Plus size={ws(24)} color={theme.colors.primaryForeground} />
+        </Pressable>
+      </AppPermissionGate>
 
       {/* ── Request type sheet ── */}
       <RequestTypePickerSheet

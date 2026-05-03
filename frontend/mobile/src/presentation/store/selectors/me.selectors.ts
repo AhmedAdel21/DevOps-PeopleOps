@@ -13,9 +13,9 @@ export const selectPermissions = (s: RootState) =>
   s.me.currentUser?.permissions ?? [];
 
 /**
- * Parameterized selector. Use either directly:
- *   useAppSelector(s => selectHasPermission(s, 'leave:approve'))
- * or via the useHasPermission hook below.
+ * Parameterized selector. Always pass values from `Permissions` (in
+ * `@/core/auth`) — never raw strings. Example:
+ *   useAppSelector(s => selectHasPermission(s, Permissions.Leave.Approve))
  */
 export const selectHasPermission = (s: RootState, permission: string): boolean =>
   s.me.currentUser?.permissions.includes(permission) ?? false;
