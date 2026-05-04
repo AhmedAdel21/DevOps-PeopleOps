@@ -144,6 +144,14 @@ export const leaveRequestDetailDtoToDomain = (
   reviewedAt: dto.reviewedAt,
   createdAt: dto.createdAt,
   balanceAfterApproval: dto.balanceAfterApproval,
+  // Approval-screen extras (ynfPj/UirUR) — wired up when the BE ships the
+  // fields. Empty conflict[] means the screen hides the conflict card;
+  // null balanceImpact / precedentCount hide their respective sections.
+  conflicts: [],
+  balanceImpact: null,
+  precedentCount: null,
+  cancelledAt: null,
+  cancelledBy: null,
 });
 
 // ── Submit result ────────────────────────────────────────────────────────────
@@ -170,6 +178,11 @@ export const adminLeaveRequestListItemDtoToDomain = (
   conflictDetails: dto.conflictDetails,
   reviewerComment: dto.reviewerComment,
   reviewedAt: dto.reviewedAt,
+  // Designs 6.2/6.3 show the reviewer's display name inline; 6.4 shows
+  // the cancellation actor + timestamp. Backfilled when BE adds them.
+  reviewerName: null,
+  cancelledAt: null,
+  cancelledBy: null,
 });
 
 export const adminLeaveRequestsPageDtoToDomain = (

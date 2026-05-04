@@ -22,3 +22,20 @@ export type {
   RequestPermissionParams,
   GetPermissionRequestsParams,
 } from './leave.repository';
+export type {
+  TeamAttendanceRepository,
+  GetTeamAttendanceDayParams,
+  GetTeamAttendanceHistoryParams,
+} from './team_attendance.repository';
+export type {
+  AdminAttendanceRepository,
+} from './admin_attendance.repository';
+export type {
+  EmployeeManagementRepository,
+} from './employee_management.repository';
+export type {
+  DepartmentRepository,
+} from './department.repository';
+export type {
+  LeaveTypeConfigRepository,
+} from './leave_type_config.repository';

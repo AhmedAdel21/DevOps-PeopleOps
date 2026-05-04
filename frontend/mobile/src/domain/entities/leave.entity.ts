@@ -20,6 +20,26 @@ export interface LeaveTypeMeta extends LeaveTypeRef {
 
 export type LeaveRequestStatus = 'Approved' | 'Pending' | 'Rejected' | 'Cancelled';
 
+// ── Filter / sort options for the Approvals list (designs QosTu + 6.x) ──
+
+/** Date-range chips — the value set differs per status (Pending uses the
+ *  short range, the historic statuses Approved/Rejected/Cancelled use the
+ *  long range). The repo accepts the union and the BE re-validates. */
+export type LeaveRequestDateRange =
+  | 'All'
+  | 'Today'
+  | 'ThisWeek'
+  | 'ThisMonth'
+  | 'Last3Months'
+  | 'ThisYear';
+
+/** Sort options from the popover at SJjs8. */
+export type LeaveRequestSort =
+  | 'NewestSubmission'
+  | 'OldestSubmission'
+  | 'SoonestStartDate'
+  | 'MostDays';
+
 // Permission feature (mock-only for now, kept intact).
 export type PermissionType = 'Late' | 'Early' | 'MiddleDay' | 'HalfDay';
 export type PermissionRequestStatus = 'Approved' | 'Pending' | 'Rejected' | 'Cancelled';
@@ -63,6 +83,25 @@ export interface LeaveRequestsPage {
   readonly pageSize: number;
 }
 
+/**
+ * One day inside the conflict card on ynfPj/UirUR — the BE returns the
+ * employee's existing attendance line for each day in the requested range
+ * so the reviewer can spot overlap. `record` is null for days with no
+ * attendance entry yet (rendered as "No record").
+ */
+export interface LeaveAttendanceConflictDay {
+  readonly date: string;            // yyyy-MM-dd
+  readonly record: string | null;   // pre-formatted "Office · 9:02–18:15"
+}
+
+/** Balance Impact card on ynfPj — "18 days → 13 days". */
+export interface LeaveBalanceImpact {
+  readonly leaveTypeId: number;
+  readonly leaveTypeName: string;
+  readonly daysBefore: number;
+  readonly daysAfter: number;
+}
+
 export interface LeaveRequestDetail {
   readonly id: string;
   readonly leaveTypeName: string;
@@ -79,6 +118,25 @@ export interface LeaveRequestDetail {
   readonly reviewedAt: string | null;
   readonly createdAt: string;
   readonly balanceAfterApproval: number | null;
+
+  // ── Approval-screen extras (ynfPj/UirUR — server-supplied per Q2:A) ──
+
+  /** Per-day conflict rows. Empty array when no conflict; the screen hides
+   *  the conflict card entirely in that case. */
+  readonly conflicts: readonly LeaveAttendanceConflictDay[];
+  /** Computed before/after balance for the request's leave type. Null when
+   *  not applicable (e.g. unlimited Sick Leave). */
+  readonly balanceImpact: LeaveBalanceImpact | null;
+  /** Number of times this employee has previously taken this leave type.
+   *  Renders the precedent footnote on ynfPj. Null when the BE doesn't
+   *  ship it yet. */
+  readonly precedentCount: number | null;
+
+  // ── Cancellation metadata (Q25 — design 6.4 needs both) ─────────────
+
+  readonly cancelledAt: string | null;
+  /** Display name of the cancelling actor — "requester" or a reviewer. */
+  readonly cancelledBy: string | null;
 }
 
 // ── Submit ─────────────────────────────────────────────────────────────────
@@ -100,6 +158,12 @@ export interface AdminLeaveRequestListItem extends LeaveRequestListItem {
   readonly conflictDetails: string | null;
   readonly reviewerComment: string | null;
   readonly reviewedAt: string | null;
+  /** Display name of the reviewer — used inline on 6.2/6.3 rows e.g.
+   *  "Approved by Mona Fadel · 'Looks good — coverage confirmed.'" */
+  readonly reviewerName: string | null;
+  /** Cancellation metadata (Q25) — both null on non-cancelled rows. */
+  readonly cancelledAt: string | null;
+  readonly cancelledBy: string | null;
 }
 
 export interface AdminLeaveRequestsPage {

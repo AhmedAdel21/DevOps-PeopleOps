@@ -2,7 +2,7 @@
 const USE_LOCAL = true;
 
 const LOCAL_BASE_URL =
-  'https://joslyn-sociologistic-demiurgically.ngrok-free.dev';
+  'https://outcome-choosy-rekindle.ngrok-free.dev';
 const PROD_BASE_URL =
   'https://devopsolution-c8f7andbbuc9d3hj.westeurope-01.azurewebsites.net';
 
@@ -21,6 +21,19 @@ export const AppConfig = {
    */
   USE_MOCK_LEAVE: false,
   USE_MOCK_PERMISSIONS: false,
+
+  /**
+   * Manager/admin views (Team Attendance, Approvals beyond what the existing
+   * Leave repo covers, Employee Management, Department Management, Leave
+   * Configuration). These default to true so the UI can be built and
+   * reviewed before the backend ships the management endpoints. Flip to
+   * false per feature as endpoints become available.
+   */
+  USE_MOCK_TEAM_ATTENDANCE: true,
+  USE_MOCK_ADMIN_ATTENDANCE: true,
+  USE_MOCK_EMPLOYEES: true,
+  USE_MOCK_DEPARTMENTS: true,
+  USE_MOCK_LEAVE_CONFIG: true,
 
   /**
    * HTTPS URL registered in the Zoho developer console as the mobile OAuth
@@ -52,4 +65,7 @@ export const AppConfig = {
 
   // Flip to false to silence the leave logger in every layer.
   LEAVE_LOGS_ENABLED: true,
+
+  // Flip to false to silence the management logger in every layer.
+  MANAGEMENT_LOGS_ENABLED: true,
 } as const;

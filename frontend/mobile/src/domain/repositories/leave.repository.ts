@@ -1,7 +1,9 @@
 import type {
   AdminLeaveRequestsPage,
   LeaveBalancesSummary,
+  LeaveRequestDateRange,
   LeaveRequestDetail,
+  LeaveRequestSort,
   LeaveRequestStatus,
   LeaveRequestsPage,
   LeaveTypeMeta,
@@ -26,6 +28,16 @@ export interface GetLeaveRequestsParams {
   status?: LeaveRequestStatus;
   page?: number;
   pageSize?: number;
+  /**
+   * Approval-list filters from designs QosTu / 6.1-6.4. Server-side per
+   * Q6:server-side. The valid values per status:
+   *   Pending → All / Today / ThisWeek / ThisMonth
+   *   Approved / Rejected / Cancelled → All / ThisMonth / Last3Months / ThisYear
+   * The BE re-validates and 400s if an invalid combination is sent.
+   */
+  dateRange?: LeaveRequestDateRange;
+  /** Sort popover from SJjs8. Defaults to NewestSubmission server-side. */
+  sort?: LeaveRequestSort;
 }
 
 export interface SubmitLeaveRequestParams {

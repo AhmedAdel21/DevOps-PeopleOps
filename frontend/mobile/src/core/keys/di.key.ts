@@ -48,6 +48,55 @@ export const DiKeys = {
   SIGN_IN_ATTENDANCE_USE_CASE: 'signInAttendanceUseCase',
   SIGN_OUT_ATTENDANCE_USE_CASE: 'signOutAttendanceUseCase',
   GET_ATTENDANCE_HISTORY_USE_CASE: 'getAttendanceHistoryUseCase',
+
+  // ── Management: team attendance (read) ───────────────────────────────
+  TEAM_ATTENDANCE_REMOTE_DATA_SOURCE: 'teamAttendanceRemoteDataSource',
+  TEAM_ATTENDANCE_REPOSITORY: 'teamAttendanceRepository',
+  GET_TEAM_ATTENDANCE_DAY_USE_CASE: 'getTeamAttendanceDayUseCase',
+  GET_TEAM_ATTENDANCE_HISTORY_USE_CASE: 'getTeamAttendanceHistoryUseCase',
+
+  // ── Management: admin attendance (write — overrides + bulk) ──────────
+  ADMIN_ATTENDANCE_REMOTE_DATA_SOURCE: 'adminAttendanceRemoteDataSource',
+  ADMIN_ATTENDANCE_REPOSITORY: 'adminAttendanceRepository',
+  MARK_CHECKED_IN_USE_CASE: 'markCheckedInUseCase',
+  MARK_ON_VACATION_USE_CASE: 'markOnVacationUseCase',
+  FORCE_SIGN_OUT_USE_CASE: 'forceSignOutUseCase',
+  ADD_PERMISSION_ENTRY_USE_CASE: 'addPermissionEntryUseCase',
+  MARK_WORKSPACE_VACATION_DATE_USE_CASE: 'markWorkspaceVacationDateUseCase',
+  REMOVE_ATTENDANCE_OVERRIDE_USE_CASE: 'removeAttendanceOverrideUseCase',
+  EXPORT_ATTENDANCE_CSV_USE_CASE: 'exportAttendanceCsvUseCase',
+  RUN_SLACK_BACKFILL_USE_CASE: 'runSlackBackfillUseCase',
+
+  // ── Management: employees ────────────────────────────────────────────
+  EMPLOYEE_MANAGEMENT_REMOTE_DATA_SOURCE: 'employeeManagementRemoteDataSource',
+  EMPLOYEE_MANAGEMENT_REPOSITORY: 'employeeManagementRepository',
+  LIST_EMPLOYEES_USE_CASE: 'listEmployeesUseCase',
+  GET_EMPLOYEE_PROFILE_USE_CASE: 'getEmployeeProfileUseCase',
+  ADD_EMPLOYEE_USE_CASE: 'addEmployeeUseCase',
+  UPDATE_EMPLOYEE_USE_CASE: 'updateEmployeeUseCase',
+  DELETE_EMPLOYEE_USE_CASE: 'deleteEmployeeUseCase',
+  PROVISION_EMPLOYEE_USE_CASE: 'provisionEmployeeUseCase',
+  SET_USER_DISABLED_USE_CASE: 'setUserDisabledUseCase',
+  DELETE_USER_USE_CASE: 'deleteUserUseCase',
+  SET_USER_ROLE_USE_CASE: 'setUserRoleUseCase',
+
+  // ── Management: departments ──────────────────────────────────────────
+  DEPARTMENT_REMOTE_DATA_SOURCE: 'departmentRemoteDataSource',
+  DEPARTMENT_REPOSITORY: 'departmentRepository',
+  LIST_DEPARTMENTS_USE_CASE: 'listDepartmentsUseCase',
+  GET_DEPARTMENT_DETAIL_USE_CASE: 'getDepartmentDetailUseCase',
+  CREATE_DEPARTMENT_USE_CASE: 'createDepartmentUseCase',
+  UPDATE_DEPARTMENT_USE_CASE: 'updateDepartmentUseCase',
+  DELETE_DEPARTMENT_USE_CASE: 'deleteDepartmentUseCase',
+  SET_DEPARTMENT_MANAGER_USE_CASE: 'setDepartmentManagerUseCase',
+  MOVE_EMPLOYEE_TO_DEPARTMENT_USE_CASE: 'moveEmployeeToDepartmentUseCase',
+
+  // ── Management: leave-type configuration (mock-backed) ───────────────
+  LEAVE_TYPE_CONFIG_REMOTE_DATA_SOURCE: 'leaveTypeConfigRemoteDataSource',
+  LEAVE_TYPE_CONFIG_REPOSITORY: 'leaveTypeConfigRepository',
+  LIST_LEAVE_TYPE_CONFIGS_USE_CASE: 'listLeaveTypeConfigsUseCase',
+  UPDATE_LEAVE_TYPE_POLICY_USE_CASE: 'updateLeaveTypePolicyUseCase',
+  RESET_LEAVE_TYPE_POLICY_USE_CASE: 'resetLeaveTypePolicyUseCase',
 } as const;
 
 export type DiKey = (typeof DiKeys)[keyof typeof DiKeys];

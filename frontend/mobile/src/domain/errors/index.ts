@@ -7,3 +7,4 @@ export {
 export { SlackError, type SlackErrorCode } from './slack.error';
 export { LeaveError, type LeaveErrorCode } from './leave.error';
 export { MeError, type MeErrorCode } from './me.error';
+export { ManagementError, type ManagementErrorCode } from './management.error';
