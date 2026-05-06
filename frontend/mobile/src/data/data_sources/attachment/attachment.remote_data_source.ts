@@ -4,7 +4,7 @@ import type { AttachmentMetadataDto, AttachmentDownloadDto } from '@/data/dtos/a
 import { HttpError } from '@/data/data_sources/http';
 import { attendanceLog } from '@/core/logger';
 
-const ATTACHMENTS_PATH = '/api/attachments';
+const ATTACHMENTS_PATH = '/api/v1/attachments';
 
 /** A single file picked locally on the device, ready to upload. */
 export interface LocalAttachmentFile {

@@ -18,12 +18,12 @@ import { AppConfig } from '@/di/config';
 
 // ── Paths ────────────────────────────────────────────────────────────────────
 
-const LEAVE_TYPES_PATH   = '/api/vacations/leave-types';
-const BALANCES_PATH      = '/api/vacations/balances';
-const VACATIONS_PATH     = '/api/vacations';
-const ADMIN_VACATIONS    = '/api/admin/vacations';
-const PERMISSIONS_PATH       = '/api/leave/permissions';
-const PERMISSIONS_QUOTA_PATH = '/api/leave/permissions/quota';
+const LEAVE_TYPES_PATH   = '/api/v1/vacations/leave-types';
+const BALANCES_PATH      = '/api/v1/vacations/balances';
+const VACATIONS_PATH     = '/api/v1/vacations';
+const ADMIN_VACATIONS    = '/api/v1/admin/vacations';
+const PERMISSIONS_PATH       = '/api/v1/leave/permissions';
+const PERMISSIONS_QUOTA_PATH = '/api/v1/leave/permissions/quota';
 
 // ── Mock helpers ─────────────────────────────────────────────────────────────
 

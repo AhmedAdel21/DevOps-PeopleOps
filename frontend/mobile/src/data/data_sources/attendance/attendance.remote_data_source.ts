@@ -7,10 +7,10 @@ import type {
 } from '@/data/dtos/attendance';
 import { attendanceLog } from '@/core/logger';
 
-const SIGN_IN_PATH = '/api/attendance/signin';
-const GET_CURRENT_STATUS_PATH = '/api/attendance/me';
-const SIGN_OUT_PATH = '/api/attendance/signout';
-const GET_HISTORY_PATH = '/api/users/me/attendance';
+const SIGN_IN_PATH = '/api/v1/attendance/signin';
+const GET_CURRENT_STATUS_PATH = '/api/v1/attendance/me';
+const SIGN_OUT_PATH = '/api/v1/attendance/signout';
+const GET_HISTORY_PATH = '/api/v1/users/me/attendance';
 
 // Backend returns one row per working day in [from, to].
 // Frontend wants cursor-based pagination — synthesize it by sliding a
