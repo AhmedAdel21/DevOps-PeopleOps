@@ -218,7 +218,7 @@ export class ServiceLocator {
       new RequestPermissionUseCase(leaveRepo),
     );
 
-    // ── Me (GET /api/auth/me) ──────────────────────────────
+    // ── Me (GET /api/v1/auth/me) ───────────────────────────
     // Single source of truth for the BE-shaped user identity + permissions.
     // The me.slice fetches via this use case after the auth observer fires
     // (regardless of which login path was taken), normalising what was

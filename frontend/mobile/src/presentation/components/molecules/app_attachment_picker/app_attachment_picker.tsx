@@ -31,7 +31,7 @@ export interface AppAttachmentPickerProps {
 }
 
 /**
- * Lets a user pick image / PDF files, uploads each to `POST /api/attachments`,
+ * Lets a user pick image / PDF files, uploads each to `POST /api/v1/attachments`,
  * and exposes the resulting ids via `onChange`. The parent form passes those
  * ids in `attachmentIds` when submitting the leave / permission request.
  *

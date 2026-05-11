@@ -1,5 +1,5 @@
 /**
- * Backend-shaped identity returned by GET /api/auth/me. This is the single
+ * Backend-shaped identity returned by GET /api/v1/auth/me. This is the single
  * source of truth for the currently signed-in user — replaces the per-login
  * profile fields that used to come differently from Firebase vs Zoho. Auth
  * (am I logged in?) still belongs to Firebase + the auth slice; profile

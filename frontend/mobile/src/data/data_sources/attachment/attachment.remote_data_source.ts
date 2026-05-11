@@ -17,7 +17,7 @@ export interface LocalAttachmentFile {
 }
 
 /**
- * Wraps the shared `/api/attachments` endpoints. Used by both the leave and
+ * Wraps the shared `/api/v1/attachments` endpoints. Used by both the leave and
  * permission flows: pick a file locally → call uploadFile → keep the
  * returned `id` → include it in `attachmentIds` when submitting the parent
  * request.

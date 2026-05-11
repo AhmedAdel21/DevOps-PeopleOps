@@ -8,7 +8,7 @@ export interface LeaveTypeRef {
   readonly colorHex: string;    // '#RRGGBB'
 }
 
-/** Full metadata returned by GET /api/vacations/leave-types. */
+/** Full metadata returned by GET /api/v1/vacations/leave-types. */
 export interface LeaveTypeMeta extends LeaveTypeRef {
   readonly requiresMedicalCertificate: boolean;
   readonly isOncePerCareer: boolean;

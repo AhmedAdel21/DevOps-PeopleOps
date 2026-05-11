@@ -20,7 +20,7 @@ export interface Department {
   readonly managerName: string | null;
 }
 
-/** Returned by GET /api/departments/{id} when we need the member list too
+/** Returned by GET /api/v1/departments/{id} when we need the member list too
  *  (e.g. to show 24 names on the manager-picker sheet). */
 export interface DepartmentDetail extends Department {
   readonly memberIds: readonly string[];

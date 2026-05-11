@@ -17,7 +17,7 @@ type FetchStatus = 'idle' | 'pending' | 'error';
 type BootstrapStatus = 'uninitialized' | 'hydrated';
 
 export interface MeState {
-  /** Authoritative profile + permissions from GET /api/auth/me. */
+  /** Authoritative profile + permissions from GET /api/v1/auth/me. */
   currentUser: Me | null;
   /** First-fetch status. Drives splash/login → home gating. */
   fetchStatus: FetchStatus;

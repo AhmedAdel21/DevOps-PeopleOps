@@ -8,7 +8,7 @@
  * THIS FILE MUST NOT CONTAIN ANY ROLE → PERMISSIONS MAPPING.
  *
  * The backend resolves role → permissions and ships the resolved list in
- * `GET /api/auth/me`. The client is role-blind: it only ever asks "do I
+ * `GET /api/v1/auth/me`. The client is role-blind: it only ever asks "do I
  * have permission X?" — never "is my role Y?". When the backend adds a
  * new permission, append the string here and reference it in code; when
  * the backend changes which role can do what, this file does not change.

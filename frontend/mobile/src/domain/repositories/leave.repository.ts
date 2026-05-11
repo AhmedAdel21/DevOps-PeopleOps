@@ -45,7 +45,7 @@ export interface SubmitLeaveRequestParams {
   startDate: string;        // yyyy-MM-dd
   endDate: string;          // yyyy-MM-dd
   notes?: string;
-  /** Ids returned by POST /api/attachments. */
+  /** Ids returned by POST /api/v1/attachments. */
   attachmentIds?: string[];
 }
 
@@ -70,7 +70,7 @@ export interface RequestPermissionParams {
   startTime: string;  // HH:mm — ignored by backend for HalfDay
   endTime: string;    // HH:mm — ignored by backend for HalfDay
   notes?: string;
-  /** Ids returned by POST /api/attachments. Populated once the file picker
+  /** Ids returned by POST /api/v1/attachments. Populated once the file picker
    *  ships in Phase B; today this is always empty/undefined. */
   attachmentIds?: string[];
 }

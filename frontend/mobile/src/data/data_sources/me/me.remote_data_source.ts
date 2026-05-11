@@ -2,7 +2,7 @@ import { HttpError, type HttpClient } from '@/data/data_sources/http';
 import type { MeDto } from '@/data/dtos/me';
 import { authLog } from '@/core/logger';
 
-const ME_PATH = '/api/auth/me';
+const ME_PATH = '/api/v1/auth/me';
 const MAX_ATTEMPTS = 3;
 const BACKOFF_MS = [250, 500, 1000];
 

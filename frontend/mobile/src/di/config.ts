@@ -2,7 +2,7 @@
 const USE_LOCAL = true;
 
 const LOCAL_BASE_URL =
-  'https://outcome-choosy-rekindle.ngrok-free.dev';
+  'http://192.168.1.103:5065';
 const PROD_BASE_URL =
   'https://devopsolution-c8f7andbbuc9d3hj.westeurope-01.azurewebsites.net';
 
@@ -42,7 +42,7 @@ export const AppConfig = {
    * `devopsolution://auth/zoho/callback` deep link. Switch per environment
    * (dev / staging / prod) — never hardcode inside a data source.
    */
-  ZOHO_MOBILE_REDIRECT_URI: `${BASE_URL}/api/auth/zoho/mobile-callback`,
+  ZOHO_MOBILE_REDIRECT_URI: `${BASE_URL}/api/v1/auth/zoho/mobile-callback`,
 
   /** Custom URL scheme the app intercepts after the backend bounce. */
   ZOHO_DEEP_LINK: 'devopsolution://auth/zoho/callback',

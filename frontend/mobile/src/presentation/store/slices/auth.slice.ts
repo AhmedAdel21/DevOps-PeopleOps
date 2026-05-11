@@ -71,7 +71,7 @@ export const bootstrapAuth = createAsyncThunk<void, void>(
         );
         dispatch(authSlice.actions.authStateChanged({ user }));
         // Identity (am I logged in?) and profile (who am I?) are split:
-        // Firebase tells us the former, /api/auth/me tells us the latter.
+        // Firebase tells us the former, /api/v1/auth/me tells us the latter.
         // Fan out from this single observer so both login paths converge.
         if (user) {
           dispatch(fetchCurrentUser());

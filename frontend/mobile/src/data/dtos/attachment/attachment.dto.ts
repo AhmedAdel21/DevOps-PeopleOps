@@ -1,4 +1,4 @@
-/** Returned by `POST /api/attachments` after a successful upload. */
+/** Returned by `POST /api/v1/attachments` after a successful upload. */
 export interface AttachmentMetadataDto {
   id: string;
   fileName: string;
@@ -6,7 +6,7 @@ export interface AttachmentMetadataDto {
   sizeBytes: number;
 }
 
-/** Returned by `GET /api/attachments/{id}/download` — short-lived SAS URL. */
+/** Returned by `GET /api/v1/attachments/{id}/download` — short-lived SAS URL. */
 export interface AttachmentDownloadDto {
   url: string;
 }

@@ -6,7 +6,7 @@ export interface AttachmentSnapshotDto {
   sizeBytes: number;
 }
 
-/** Returned by GET /api/leave/permissions/quota. */
+/** Returned by GET /api/v1/leave/permissions/quota. */
 export interface PermissionQuotaDto {
   permissionsUsed: number;
   permissionsAllowed: number;
@@ -36,6 +36,6 @@ export interface CreatePermissionRequestDto {
   startTime: string;  // HH:mm
   endTime: string;    // HH:mm
   notes?: string;
-  /** Ids returned by POST /api/attachments. Wired up in Phase B (file picker). */
+  /** Ids returned by POST /api/v1/attachments. Wired up in Phase B (file picker). */
   attachmentIds?: string[];
 }

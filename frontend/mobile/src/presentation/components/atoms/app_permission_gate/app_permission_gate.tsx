@@ -16,7 +16,7 @@ export interface AppPermissionGateProps {
 }
 
 /**
- * Conditional renderer driven by /api/auth/me permissions. UI-gating only —
+ * Conditional renderer driven by /api/v1/auth/me permissions. UI-gating only —
  * the backend re-authorizes every action, so a dropped permission still
  * results in a 403 even if the gate is open. Always pass values from
  * `Permissions` (in `@/core/auth`) — never raw strings.

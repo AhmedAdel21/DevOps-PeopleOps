@@ -74,7 +74,7 @@ export class AuthRepositoryImpl implements AuthRepository {
       }
 
       // Mint the Firebase session from the BE-issued custom token. Profile
-      // fields (mustChangePassword, role, etc.) come from /api/auth/me after
+      // fields (mustChangePassword, role, etc.) come from /api/v1/auth/me after
       // the auth observer fires — not from the Zoho login response.
       await this.ds.signInWithCustomToken(result.accessToken);
       authLog.info('repository', 'loginWithZoho succeeded');

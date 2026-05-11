@@ -10,8 +10,8 @@ import type {
  * Per Q9:B the backend endpoints don't exist yet — the implementation
  * runs in mock mode behind AppConfig.USE_MOCK_LEAVE_CONFIG. The interface
  * below is shaped around the eventual REST endpoints
- * (`GET /api/management/leave-types`, `PUT /api/management/leave-types/{id}`,
- * `POST /api/management/leave-types/{id}/reset`) so flipping the mock
+ * (`GET /api/v1/management/leave-types`, `PUT /api/v1/management/leave-types/{id}`,
+ * `POST /api/v1/management/leave-types/{id}/reset`) so flipping the mock
  * flag later is a one-file swap inside the data source.
  */
 

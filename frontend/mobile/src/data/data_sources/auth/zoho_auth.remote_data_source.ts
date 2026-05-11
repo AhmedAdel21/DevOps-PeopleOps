@@ -62,7 +62,7 @@ export class ZohoAuthRemoteDataSource {
    * Azure Functions Flex Consumption cold-start 404s. Without this, a fresh
    * deploy (or a scaled-to-zero instance) can return Azure's default 404 page
    * for the first 1–2 requests — including Zoho's redirect to
-   * `/api/auth/zoho/mobile-callback`, which the user can't retry gracefully.
+   * `/api/v1/auth/zoho/mobile-callback`, which the user can't retry gracefully.
    *
    * Retries up to `maxAttempts` with exponential backoff (250ms → ~2s). Each
    * attempt is bounded by `warmUpTimeoutMs` via AbortController so a stalled
@@ -114,7 +114,7 @@ export class ZohoAuthRemoteDataSource {
 
   async authenticate(): Promise<ZohoLoginResponse> {
     // 0. Warm up the Azure Functions worker before kicking off OAuth. This
-    // prevents the classic cold-start 404 on /api/auth/zoho/mobile-callback
+    // prevents the classic cold-start 404 on /api/v1/auth/zoho/mobile-callback
     // that Zoho's redirect would otherwise land on.
     await this.warmUpBackend();
 

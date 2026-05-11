@@ -1,5 +1,5 @@
 /**
- * Wire shape returned by GET /api/auth/me. Mirrors the backend contract
+ * Wire shape returned by GET /api/v1/auth/me. Mirrors the backend contract
  * verbatim so the mapper handles the DTO → domain transformation.
  */
 
