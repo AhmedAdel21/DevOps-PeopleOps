@@ -79,7 +79,8 @@ export class ZohoAuthRemoteDataSource {
         this.warmUpTimeoutMs,
       );
       try {
-        const res = await fetch(`${this.baseUrl}/api/health`, {
+        // The new BE registers MapHealthChecks("/health") — no /api prefix.
+        const res = await fetch(`${this.baseUrl}/health`, {
           method: 'GET',
           signal: controller.signal,
         });
@@ -119,7 +120,7 @@ export class ZohoAuthRemoteDataSource {
 
     // 1. Start login — get signed auth URL from backend
     authLog.info('data_source', 'ZohoAuth: startLogin →');
-    const startRes = await fetch(`${this.baseUrl}/api/auth/zoho/start`, {
+    const startRes = await fetch(`${this.baseUrl}/api/v1/auth/zoho/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -185,7 +186,7 @@ export class ZohoAuthRemoteDataSource {
     authLog.info('data_source', 'ZohoAuth: exchanging code →');
 
     // 4. Exchange code for Firebase token via backend
-    const loginRes = await fetch(`${this.baseUrl}/api/auth/zoho/login`, {
+    const loginRes = await fetch(`${this.baseUrl}/api/v1/auth/zoho/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
