@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(jq -r ' *)",
+      "Read(//private/tmp/pencil/**)",
+      "Bash(jq '[.. | objects | select\\(.id? // \"\" | IN\\(\"iVgM3\",\"mvKWT\",\"7GYHm\",\"sAze8\",\"Rrshs\",\"rse78\",\"Q5O4w\",\"dwCpM\"\\)\\)]' /Users/developer/ReactNative/DevOps_PeopleOps/design/design.pen)",
+      "Bash(git commit *)",
+      "Bash(echo \"tsc exit=$?\")",
+      "Bash(npx jest *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(tee /tmp/tsc.out)",
+      "Bash(echo \"jest exit=$?\")"
     ]
   }
 }

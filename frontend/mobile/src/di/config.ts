@@ -10,7 +10,7 @@ const BASE_URL = USE_LOCAL ? LOCAL_BASE_URL : PROD_BASE_URL;
 
 export const AppConfig = {
   API_BASE_URL: BASE_URL,
-  USE_MOCK: true,
+  USE_MOCK: false,
   MOCK_DELAY_MS: 800,
   PAGE_SIZE: 20,
 
