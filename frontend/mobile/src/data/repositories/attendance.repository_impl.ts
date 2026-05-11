@@ -36,10 +36,13 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
     }
   }
 
-  async signIn(place: AttendancePlace): Promise<Attendance> {
-    attendanceLog.info('repository', `signIn called (place=${place})`);
+  async signIn(place: AttendancePlace, signedInAt?: Date): Promise<Attendance> {
+    attendanceLog.info(
+      'repository',
+      `signIn called (place=${place}, signedInAt=${signedInAt?.toISOString() ?? 'none'})`,
+    );
     try {
-      const dto = await this.ds.signIn(placeToDto(place));
+      const dto = await this.ds.signIn(placeToDto(place), signedInAt?.toISOString());
       const entity = employeeStatusDtoToDomain(dto);
       attendanceLog.info(
         'repository',

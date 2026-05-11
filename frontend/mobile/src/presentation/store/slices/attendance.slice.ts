@@ -123,15 +123,26 @@ export const fetchAttendanceStatus = createAsyncThunk<
 
 export const signInAttendance = createAsyncThunk<
   SerializableAttendance,
-  { place: AttendancePlace },
+  /**
+   * `signedInAtIso` is an ISO-8601 UTC string (kept serializable for Redux
+   * DevTools). Use `new Date().toISOString()` at the call site. Optional —
+   * BE falls back to server time when omitted.
+   */
+  { place: AttendancePlace; signedInAtIso?: string },
   { rejectValue: SerializableDomainError }
->('attendance/signIn', async ({ place }, { rejectWithValue }) => {
-  attendanceLog.info('slice', `signInAttendance thunk → place=${place}`);
+>('attendance/signIn', async ({ place, signedInAtIso }, { rejectWithValue }) => {
+  attendanceLog.info(
+    'slice',
+    `signInAttendance thunk → place=${place}, signedInAtIso=${signedInAtIso ?? 'none'}`,
+  );
   try {
     const useCase = ServiceLocator.get<SignInAttendanceUseCase>(
       DiKeys.SIGN_IN_ATTENDANCE_USE_CASE,
     );
-    const result = await useCase.execute({ place });
+    const result = await useCase.execute({
+      place,
+      signedInAt: signedInAtIso ? new Date(signedInAtIso) : undefined,
+    });
     return toSerializable(result);
   } catch (e) {
     return rejectWithValue(serializeError(e));

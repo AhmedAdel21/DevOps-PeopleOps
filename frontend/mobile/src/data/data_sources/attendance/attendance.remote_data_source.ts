@@ -56,9 +56,15 @@ export class AttendanceRemoteDataSource {
     return this.http.get<EmployeeStatusDto>(GET_CURRENT_STATUS_PATH);
   }
 
-  async signIn(place: 'InOffice' | 'WFH'): Promise<EmployeeStatusDto> {
-    attendanceLog.info('data_source', `POST ${SIGN_IN_PATH} (place=${place})`);
-    const body: SignInRequestDto = { place };
+  async signIn(
+    place: 'InOffice' | 'WFH',
+    signInUtc?: string,
+  ): Promise<EmployeeStatusDto> {
+    attendanceLog.info(
+      'data_source',
+      `POST ${SIGN_IN_PATH} (place=${place}, signInUtc=${signInUtc ?? '<server-time>'})`,
+    );
+    const body: SignInRequestDto = signInUtc ? { place, signInUtc } : { place };
     return this.http.post<EmployeeStatusDto>(SIGN_IN_PATH, body);
   }
 

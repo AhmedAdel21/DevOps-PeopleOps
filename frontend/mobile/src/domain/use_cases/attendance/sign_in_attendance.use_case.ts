@@ -5,6 +5,9 @@ import { attendanceLog } from '@/core/logger';
 
 export interface SignInAttendanceInput {
   place: AttendancePlace;
+  /** Device-local moment the user confirmed sign-in. Optional; BE falls
+   * back to server time when omitted. */
+  signedInAt?: Date;
 }
 
 export class SignInAttendanceUseCase extends UseCase<
@@ -15,13 +18,13 @@ export class SignInAttendanceUseCase extends UseCase<
     super();
   }
 
-  async execute({ place }: SignInAttendanceInput): Promise<Attendance> {
+  async execute({ place, signedInAt }: SignInAttendanceInput): Promise<Attendance> {
     attendanceLog.info(
       'use_case',
-      `SignInAttendanceUseCase.execute → place=${place}`,
+      `SignInAttendanceUseCase.execute → place=${place}, signedInAt=${signedInAt?.toISOString() ?? 'none'}`,
     );
     try {
-      const result = await this.repo.signIn(place);
+      const result = await this.repo.signIn(place, signedInAt);
       attendanceLog.info(
         'use_case',
         `SignInAttendanceUseCase completed → status=${result.status}`,

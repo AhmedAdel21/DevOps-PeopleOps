@@ -249,14 +249,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   }, []);
 
   const handleConfirmSignIn = useCallback(
-    async (mode: WorkMode, _time: Date) => {
+    async (mode: WorkMode, time: Date) => {
       const place = workModeToPlace(mode);
+      const signedInAtIso = time.toISOString();
       attendanceLog.info(
         'screen',
-        `HomeScreen → confirm sign-in (mode=${mode}, place=${place})`,
+        `HomeScreen → confirm sign-in (mode=${mode}, place=${place}, signedInAt=${signedInAtIso})`,
       );
       setSignInSheetVisible(false);
-      await dispatch(signInAttendance({ place }));
+      await dispatch(signInAttendance({ place, signedInAtIso }));
     },
     [dispatch],
   );

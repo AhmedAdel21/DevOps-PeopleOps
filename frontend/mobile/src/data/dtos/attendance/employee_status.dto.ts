@@ -16,6 +16,9 @@ export interface EmployeeStatusDto {
 
 export interface SignInRequestDto {
   place: 'InOffice' | 'WFH';
+  /** ISO-8601 UTC timestamp when the user confirmed sign-in on the device.
+   * Optional — BE falls back to server time when absent. */
+  signInUtc?: string;
 }
 
 export interface ErrorBodyDto {
