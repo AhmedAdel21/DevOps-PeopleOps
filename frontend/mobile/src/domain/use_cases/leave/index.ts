@@ -9,4 +9,6 @@ export { ApproveLeaveRequestUseCase } from './approve_leave_request.use_case';
 export { RejectLeaveRequestUseCase } from './reject_leave_request.use_case';
 export { GetPermissionQuotaUseCase } from './get_permission_quota.use_case';
 export { GetPermissionRequestsUseCase } from './get_permission_requests.use_case';
+export { GetPermissionRequestDetailUseCase } from './get_permission_request_detail.use_case';
 export { RequestPermissionUseCase } from './request_permission.use_case';
+export { CancelPermissionRequestUseCase } from './cancel_permission_request.use_case';

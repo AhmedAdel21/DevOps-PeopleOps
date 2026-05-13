@@ -29,7 +29,9 @@ export const DiKeys = {
   REJECT_LEAVE_REQUEST_USE_CASE: 'rejectLeaveRequestUseCase',
   GET_PERMISSION_QUOTA_USE_CASE: 'getPermissionQuotaUseCase',
   GET_PERMISSION_REQUESTS_USE_CASE: 'getPermissionRequestsUseCase',
+  GET_PERMISSION_REQUEST_DETAIL_USE_CASE: 'getPermissionRequestDetailUseCase',
   REQUEST_PERMISSION_USE_CASE: 'requestPermissionUseCase',
+  CANCEL_PERMISSION_REQUEST_USE_CASE: 'cancelPermissionRequestUseCase',
 
   // attachments (shared between leaves & permissions)
   ATTACHMENT_REMOTE_DATA_SOURCE: 'attachmentRemoteDataSource',

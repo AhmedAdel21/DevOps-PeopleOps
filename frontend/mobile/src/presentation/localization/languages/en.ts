@@ -368,6 +368,17 @@ export const en = {
         confirm: 'Cancel request',
       },
     },
+    permissionDetail: {
+      navTitle: 'Permission request',
+      notFound: 'Permission request not found.',
+      notes: 'Notes',
+      cancelButton: 'Cancel request',
+      cancelConfirm: {
+        title: 'Cancel request?',
+        message: 'This action cannot be undone.',
+        confirm: 'Cancel request',
+      },
+    },
     newPermissionRequest: {
       navTitle: 'New request',
       typeSection: 'Permission type',

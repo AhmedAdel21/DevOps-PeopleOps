@@ -347,9 +347,52 @@ export class LeaveRemoteDataSource {
       updatedBy: null,
     };
   }
+
+  async getPermissionRequestDetail(id: string): Promise<PermissionRequestDto> {
+    const path = `${PERMISSIONS_PATH}/${encodeURIComponent(id)}`;
+    if (AppConfig.USE_MOCK_PERMISSIONS) {
+      leaveLog.info('data_source', `[MOCK] GET ${path}`);
+      await mockDelay();
+      throw new Error('Mock permission detail not implemented');
+    }
+    leaveLog.info('data_source', `GET ${path}`);
+    return this.http.get<PermissionRequestDto>(path);
+  }
+
+  async cancelPermissionRequest(id: string): Promise<void> {
+    const path = `${PERMISSIONS_PATH}/${encodeURIComponent(id)}`;
+    if (AppConfig.USE_MOCK_PERMISSIONS) {
+      leaveLog.info('data_source', `[MOCK] DELETE ${path}`);
+      await mockDelay();
+      return;
+    }
+    leaveLog.info('data_source', `DELETE ${path}`);
+    await this.http.delete<void>(path);
+  }
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
+
+// The mobile UI exposes Pending / Approved / Rejected / Cancelled. The BE's
+// `RequestStatus` enum only contains New, InReview, Approved, Rejected,
+// Confirmed, Closed — but the list endpoint now accepts string and treats
+// "Cancelled" as a synthetic filter that matches on the leave-side
+// LeaveStatusEnumId/PermissionStatusId enum, keeping cancelled and rejected
+// rows in separate buckets even though BE stores Request.StatusId=Rejected
+// for both.
+//
+//   Pending   → New
+//   Approved  → Approved
+//   Rejected  → Rejected   (excludes cancelled rows server-side)
+//   Cancelled → Cancelled  (filters on Leave/Permission status = Canceled)
+//   All       → no param
+const VACATIONS_STATUS_MAP: Record<string, string | undefined> = {
+  All: undefined,
+  Pending: 'New',
+  Approved: 'Approved',
+  Rejected: 'Rejected',
+  Cancelled: 'Cancelled',
+};
 
 const buildVacationsQuery = (params: {
   status?: string;
@@ -357,7 +400,10 @@ const buildVacationsQuery = (params: {
   pageSize?: number;
 }): string => {
   const q = new URLSearchParams();
-  if (params.status)   q.set('status', params.status);
+  if (params.status) {
+    const beStatus = VACATIONS_STATUS_MAP[params.status];
+    if (beStatus !== undefined) q.set('status', beStatus);
+  }
   if (params.page)     q.set('pageNumber', params.page.toString());  // BE expects pageNumber
   if (params.pageSize) q.set('pageSize', params.pageSize.toString());
   return q.toString();

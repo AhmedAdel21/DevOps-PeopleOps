@@ -306,6 +306,7 @@ interface PermissionRequestCardProps {
   theme: AppTheme;
   styles: ReturnType<typeof createStyles>;
   t: (key: string, opts?: Record<string, unknown>) => string;
+  onPress?: () => void;
 }
 
 const PermissionRequestCard: React.FC<PermissionRequestCardProps> = ({
@@ -313,13 +314,14 @@ const PermissionRequestCard: React.FC<PermissionRequestCardProps> = ({
   theme,
   styles,
   t,
+  onPress,
 }) => {
   const dotColor = getPermissionTypeColor(request.permissionType, theme);
   const timeRange = `${formatDate(request.date)} · ${request.startTime} – ${request.endTime}`;
   const duration = formatPermissionDuration(request.durationMinutes, t);
 
   return (
-    <View style={styles.requestCard}>
+    <Pressable style={styles.requestCard} onPress={onPress} disabled={!onPress}>
       <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
       <View style={styles.requestInfo}>
         <AppText variant="label" weight="semibold">
@@ -336,7 +338,7 @@ const PermissionRequestCard: React.FC<PermissionRequestCardProps> = ({
         label={t(PERMISSION_STATUS_I18N_KEY[request.status])}
         variant={PERMISSION_STATUS_BADGE_VARIANT[request.status]}
       />
-    </View>
+    </Pressable>
   );
 };
 
@@ -485,6 +487,11 @@ export const LeaveScreen: React.FC = () => {
 
   const openDetail = useCallback(
     (id: string) => navigation.navigate('LeaveRequestDetail', { id }),
+    [navigation],
+  );
+
+  const openPermissionDetail = useCallback(
+    (id: string) => navigation.navigate('PermissionRequestDetail', { id }),
     [navigation],
   );
 
@@ -654,7 +661,14 @@ export const LeaveScreen: React.FC = () => {
                   />
                 ))
               : filteredPermissionRequests.map(r => (
-                  <PermissionRequestCard key={r.id} request={r} theme={theme} styles={styles} t={t} />
+                  <PermissionRequestCard
+                    key={r.id}
+                    request={r}
+                    theme={theme}
+                    styles={styles}
+                    t={t}
+                    onPress={() => openPermissionDetail(r.id)}
+                  />
                 ))}
           </View>
         ) : (

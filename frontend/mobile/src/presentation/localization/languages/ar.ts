@@ -367,6 +367,17 @@ export const ar = {
         confirm: 'إلغاء الطلب',
       },
     },
+    permissionDetail: {
+      navTitle: 'طلب إذن',
+      notFound: 'طلب الإذن غير موجود.',
+      notes: 'ملاحظات',
+      cancelButton: 'إلغاء الطلب',
+      cancelConfirm: {
+        title: 'إلغاء الطلب؟',
+        message: 'لا يمكن التراجع عن هذا الإجراء.',
+        confirm: 'إلغاء الطلب',
+      },
+    },
     newPermissionRequest: {
       navTitle: 'طلب جديد',
       typeSection: 'نوع الاستئذان',
