@@ -1,11 +1,11 @@
 // Set to true to use the local ngrok tunnel, false to target production.
-const USE_LOCAL = false;
+const USE_LOCAL = true;
 
 const LOCAL_BASE_URL =
   'https://joslyn-sociologistic-demiurgically.ngrok-free.dev';
 const PROD_BASE_URL =
   'https://devopsolution-mobile-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io';
-  // 'https://devopsolution-admin-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io';
+// 'https://devopsolution-admin-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io';
 
 const BASE_URL = USE_LOCAL ? LOCAL_BASE_URL : PROD_BASE_URL;
 
@@ -40,12 +40,17 @@ export const AppConfig = {
    * HTTPS URL registered in the Zoho developer console as the mobile OAuth
    * redirect target. Zoho redirects the browser here on success; the backend
    * serves an HTML bounce page that `<meta refresh>`es to the
-   * `devopsolution://auth/zoho/callback` deep link. Switch per environment
-   * (dev / staging / prod) — never hardcode inside a data source.
-   
-  ZOHO_MOBILE_REDIRECT_URI: `${BASE_URL}/api/v1/auth/zoho/mobile-callback`,
-  */
-  ZOHO_MOBILE_REDIRECT_URI: `https://devopsolution-admin-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io/api/auth/zoho/mobile-callback`,
+   * `devopsolution://auth/zoho/callback` deep link.
+   *
+   * The path is intentionally unversioned (`/api/auth/...`, no `/v1`) —
+   * matches ZohoOAuthBounceController's [Route("api/auth/zoho")] on the BE.
+   * Versioning would force a Zoho-side allowlist change for every API bump.
+   *
+   * Tracks BASE_URL so the local-ngrok flow and the prod flow both work
+   * without code edits. Make sure the SAME URL is added to Zoho's
+   * Redirect URIs allowlist before testing.
+   */
+  ZOHO_MOBILE_REDIRECT_URI: `${BASE_URL}/api/auth/zoho/mobile-callback`,
 
   /** Custom URL scheme the app intercepts after the backend bounce. */
   ZOHO_DEEP_LINK: 'devopsolution://auth/zoho/callback',
