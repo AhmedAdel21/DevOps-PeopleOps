@@ -3,18 +3,18 @@ import type { Attendance } from '@/domain/entities';
 import type { AttendanceRepository } from '@/domain/repositories';
 import { attendanceLog } from '@/core/logger';
 
-export class GetAttendanceStatusUseCase extends UseCase<void, Attendance> {
+export class GetAttendanceStatusUseCase extends UseCase<void, Attendance | null> {
   constructor(private readonly repo: AttendanceRepository) {
     super();
   }
 
-  async execute(): Promise<Attendance> {
+  async execute(): Promise<Attendance | null> {
     attendanceLog.info('use_case', 'GetAttendanceStatusUseCase.execute →');
     try {
       const result = await this.repo.getCurrentStatus();
       attendanceLog.info(
         'use_case',
-        `GetAttendanceStatusUseCase completed → status=${result.status}`,
+        `GetAttendanceStatusUseCase completed → status=${result?.status ?? 'none'}`,
       );
       return result;
     } catch (e) {

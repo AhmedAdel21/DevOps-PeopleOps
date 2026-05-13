@@ -3,7 +3,8 @@ export type AttendancePlace = 'in_office' | 'wfh';
 export type AttendanceStatus =
   | 'not_signed_in'
   | 'in_office'
-  | 'wfh';
+  | 'wfh'
+  | 'signed_out';
 
 export interface Attendance {
   readonly employeeId: string;

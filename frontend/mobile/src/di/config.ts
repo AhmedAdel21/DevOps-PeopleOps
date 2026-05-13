@@ -1,5 +1,5 @@
 // Set to true to use the local ngrok tunnel, false to target production.
-const USE_LOCAL = true;
+const USE_LOCAL = false;
 
 const LOCAL_BASE_URL =
   'https://joslyn-sociologistic-demiurgically.ngrok-free.dev';

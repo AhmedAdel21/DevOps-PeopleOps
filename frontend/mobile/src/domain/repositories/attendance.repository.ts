@@ -1,7 +1,12 @@
 import type { Attendance, AttendancePlace, AttendanceHistoryPage } from '@/domain/entities';
 
 export interface AttendanceRepository {
-  getCurrentStatus(): Promise<Attendance>;
+  /**
+   * Null when the caller has no attendance row for today (i.e. hasn't
+   * signed in yet). Throws on other failures, including the BE's
+   * `employee_not_linked` 404.
+   */
+  getCurrentStatus(): Promise<Attendance | null>;
   /**
    * Sign the user in at `place`. `signedInAt` is the device-local moment
    * the user confirmed sign-in; passed through to BE as ISO-8601 UTC so

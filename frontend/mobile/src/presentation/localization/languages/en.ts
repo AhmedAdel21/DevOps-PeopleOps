@@ -147,6 +147,11 @@ export const en = {
       statusSubtitle: 'Since {{time}} · {{elapsed}} elapsed',
       todayLabel: 'Remote · On time',
     },
+    workdayComplete: {
+      statusTitle: "You've wrapped up for today",
+      statusSubtitle: 'Signed out at {{time}} · {{worked}} worked',
+      todayLabel: 'Workday complete',
+    },
     signOut: 'Sign out',
     errors: {
       sessionExpired: 'Your session has expired. Please sign in again.',

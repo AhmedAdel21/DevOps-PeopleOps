@@ -147,6 +147,11 @@ export const ar = {
       statusSubtitle: 'منذ {{time}} · مضى {{elapsed}}',
       todayLabel: 'عن بُعد · في الوقت المحدد',
     },
+    workdayComplete: {
+      statusTitle: 'أنهيت يوم عملك',
+      statusSubtitle: 'سجّلت الخروج {{time}} · اشتغلت {{worked}}',
+      todayLabel: 'تمّ إنهاء اليوم',
+    },
     signOut: 'تسجيل الخروج',
     errors: {
       sessionExpired: 'انتهت صلاحية جلستك. الرجاء تسجيل الدخول مرة أخرى.',
