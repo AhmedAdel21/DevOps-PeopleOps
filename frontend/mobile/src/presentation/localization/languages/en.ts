@@ -157,6 +157,10 @@ export const en = {
       generic: 'Something went wrong. Please try again.',
       slackOAuthRequired:
         'Connect your Slack account before signing in or out.',
+      locationPermissionDenied:
+        'Location access is required to sign in or out. Please enable it in Settings and try again.',
+      locationUnavailable:
+        "Couldn't read your location. Make sure location services are on and try again.",
     },
     slackBanner: {
       message: 'Connect your Slack account to enable sign-in and sign-out.',

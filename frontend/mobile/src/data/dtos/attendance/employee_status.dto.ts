@@ -19,6 +19,15 @@ export interface SignInRequestDto {
   /** ISO-8601 UTC timestamp when the user confirmed sign-in on the device.
    * Optional — BE falls back to server time when absent. */
   signInUtc?: string;
+  /** Foreground GPS coordinates captured at sign-in. Required by BE. */
+  latitude: number;
+  longitude: number;
+}
+
+export interface SignOutRequestDto {
+  /** Foreground GPS coordinates captured at sign-out. Required by BE. */
+  latitude: number;
+  longitude: number;
 }
 
 export interface ErrorBodyDto {

@@ -23,5 +23,9 @@ module.exports = {
       __dirname,
       '__mocks__/react-native-blob-util.js',
     ),
+    '^react-native-geolocation-service$': path.resolve(
+      __dirname,
+      '__mocks__/react-native-geolocation-service.js',
+    ),
   },
 };

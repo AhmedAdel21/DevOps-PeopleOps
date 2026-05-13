@@ -81,6 +81,8 @@ const ERROR_I18N_KEY: Record<AttendanceErrorCode, string> = {
   'employee-not-linked': 'home.errors.employeeNotLinked',
   'invalid-state': 'home.errors.invalidState',
   'slack-oauth-required': 'home.errors.slackOAuthRequired',
+  'location-permission-denied': 'home.errors.locationPermissionDenied',
+  'location-unavailable': 'home.errors.locationUnavailable',
   network: 'home.errors.network',
   unknown: 'home.errors.generic',
 };

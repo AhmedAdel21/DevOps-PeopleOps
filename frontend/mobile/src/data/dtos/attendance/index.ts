@@ -1,6 +1,7 @@
 export type {
   EmployeeStatusDto,
   SignInRequestDto,
+  SignOutRequestDto,
   ErrorBodyDto,
 } from './employee_status.dto';
 export type {

@@ -2,10 +2,12 @@ import type { HttpClient } from '@/data/data_sources/http';
 import type {
   EmployeeStatusDto,
   SignInRequestDto,
+  SignOutRequestDto,
   AttendanceHistoryResponseDto,
   AttendanceRecordDto,
 } from '@/data/dtos/attendance';
 import { attendanceLog } from '@/core/logger';
+import type { Coordinates } from '@/core/location';
 
 const SIGN_IN_PATH = '/api/v1/attendance/signin';
 const GET_CURRENT_STATUS_PATH = '/api/v1/attendance/me';
@@ -58,19 +60,32 @@ export class AttendanceRemoteDataSource {
 
   async signIn(
     place: 'InOffice' | 'WFH',
+    coordinates: Coordinates,
     signInUtc?: string,
   ): Promise<EmployeeStatusDto> {
     attendanceLog.info(
       'data_source',
-      `POST ${SIGN_IN_PATH} (place=${place}, signInUtc=${signInUtc ?? '<server-time>'})`,
+      `POST ${SIGN_IN_PATH} (place=${place}, signInUtc=${signInUtc ?? '<server-time>'}, lat=${coordinates.latitude.toFixed(5)}, lng=${coordinates.longitude.toFixed(5)})`,
     );
-    const body: SignInRequestDto = signInUtc ? { place, signInUtc } : { place };
+    const body: SignInRequestDto = {
+      place,
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      ...(signInUtc ? { signInUtc } : {}),
+    };
     return this.http.post<EmployeeStatusDto>(SIGN_IN_PATH, body);
   }
 
-  async signOut(): Promise<EmployeeStatusDto> {
-    attendanceLog.info('data_source', `POST ${SIGN_OUT_PATH}`);
-    return this.http.post<EmployeeStatusDto>(SIGN_OUT_PATH, {});
+  async signOut(coordinates: Coordinates): Promise<EmployeeStatusDto> {
+    attendanceLog.info(
+      'data_source',
+      `POST ${SIGN_OUT_PATH} (lat=${coordinates.latitude.toFixed(5)}, lng=${coordinates.longitude.toFixed(5)})`,
+    );
+    const body: SignOutRequestDto = {
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+    };
+    return this.http.post<EmployeeStatusDto>(SIGN_OUT_PATH, body);
   }
 
   async getHistory(params: {

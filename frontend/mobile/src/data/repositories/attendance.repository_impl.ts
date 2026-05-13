@@ -4,6 +4,7 @@ import type {
   AttendanceHistoryPage,
 } from '@/domain/entities';
 import type { AttendanceRepository } from '@/domain/repositories';
+import type { Coordinates } from '@/core/location';
 import { AttendanceRemoteDataSource } from '@/data/data_sources/attendance';
 import {
   employeeStatusDtoToDomain,
@@ -36,13 +37,21 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
     }
   }
 
-  async signIn(place: AttendancePlace, signedInAt?: Date): Promise<Attendance> {
+  async signIn(
+    place: AttendancePlace,
+    coordinates: Coordinates,
+    signedInAt?: Date,
+  ): Promise<Attendance> {
     attendanceLog.info(
       'repository',
-      `signIn called (place=${place}, signedInAt=${signedInAt?.toISOString() ?? 'none'})`,
+      `signIn called (place=${place}, signedInAt=${signedInAt?.toISOString() ?? 'none'}, lat=${coordinates.latitude.toFixed(5)}, lng=${coordinates.longitude.toFixed(5)})`,
     );
     try {
-      const dto = await this.ds.signIn(placeToDto(place), signedInAt?.toISOString());
+      const dto = await this.ds.signIn(
+        placeToDto(place),
+        coordinates,
+        signedInAt?.toISOString(),
+      );
       const entity = employeeStatusDtoToDomain(dto);
       attendanceLog.info(
         'repository',
@@ -59,10 +68,13 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
     }
   }
 
-  async signOut(): Promise<Attendance> {
-    attendanceLog.info('repository', 'signOut called');
+  async signOut(coordinates: Coordinates): Promise<Attendance> {
+    attendanceLog.info(
+      'repository',
+      `signOut called (lat=${coordinates.latitude.toFixed(5)}, lng=${coordinates.longitude.toFixed(5)})`,
+    );
     try {
-      const dto = await this.ds.signOut();
+      const dto = await this.ds.signOut(coordinates);
       const entity = employeeStatusDtoToDomain(dto);
       attendanceLog.info(
         'repository',

@@ -34,7 +34,7 @@
 			<true />
 		</dict>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string />
+		<string>DevOpsolution uses your location to confirm you are signing in/out from an authorized work location.</string>
 		<key>RCTNewArchEnabled</key>
 		<true />
 		<key>UILaunchStoryboardName</key>

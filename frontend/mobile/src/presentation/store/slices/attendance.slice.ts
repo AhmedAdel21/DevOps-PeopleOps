@@ -14,6 +14,7 @@ import {
 } from '@/domain/use_cases';
 import { AttendanceError } from '@/domain/errors';
 import { attendanceLog } from '@/core/logger';
+import { getCurrentLocation, LocationError } from '@/core/location';
 import type { SerializableDomainError } from '../hooks';
 
 type FetchStatus = 'idle' | 'pending' | 'loaded' | 'error';
@@ -101,6 +102,16 @@ const serializeError = (e: unknown): SerializableDomainError => {
   if (e instanceof AttendanceError) {
     return { code: e.code, message: e.message };
   }
+  if (e instanceof LocationError) {
+    const attendanceCode =
+      e.reason === 'permission-denied'
+        ? 'location-permission-denied'
+        : 'location-unavailable';
+    return {
+      code: `attendance/${attendanceCode}`,
+      message: e.message,
+    };
+  }
   return { code: 'attendance/unknown', message: 'Attendance request failed' };
 };
 
@@ -126,7 +137,9 @@ export const signInAttendance = createAsyncThunk<
   /**
    * `signedInAtIso` is an ISO-8601 UTC string (kept serializable for Redux
    * DevTools). Use `new Date().toISOString()` at the call site. Optional —
-   * BE falls back to server time when omitted.
+   * BE falls back to server time when omitted. The thunk captures
+   * foreground GPS coordinates internally before calling the use case;
+   * it rejects with an `attendance/location-*` code if capture fails.
    */
   { place: AttendancePlace; signedInAtIso?: string },
   { rejectValue: SerializableDomainError }
@@ -136,11 +149,13 @@ export const signInAttendance = createAsyncThunk<
     `signInAttendance thunk → place=${place}, signedInAtIso=${signedInAtIso ?? 'none'}`,
   );
   try {
+    const coordinates = await getCurrentLocation();
     const useCase = ServiceLocator.get<SignInAttendanceUseCase>(
       DiKeys.SIGN_IN_ATTENDANCE_USE_CASE,
     );
     const result = await useCase.execute({
       place,
+      coordinates,
       signedInAt: signedInAtIso ? new Date(signedInAtIso) : undefined,
     });
     return toSerializable(result);
@@ -156,10 +171,11 @@ export const signOutAttendance = createAsyncThunk<
 >('attendance/signOut', async (_, { rejectWithValue }) => {
   attendanceLog.info('slice', 'signOutAttendance thunk →');
   try {
+    const coordinates = await getCurrentLocation();
     const useCase = ServiceLocator.get<SignOutAttendanceUseCase>(
       DiKeys.SIGN_OUT_ATTENDANCE_USE_CASE,
     );
-    const result = await useCase.execute();
+    const result = await useCase.execute({ coordinates });
     return toSerializable(result);
   } catch (e) {
     return rejectWithValue(serializeError(e));

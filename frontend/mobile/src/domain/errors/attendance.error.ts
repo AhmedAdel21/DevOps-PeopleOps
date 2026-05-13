@@ -5,6 +5,8 @@ export type AttendanceErrorCode =
   | 'employee-not-linked'
   | 'invalid-state'
   | 'slack-oauth-required'
+  | 'location-permission-denied'
+  | 'location-unavailable'
   | 'network'
   | 'unknown';
 
