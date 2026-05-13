@@ -18,18 +18,18 @@ test('maps a fully populated DTO with linked employee', () => {
     role: 'Manager',
     permissions: ['leave:approve', 'leave:reject'],
     employee: {
-      id: 'emp-1',
+      id: 1001,
       slackUserId: 'U123',
       empCode: 'E007',
       displayName: 'Employee Name',
       avatarUrl: 'https://cdn/avatar.png',
-      departmentId: 'dept-9',
+      teamId: 9,
     },
   });
   const me = meDtoToDomain(dto);
   expect(me.role).toBe('Manager');
   expect(me.permissions).toEqual(['leave:approve', 'leave:reject']);
-  expect(me.employee?.id).toBe('emp-1');
+  expect(me.employee?.id).toBe('1001');
   expect(me.employee?.avatarUrl).toBe('https://cdn/avatar.png');
 });
 
@@ -43,12 +43,12 @@ test('falls back to employee.displayName when top-level is empty', () => {
     baseDto({
       displayName: '',
       employee: {
-        id: 'e1',
-        slackUserId: '',
+        id: 42,
+        slackUserId: null,
         empCode: null,
         displayName: 'Linked Name',
         avatarUrl: null,
-        departmentId: null,
+        teamId: null,
       },
     }),
   );

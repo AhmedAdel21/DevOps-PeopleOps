@@ -25,12 +25,18 @@ const narrowProvider = (raw: string): Provider =>
     : 'firebase';
 
 const employeeDtoToDomain = (dto: MeEmployeeDto): MeEmployee => ({
-  id: dto.id,
-  slackUserId: dto.slackUserId,
+  // BE returns id as a JS number (long on the wire); stringify so the
+  // domain layer keeps treating ids as opaque strings.
+  id: String(dto.id),
+  slackUserId: dto.slackUserId ?? '',
   empCode: dto.empCode,
   displayName: dto.displayName,
   avatarUrl: dto.avatarUrl,
-  departmentId: dto.departmentId,
+  // BE doesn't expose DepartmentId on the user record — only TeamId.
+  // The team's department is resolvable via /management/departments
+  // when the FE needs it. Stringify the teamId so the FE can keep
+  // routing on its own team/dept references.
+  departmentId: dto.teamId != null ? String(dto.teamId) : null,
 });
 
 export const meDtoToDomain = (dto: MeDto): Me => ({

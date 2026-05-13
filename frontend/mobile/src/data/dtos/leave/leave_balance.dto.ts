@@ -1,15 +1,15 @@
-// Matches LeaveBalanceItemDto on BE.
+// Wire shape returned by GET /api/v1/vacations/balances. The BE
+// schema only carries the flat per-employee balance fields on AppUser
+// (CurrentAnnualLeaveBalance / SickLeaveBalance / UrgentLeaveBalance)
+// — no per-year history table, so totalEntitlement and usedDays are
+// not exposed. The mapper synthesises defaults for the UI.
 export interface LeaveBalanceItemDto {
   leaveTypeId: number;
   leaveTypeName: string;
-  colorHex: string;
-  isUnlimited: boolean;
-  totalEntitlement: number;
-  usedDays: number;
   remainingDays: number;
+  isUnlimited: boolean;
 }
 
-// Matches LeaveBalanceSummaryDto on BE.
 export interface LeaveBalancesResponseDto {
   year: number;
   balances: LeaveBalanceItemDto[];

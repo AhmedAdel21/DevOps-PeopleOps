@@ -1,41 +1,72 @@
-/** Snapshot fields the backend embeds on a permission request when files are attached. */
+// Wire shapes for the BE's permission endpoints. Matches
+// Devopsolution.Dal.Models.Responses.Hr.PermissionInfoModel +
+// PermissionQuotaDto + PermissionRequestModel (BE C# types).
+
+import type { PaginationDataDto } from './leave_request.dto';
+
+/** PermissionTypeEnum on the BE: 1 = LateAttendance, 2 = EarlyLeave. */
+export type PermissionTypeIdDto = 1 | 2;
+
+export interface PermissionRequestDto {
+  id: number;
+  permissionTypeId: PermissionTypeIdDto;
+  permissionTypeName: string;     // "LateAttendance" | "EarlyLeave"
+  permissionStatusId: number;
+  permissionStatusName: string;
+  requestStatusId: number;
+  requestStatusName: string;
+  fromDate: string;               // ISO 8601 DateTime
+  toDate: string;
+  period: number;                 // HOURS (not minutes — BE PeriodInHours)
+  employeeId: number;
+  employeeName: string;
+  isClosed: boolean;
+  assignedToId: number | null;
+  assignedUserName: string | null;
+  createdDate: string;
+  createdBy: string | null;
+  updatedDate: string | null;
+  updatedBy: string | null;
+}
+
+/** Matches PagedResult<PermissionInfoModel>. Cursor-based pagination on the
+ *  mobile was a legacy convention — the BE only exposes page-based. */
+export interface PermissionRequestsResponseDto {
+  data: PermissionRequestDto[];
+  pagination: PaginationDataDto;
+}
+
+/** Body for POST /api/v1/leave/permissions. */
+export interface CreatePermissionRequestDto {
+  permissionTypeId: PermissionTypeIdDto;
+  fromDateTime: string;   // ISO 8601, e.g. "2026-05-12T09:00:00"
+  period: number;         // HOURS
+}
+
+/** Response wrapper for create — BE returns SubmitPermissionResult. */
+export interface SubmitPermissionResultDto {
+  success: boolean;
+  permissionRequestId: number;
+  errorCode: string | null;
+  errorMessage: string | null;
+  remainingHours: number | null;
+}
+
+/** GET /api/v1/leave/permissions/quota. */
+export interface PermissionQuotaDto {
+  year: number;
+  month: number;
+  maxHoursPerMonth: number;
+  usedHours: number;
+  remainingHours: number;
+}
+
+/** Permission attachments aren't currently exposed on the new BE — the
+ *  RequestAttachment table is only populated through the HR flow, not
+ *  the mobile self-service path. Mapper returns []. */
 export interface AttachmentSnapshotDto {
   id: string;
   fileName: string;
   contentType: string;
   sizeBytes: number;
-}
-
-/** Returned by GET /api/v1/leave/permissions/quota. */
-export interface PermissionQuotaDto {
-  permissionsUsed: number;
-  permissionsAllowed: number;
-  monthResetsAt: string;   // yyyy-MM-dd
-}
-
-export interface PermissionRequestDto {
-  id: string;
-  permissionType: string;  // 'Late' | 'Early' | 'MiddleDay' | 'HalfDay'
-  date: string;            // yyyy-MM-dd
-  startTime: string;       // HH:mm
-  endTime: string;         // HH:mm
-  durationMinutes: number;
-  notes?: string | null;
-  status: string;          // 'Approved' | 'Pending' | 'Rejected' | 'Cancelled'
-  attachments?: AttachmentSnapshotDto[];
-}
-
-export interface PermissionRequestsResponseDto {
-  items: PermissionRequestDto[];
-  nextCursor: string | null;
-}
-
-export interface CreatePermissionRequestDto {
-  permissionType: string;
-  date: string;       // yyyy-MM-dd
-  startTime: string;  // HH:mm
-  endTime: string;    // HH:mm
-  notes?: string;
-  /** Ids returned by POST /api/v1/attachments. Wired up in Phase B (file picker). */
-  attachmentIds?: string[];
 }

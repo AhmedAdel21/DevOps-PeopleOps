@@ -1,6 +1,10 @@
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import type { HttpClient, TokenProvider } from '@/data/data_sources/http';
-import type { AttachmentMetadataDto, AttachmentDownloadDto } from '@/data/dtos/attachment';
+import type {
+  AttachmentMetadataDto,
+  AttachmentDownloadDto,
+  AttachmentUploadResponseDto,
+} from '@/data/dtos/attachment';
 import { HttpError } from '@/data/data_sources/http';
 import { attendanceLog } from '@/core/logger';
 
@@ -8,25 +12,19 @@ const ATTACHMENTS_PATH = '/api/v1/attachments';
 
 /** A single file picked locally on the device, ready to upload. */
 export interface LocalAttachmentFile {
-  /** Local URI returned by the document picker (e.g. content://, file://). */
   uri: string;
   fileName: string;
   contentType: string;
-  /** Size in bytes — informational only; backend computes its own from the stream. */
   sizeBytes: number;
 }
 
 /**
- * Wraps the shared `/api/v1/attachments` endpoints. Used by both the leave and
- * permission flows: pick a file locally → call uploadFile → keep the
- * returned `id` → include it in `attachmentIds` when submitting the parent
- * request.
- *
- * Note: GET / DELETE go through the JSON HttpClient, but `uploadFile` uses
- * `react-native-blob-util` for the multipart POST. RN's JS-side FormData +
- * fetch is brittle on Android — it fails with `Network request failed`
- * before the request leaves the device, even with a valid `file://` URI.
- * Native upload sidesteps the JS FormData polyfill entirely.
+ * Wraps the shared `/api/v1/attachments` endpoints. The new BE wraps the
+ * upload response as `{ items: [{ id, fileName, url, contentType, fileSize }] }`
+ * — the data source unwraps to the single-item DTO that the leave and
+ * permission flows expect. The id returned is the blob's base filename
+ * (no directory prefix); the BE re-derives the directory from the
+ * extension at download/delete time.
  */
 export class AttachmentRemoteDataSource {
   constructor(
@@ -51,12 +49,7 @@ export class AttachmentRemoteDataSource {
     const headers: Record<string, string> = { Accept: 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    // ReactNativeBlobUtil.wrap() expects a raw filesystem path, not a
-    // file:// URI — strip the scheme. content:// URIs aren't supported by
-    // wrap(); the picker is expected to have already converted via
-    // keepLocalCopy on Android.
     const filePath = file.uri.replace(/^file:\/\//, '');
-
     const url = `${this.baseUrl}${ATTACHMENTS_PATH}`;
 
     let response;
@@ -92,17 +85,41 @@ export class AttachmentRemoteDataSource {
     if (status < 200 || status >= 300) {
       throw new HttpError(status, data, `Request failed with status ${status}`);
     }
-    return data as AttachmentMetadataDto;
+
+    // BE wraps responses via AutoWrapper as `{ statusCode, message, result }`
+    // — react-native-blob-util doesn't go through HttpClient.request, so the
+    // envelope is still on the wire. Detect both shapes for safety.
+    const envelope = data as { result?: AttachmentUploadResponseDto } & AttachmentUploadResponseDto;
+    const upload = envelope.result ?? envelope;
+    const item = upload.items?.[0];
+    if (!item) {
+      throw new HttpError(status, data, 'Upload response missing items[0]');
+    }
+    return {
+      id: item.id,
+      fileName: item.fileName,
+      contentType: item.contentType,
+      sizeBytes: item.fileSize,
+      url: item.url,
+    };
   }
 
+  /**
+   * The new BE streams the file as the response body (not a JSON URL).
+   * For RN we keep the legacy "give me a URL" shape by reconstructing
+   * the absolute path the client can hit directly. Since uploads use
+   * public blobs, the URL returned by upload() can be cached client-side
+   * and used here — but for callers who only have the id, we fall back
+   * to the auth-protected download endpoint.
+   */
   async getDownloadUrl(attachmentId: string): Promise<AttachmentDownloadDto> {
-    const path = `${ATTACHMENTS_PATH}/${attachmentId}/download`;
-    attendanceLog.info('data_source', `GET ${path}`);
-    return this.http.get<AttachmentDownloadDto>(path);
+    const path = `${ATTACHMENTS_PATH}/${encodeURIComponent(attachmentId)}/download`;
+    attendanceLog.info('data_source', `Resolving download URL ${path}`);
+    return { url: `${this.baseUrl}${path}` };
   }
 
   async deleteStaged(attachmentId: string): Promise<void> {
-    const path = `${ATTACHMENTS_PATH}/${attachmentId}`;
+    const path = `${ATTACHMENTS_PATH}/${encodeURIComponent(attachmentId)}`;
     attendanceLog.info('data_source', `DELETE ${path}`);
     await this.http.delete<void>(path);
   }

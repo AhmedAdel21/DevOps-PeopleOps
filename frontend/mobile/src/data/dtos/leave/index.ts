@@ -20,4 +20,7 @@ export type {
   CreatePermissionRequestDto,
   PermissionQuotaDto,
   AttachmentSnapshotDto,
+  PermissionTypeIdDto,
+  SubmitPermissionResultDto,
 } from './permission.dto';
+export type { PaginationDataDto } from './leave_request.dto';

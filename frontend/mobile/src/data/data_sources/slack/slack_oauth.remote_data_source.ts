@@ -1,9 +1,12 @@
 import type { HttpClient } from '@/data/data_sources/http';
 import { slackLog } from '@/core/logger';
 
+// The BE's SlackOAuthController is mounted at /api/slack/user-oauth (no
+// /v1 prefix) because the callback URL is registered in Slack's app
+// config and must stay stable. All three paths now share that root.
 const START_PATH = '/api/slack/user-oauth/start';
 const STATUS_PATH = '/api/slack/user-oauth/status';
-const DISCONNECT_PATH = '/api/v1/slack/user-oauth/disconnect';
+const DISCONNECT_PATH = '/api/slack/user-oauth/disconnect';
 
 export class SlackOAuthRemoteDataSource {
   constructor(private readonly http: HttpClient) {}

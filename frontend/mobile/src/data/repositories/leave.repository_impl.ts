@@ -128,6 +128,15 @@ export class LeaveRepositoryImpl implements LeaveRepository {
         notes: params.notes,
         attachmentIds: params.attachmentIds,
       });
+      // BE returns the same shape for 201 and 422; the http layer only
+      // throws on 422 via HttpError. On success we use the result as-is.
+      if (!dto.success) {
+        leaveLog.error(
+          'repository',
+          `submitLeaveRequest → BE returned success=false (${dto.errorCode}): ${dto.errorMessage}`,
+        );
+        throw new Error(dto.errorMessage ?? dto.errorCode ?? 'Submit failed');
+      }
       const result = submitLeaveRequestSuccessDtoToDomain(dto);
       leaveLog.info('repository', `submitLeaveRequest → id=${result.leaveRequestId}`);
       return result;
@@ -206,10 +215,18 @@ export class LeaveRepositoryImpl implements LeaveRepository {
     leaveLog.info('repository', 'getPermissionQuota called');
     try {
       const dto = await this.ds.getPermissionQuota();
+      // BE returns hours; mobile UI thinks in "permission count". BE's
+      // monthly cap is 2 hours == 2 permissions by convention, so we
+      // pass the hour numbers straight through as the count. If the
+      // monthly cap changes on the BE, this assumption breaks.
+      const now = new Date();
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const yyyy = nextMonth.getFullYear();
+      const mm = String(nextMonth.getMonth() + 1).padStart(2, '0');
       return {
-        permissionsUsed: dto.permissionsUsed,
-        permissionsAllowed: dto.permissionsAllowed,
-        monthResetsAt: dto.monthResetsAt,
+        permissionsUsed: dto.usedHours,
+        permissionsAllowed: dto.maxHoursPerMonth,
+        monthResetsAt: `${yyyy}-${mm}-01`,
       };
     } catch (e) {
       throw mapAndLog(e, 'getPermissionQuota');
