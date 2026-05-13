@@ -1,8 +1,8 @@
 import type { HttpClient } from '@/data/data_sources/http';
 import { slackLog } from '@/core/logger';
 
-const START_PATH = '/api/v1/slack/user-oauth/start';
-const STATUS_PATH = '/api/v1/slack/user-oauth/status';
+const START_PATH = '/api/slack/user-oauth/start';
+const STATUS_PATH = '/api/slack/user-oauth/status';
 const DISCONNECT_PATH = '/api/v1/slack/user-oauth/disconnect';
 
 export class SlackOAuthRemoteDataSource {

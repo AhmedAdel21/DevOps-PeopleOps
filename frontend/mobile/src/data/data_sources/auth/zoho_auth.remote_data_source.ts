@@ -128,18 +128,26 @@ export class ZohoAuthRemoteDataSource {
         redirectUri: this.mobileRedirectUri,
       }),
     });
+    const startBody = (await startRes.json().catch(() => null)) as
+      | { result?: { authorizationUrl: string } }
+      | null;
+    authLog.info('data_source', 'ZohoAuth: startLogin response:', startBody);
+    authLog.info('data_source', 'ZohoAuth: startLogin startRes.ok', startRes.ok);
 
     if (!startRes.ok) {
-      const body = await startRes.json().catch(() => null);
-      authLog.error('data_source', `ZohoAuth: startLogin failed (${startRes.status})`, body);
+      authLog.error('data_source', `ZohoAuth: startLogin failed (${startRes.status})`, startBody);
       throw new AuthError('unknown', 'Failed to initiate Zoho login');
     }
 
-    const { authorizationUrl, state } = (await startRes.json()) as {
-      authorizationUrl: string;
-      state: string;
-    };
+    if (!startBody?.result) {
+      authLog.error('data_source', 'ZohoAuth: startLogin missing result', startBody);
+      throw new AuthError('unknown', 'Failed to initiate Zoho login');
+    }
+
+    const { authorizationUrl } = startBody.result;
     authLog.info('data_source', 'ZohoAuth: startLogin resolved, opening browser');
+    authLog.info('data_source', 'ZohoAuth: startLogin resolved, authorizationUrl', authorizationUrl);
+    authLog.info('data_source', 'ZohoAuth: startLogin resolved, deepLink', this.deepLink);
 
     // 2. Open in-app browser — blocks until redirect or dismiss
     let callbackUrl: string;
@@ -154,6 +162,7 @@ export class ZohoAuthRemoteDataSource {
           ephemeralWebSession: false,
         },
       );
+      authLog.info('data_source', 'ZohoAuth: browser result:', result);
 
       if (result.type !== 'success') {
         authLog.info('data_source', `ZohoAuth: browser closed (type=${result.type})`);
@@ -161,6 +170,8 @@ export class ZohoAuthRemoteDataSource {
       }
 
       callbackUrl = result.url;
+      authLog.info('data_source', 'ZohoAuth: callbackUrl:', callbackUrl);
+
     } catch (e) {
       if (e instanceof AuthError) throw e;
       authLog.error('data_source', 'ZohoAuth: browser threw', e);
@@ -212,7 +223,8 @@ export class ZohoAuthRemoteDataSource {
       throw new AuthError('unknown', 'Zoho login failed');
     }
 
-    const data = (await loginRes.json()) as ZohoLoginResponse;
+    const loginBody = (await loginRes.json()) as { result: ZohoLoginResponse };
+    const data = loginBody.result;
     authLog.info(
       'data_source',
       `ZohoAuth: login resolved (email=${authLog.maskEmail(data.email)}, isActive=${data.isActive})`,

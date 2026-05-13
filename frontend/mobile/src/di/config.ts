@@ -1,10 +1,11 @@
 // Set to true to use the local ngrok tunnel, false to target production.
-const USE_LOCAL = true;
+const USE_LOCAL = false;
 
 const LOCAL_BASE_URL =
-  'http://192.168.1.103:5065';
+  'https://joslyn-sociologistic-demiurgically.ngrok-free.dev';
 const PROD_BASE_URL =
-  'https://devopsolution-c8f7andbbuc9d3hj.westeurope-01.azurewebsites.net';
+  'https://devopsolution-mobile-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io';
+  // 'https://devopsolution-admin-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io';
 
 const BASE_URL = USE_LOCAL ? LOCAL_BASE_URL : PROD_BASE_URL;
 
@@ -41,8 +42,10 @@ export const AppConfig = {
    * serves an HTML bounce page that `<meta refresh>`es to the
    * `devopsolution://auth/zoho/callback` deep link. Switch per environment
    * (dev / staging / prod) — never hardcode inside a data source.
-   */
+   
   ZOHO_MOBILE_REDIRECT_URI: `${BASE_URL}/api/v1/auth/zoho/mobile-callback`,
+  */
+  ZOHO_MOBILE_REDIRECT_URI: `https://devopsolution-admin-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io/api/auth/zoho/mobile-callback`,
 
   /** Custom URL scheme the app intercepts after the backend bounce. */
   ZOHO_DEEP_LINK: 'devopsolution://auth/zoho/callback',

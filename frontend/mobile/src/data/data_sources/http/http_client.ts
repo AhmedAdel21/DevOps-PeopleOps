@@ -23,6 +23,23 @@ export interface HttpRequestOptions {
 
 export type UnauthorizedHandler = () => void;
 
+/**
+ * The v1 BE wraps successful responses in `{ statusCode, message, result }`.
+ * Strip the envelope so each data source can keep typing the raw payload.
+ * Falls through unchanged for legacy or non-wrapped responses.
+ */
+function unwrapEnvelope(data: unknown): unknown {
+  if (
+    data !== null &&
+    typeof data === 'object' &&
+    'result' in data &&
+    'statusCode' in data
+  ) {
+    return (data as { result: unknown }).result;
+  }
+  return data;
+}
+
 export class HttpClient {
   /**
    * Optional callback fired exactly once per 401 response, before the
@@ -115,7 +132,7 @@ export class HttpClient {
       );
     }
 
-    return data as T;
+    return unwrapEnvelope(data) as T;
   }
 
   get<T>(path: string): Promise<T> {
@@ -187,6 +204,6 @@ export class HttpClient {
         `Request failed with status ${response.status}`,
       );
     }
-    return data as T;
+    return unwrapEnvelope(data) as T;
   }
 }
