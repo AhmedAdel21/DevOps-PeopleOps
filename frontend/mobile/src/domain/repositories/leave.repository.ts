@@ -80,6 +80,14 @@ export interface GetPermissionRequestsParams {
   pageSize?: number;
 }
 
+export interface GetPermissionRequestDetailParams {
+  permissionRequestId: string;
+}
+
+export interface CancelPermissionRequestParams {
+  permissionRequestId: string;
+}
+
 /**
  * Permissions still use the mock-era balance summary with a permission quota
  * attached. The real BE does not expose this feature yet.
@@ -107,5 +115,7 @@ export interface LeaveRepository {
   // Permission (mock)
   getPermissionQuota(): Promise<PermissionQuota | null>;
   getPermissionRequests(params: GetPermissionRequestsParams): Promise<PermissionRequestsPage>;
+  getPermissionRequestDetail(params: GetPermissionRequestDetailParams): Promise<PermissionRequest>;
   createPermissionRequest(params: RequestPermissionParams): Promise<PermissionRequest>;
+  cancelPermissionRequest(params: CancelPermissionRequestParams): Promise<void>;
 }

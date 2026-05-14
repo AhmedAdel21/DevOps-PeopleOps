@@ -21,6 +21,8 @@ export type {
   ReviewLeaveRequestParams,
   RequestPermissionParams,
   GetPermissionRequestsParams,
+  GetPermissionRequestDetailParams,
+  CancelPermissionRequestParams,
 } from './leave.repository';
 export type {
   TeamAttendanceRepository,

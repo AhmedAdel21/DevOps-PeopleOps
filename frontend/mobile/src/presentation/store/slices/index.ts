@@ -23,6 +23,8 @@ export {
   fetchPermissionQuota,
   fetchPermissionRequests,
   submitPermissionRequest,
+  fetchPermissionRequestDetail,
+  cancelPermissionRequest,
   clearLeaveErrors,
   clearLastSubmitResult,
   setRequestsFilter,

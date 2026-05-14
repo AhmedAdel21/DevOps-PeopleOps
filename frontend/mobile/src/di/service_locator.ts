@@ -31,7 +31,9 @@ import {
   RejectLeaveRequestUseCase,
   GetPermissionQuotaUseCase,
   GetPermissionRequestsUseCase,
+  GetPermissionRequestDetailUseCase,
   RequestPermissionUseCase,
+  CancelPermissionRequestUseCase,
   FetchMeUseCase,
 } from '@/domain/use_cases';
 import {
@@ -216,6 +218,14 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.REQUEST_PERMISSION_USE_CASE,
       new RequestPermissionUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.GET_PERMISSION_REQUEST_DETAIL_USE_CASE,
+      new GetPermissionRequestDetailUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.CANCEL_PERMISSION_REQUEST_USE_CASE,
+      new CancelPermissionRequestUseCase(leaveRepo),
     );
 
     // ── Me (GET /api/v1/auth/me) ───────────────────────────

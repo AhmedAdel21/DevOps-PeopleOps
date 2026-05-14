@@ -12,7 +12,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Building, Clock4, House, type LucideIcon } from 'lucide-react-native';
+import {
+  Building,
+  CheckCircle2,
+  Clock4,
+  House,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
@@ -54,7 +60,11 @@ import { ServiceLocator } from '@/di/service_locator';
 import { DiKeys } from '@/core/keys/di.key';
 import type { CheckSlackConnectionUseCase } from '@/domain/use_cases';
 
-export type HomeStatus = 'notSignedIn' | 'signedInOffice' | 'signedInRemote';
+export type HomeStatus =
+  | 'notSignedIn'
+  | 'signedInOffice'
+  | 'signedInRemote'
+  | 'workdayComplete';
 
 export interface HomeScreenProps {
   userName?: string;
@@ -94,13 +104,15 @@ const resolveErrorCode = (code: string | undefined): AttendanceErrorCode => {
 };
 
 const domainToHomeStatus = (
-  status: 'not_signed_in' | 'in_office' | 'wfh',
+  status: 'not_signed_in' | 'in_office' | 'wfh' | 'signed_out',
 ): HomeStatus => {
   switch (status) {
     case 'in_office':
       return 'signedInOffice';
     case 'wfh':
       return 'signedInRemote';
+    case 'signed_out':
+      return 'workdayComplete';
     default:
       return 'notSignedIn';
   }
@@ -186,7 +198,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const status: HomeStatus = domainToHomeStatus(
     current?.status ?? 'not_signed_in',
   );
-  const isSignedIn = status !== 'notSignedIn';
+  const isCurrentlyWorking =
+    status === 'signedInOffice' || status === 'signedInRemote';
+  const isWorkdayComplete = status === 'workdayComplete';
 
   const userName = current?.displayName ?? userNameProp ?? 'there';
   const userAvatarUrl =
@@ -196,6 +210,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     if (!current?.signInAtIso) return null;
     return new Date(current.signInAtIso);
   }, [current?.signInAtIso]);
+
+  const signedOutAt = useMemo(() => {
+    if (!current?.signOutAtIso) return null;
+    return new Date(current.signOutAtIso);
+  }, [current?.signOutAtIso]);
 
   const greeting = useMemo(() => buildGreeting(userName, t), [userName, t]);
 
@@ -215,16 +234,35 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     [theme, status],
   );
 
-  const sinceLabel = useMemo(() => {
-    if (!signedInSince || !isSignedIn) return null;
-    const time = signedInSince.toLocaleTimeString(i18n.language, {
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-    const elapsedMs = Date.now() - signedInSince.getTime();
-    const elapsed = formatElapsed(elapsedMs);
-    return t(`${visuals.subtitleKey}`, { time, elapsed });
-  }, [signedInSince, isSignedIn, i18n.language, t, visuals.subtitleKey]);
+  const statusSubtitle = useMemo(() => {
+    if (isCurrentlyWorking && signedInSince) {
+      const time = signedInSince.toLocaleTimeString(i18n.language, {
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+      const elapsed = formatElapsed(Date.now() - signedInSince.getTime());
+      return t(visuals.subtitleKey, { time, elapsed });
+    }
+    if (isWorkdayComplete && signedOutAt) {
+      const time = signedOutAt.toLocaleTimeString(i18n.language, {
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+      const worked = signedInSince
+        ? formatElapsed(signedOutAt.getTime() - signedInSince.getTime())
+        : '';
+      return t(visuals.subtitleKey, { time, worked });
+    }
+    return t(visuals.subtitleKey);
+  }, [
+    isCurrentlyWorking,
+    isWorkdayComplete,
+    signedInSince,
+    signedOutAt,
+    i18n.language,
+    t,
+    visuals.subtitleKey,
+  ]);
 
   const errorMessage = useMemo(() => {
     const err = signInError ?? signOutError ?? fetchError;
@@ -323,47 +361,49 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <View style={styles.statusText}>
             <AppText variant="cardTitle">{t(visuals.titleKey)}</AppText>
             <AppText variant="caption" color={theme.colors.mutedForeground}>
-              {isSignedIn && sinceLabel ? sinceLabel : t(visuals.subtitleKey)}
+              {statusSubtitle}
             </AppText>
           </View>
         </AppCard>
 
-        <AppCard contentStyle={styles.actionsCardContent}>
-          <AppPermissionGate permission={Permissions.Attendance.PostOwn}>
-            {isSignedIn ? (
-              <AppButton
-                label={t('home.signOut')}
-                onPress={handleSignOut}
-                variant="outlineDestructive"
-                loading={signOutStatus === 'pending'}
-                disabled={isBusy || !slackReady}
-                fullWidth
-              />
-            ) : (
-              <AppButton
-                label={t('home.notSignedIn.signInCta')}
-                onPress={handleOpenSignIn}
-                loading={fetchStatus === 'pending' && !current}
-                disabled={isBusy || !slackReady}
-                fullWidth
-              />
+        {!isWorkdayComplete && (
+          <AppCard contentStyle={styles.actionsCardContent}>
+            <AppPermissionGate permission={Permissions.Attendance.PostOwn}>
+              {isCurrentlyWorking ? (
+                <AppButton
+                  label={t('home.signOut')}
+                  onPress={handleSignOut}
+                  variant="outlineDestructive"
+                  loading={signOutStatus === 'pending'}
+                  disabled={isBusy || !slackReady}
+                  fullWidth
+                />
+              ) : (
+                <AppButton
+                  label={t('home.notSignedIn.signInCta')}
+                  onPress={handleOpenSignIn}
+                  loading={fetchStatus === 'pending' && !current}
+                  disabled={isBusy || !slackReady}
+                  fullWidth
+                />
+              )}
+            </AppPermissionGate>
+
+            {isCurrentlyWorking && (
+              <View style={styles.todayStrip}>
+                <View
+                  style={[
+                    styles.todayDot,
+                    { backgroundColor: visuals.todayDotColor },
+                  ]}
+                />
+                <AppText variant="caption">{t(visuals.todayLabelKey)}</AppText>
+              </View>
             )}
-          </AppPermissionGate>
+          </AppCard>
+        )}
 
-          {isSignedIn && (
-            <View style={styles.todayStrip}>
-              <View
-                style={[
-                  styles.todayDot,
-                  { backgroundColor: visuals.todayDotColor },
-                ]}
-              />
-              <AppText variant="caption">{t(visuals.todayLabelKey)}</AppText>
-            </View>
-          )}
-        </AppCard>
-
-        {!isSignedIn && (
+        {status === 'notSignedIn' && (
           <AppCard
             title={t('home.leaveBalance.title')}
             contentStyle={styles.leaveCardContent}
@@ -463,6 +503,17 @@ const buildStatusVisuals = (
         subtitleKey: 'home.signedInRemote.statusSubtitle',
         todayLabelKey: 'home.signedInRemote.todayLabel',
         todayDotColor: theme.colors.status.info.base,
+      };
+    case 'workdayComplete':
+      return {
+        accentColor: theme.colors.status.success.base,
+        iconBg: theme.colors.status.success.light,
+        iconColor: theme.colors.status.success.base,
+        icon: CheckCircle2,
+        titleKey: 'home.workdayComplete.statusTitle',
+        subtitleKey: 'home.workdayComplete.statusSubtitle',
+        todayLabelKey: 'home.workdayComplete.todayLabel',
+        todayDotColor: theme.colors.status.success.base,
       };
     case 'notSignedIn':
     default:

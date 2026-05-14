@@ -541,11 +541,11 @@ export const NewVacationRequestScreen: React.FC = () => {
               <AppDivider />
               <SummaryRow
                 label={t('leave.newVacationRequest.summaryDuration')}
-                value={`${durationDays} ${
+                value={
                   durationDays === 1
                     ? t('leave.requests.durationDay')
                     : t('leave.requests.durationDays', { count: durationDays })
-                }`}
+                }
                 theme={theme}
               />
             </View>

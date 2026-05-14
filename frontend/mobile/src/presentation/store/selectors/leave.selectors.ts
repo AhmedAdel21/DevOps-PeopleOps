@@ -66,6 +66,16 @@ export const selectPermissionRequestsFetchError = (s: RootState) =>
 export const selectRequestPermissionStatus = (s: RootState) => s.leave.requestPermissionStatus;
 export const selectRequestPermissionError = (s: RootState) => s.leave.requestPermissionError;
 
+// ── Permission detail + cancel ──────────────────────────────────────────────
+export const selectPermissionRequestDetailById = (id: string) => (s: RootState) =>
+  s.leave.permissionDetailsById[id] ?? null;
+export const selectPermissionRequestDetailFetchStatus = (s: RootState) =>
+  s.leave.permissionDetailFetchStatus;
+export const selectPermissionRequestDetailFetchError = (s: RootState) =>
+  s.leave.permissionDetailFetchError;
+export const selectCancelPermissionStatus = (s: RootState) => s.leave.cancelPermissionStatus;
+export const selectCancelPermissionError = (s: RootState) => s.leave.cancelPermissionError;
+
 // ── Busy aggregate ──────────────────────────────────────────────────────────
 export const selectIsLeaveBusy = (s: RootState) =>
   s.leave.balancesFetchStatus === 'pending' ||

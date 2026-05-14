@@ -11,6 +11,8 @@ const toDomainStatus = (raw: string | null | undefined): AttendanceStatus => {
       return 'in_office';
     case 'WFH':
       return 'wfh';
+    case 'SignedOut':
+      return 'signed_out';
     default:
       return 'not_signed_in';
   }

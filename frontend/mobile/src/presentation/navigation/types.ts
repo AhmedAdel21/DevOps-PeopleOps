@@ -22,6 +22,7 @@ export type LeaveStackParamList = {
   NewVacationRequest: undefined;
   NewPermissionRequest: undefined;
   LeaveRequestDetail: { id: string };
+  PermissionRequestDetail: { id: string };
 };
 
 declare global {

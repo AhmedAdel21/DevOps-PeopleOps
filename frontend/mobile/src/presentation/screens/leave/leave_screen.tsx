@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { CalendarX, Clock, Plus } from 'lucide-react-native';
+import { CalendarPlus, Clock, Plus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme, type AppTheme } from '@themes/index';
@@ -306,6 +306,7 @@ interface PermissionRequestCardProps {
   theme: AppTheme;
   styles: ReturnType<typeof createStyles>;
   t: (key: string, opts?: Record<string, unknown>) => string;
+  onPress?: () => void;
 }
 
 const PermissionRequestCard: React.FC<PermissionRequestCardProps> = ({
@@ -313,13 +314,14 @@ const PermissionRequestCard: React.FC<PermissionRequestCardProps> = ({
   theme,
   styles,
   t,
+  onPress,
 }) => {
   const dotColor = getPermissionTypeColor(request.permissionType, theme);
   const timeRange = `${formatDate(request.date)} · ${request.startTime} – ${request.endTime}`;
   const duration = formatPermissionDuration(request.durationMinutes, t);
 
   return (
-    <View style={styles.requestCard}>
+    <Pressable style={styles.requestCard} onPress={onPress} disabled={!onPress}>
       <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
       <View style={styles.requestInfo}>
         <AppText variant="label" weight="semibold">
@@ -336,7 +338,7 @@ const PermissionRequestCard: React.FC<PermissionRequestCardProps> = ({
         label={t(PERMISSION_STATUS_I18N_KEY[request.status])}
         variant={PERMISSION_STATUS_BADGE_VARIANT[request.status]}
       />
-    </View>
+    </Pressable>
   );
 };
 
@@ -488,6 +490,11 @@ export const LeaveScreen: React.FC = () => {
     [navigation],
   );
 
+  const openPermissionDetail = useCallback(
+    (id: string) => navigation.navigate('PermissionRequestDetail', { id }),
+    [navigation],
+  );
+
   const filteredPermissionRequests = useMemo(
     () =>
       activeFilter === 'All'
@@ -607,11 +614,7 @@ export const LeaveScreen: React.FC = () => {
         </View>
 
         {/* ── Filter chips ── */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterChipsRow}
-        >
+        <View style={styles.filterChipsRow}>
           {FILTER_CHIPS.map(chip => (
             <Pressable
               key={chip}
@@ -623,7 +626,7 @@ export const LeaveScreen: React.FC = () => {
             >
               <AppText
                 variant="small"
-                weight={activeFilter === chip ? 'semibold' : 'medium'}
+                weight="semibold"
                 color={
                   activeFilter === chip
                     ? theme.colors.primaryForeground
@@ -634,7 +637,7 @@ export const LeaveScreen: React.FC = () => {
               </AppText>
             </Pressable>
           ))}
-        </ScrollView>
+        </View>
 
         {/* ── Request list, skeleton, or empty state ── */}
         {showRequestsSkeleton ? (
@@ -658,7 +661,14 @@ export const LeaveScreen: React.FC = () => {
                   />
                 ))
               : filteredPermissionRequests.map(r => (
-                  <PermissionRequestCard key={r.id} request={r} theme={theme} styles={styles} t={t} />
+                  <PermissionRequestCard
+                    key={r.id}
+                    request={r}
+                    theme={theme}
+                    styles={styles}
+                    t={t}
+                    onPress={() => openPermissionDetail(r.id)}
+                  />
                 ))}
           </View>
         ) : (
@@ -672,7 +682,7 @@ export const LeaveScreen: React.FC = () => {
               : leaveRequests.length;
             const isFilterEmpty = totalForActiveTab > 0 && activeFilter !== 'All';
 
-            const Icon = isPermissionTab ? Clock : CalendarX;
+            const Icon = isPermissionTab ? Clock : CalendarPlus;
             const titleKey = isFilterEmpty
               ? 'leave.requests.empty.filtered.title'
               : isPermissionTab
@@ -683,14 +693,9 @@ export const LeaveScreen: React.FC = () => {
               : isPermissionTab
                 ? 'leave.requests.empty.permission.description'
                 : 'leave.requests.empty.description';
-            const ctaKey = isFilterEmpty
-              ? 'leave.requests.empty.filtered.cta'
-              : isPermissionTab
-                ? 'leave.requests.empty.permission.cta'
-                : 'leave.requests.empty.cta';
-            const onCtaPress = isFilterEmpty
-              ? () => handleFilterChange('All')
-              : openNewRequest;
+            // CTA only rendered for the filter-hid-everything branch.
+            const filterCtaKey = 'leave.requests.empty.filtered.cta';
+            const onResetFilter = () => handleFilterChange('All');
 
             return (
               <View style={styles.emptyState}>
@@ -705,28 +710,18 @@ export const LeaveScreen: React.FC = () => {
                 >
                   {t(descriptionKey)}
                 </AppText>
-                {isFilterEmpty ? (
+                {/* Keep the in-card CTA only for the filter-hid-everything
+                 * case — it resets the filter, which neither the FAB nor
+                 * the header pill can do. For the truly-empty case, the
+                 * floating + and the header "New request" already cover
+                 * the call to action; a third button is clutter. */}
+                {isFilterEmpty && (
                   <AppButton
                     variant="primary"
                     size="sm"
-                    label={t(ctaKey)}
-                    onPress={onCtaPress}
+                    label={t(filterCtaKey)}
+                    onPress={onResetFilter}
                   />
-                ) : (
-                  <AppPermissionGate
-                    permission={
-                      isPermissionTab
-                        ? Permissions.PermissionRequest.Submit
-                        : Permissions.Leave.Submit
-                    }
-                  >
-                    <AppButton
-                      variant="primary"
-                      size="sm"
-                      label={t(ctaKey)}
-                      onPress={onCtaPress}
-                    />
-                  </AppPermissionGate>
                 )}
               </View>
             );
@@ -835,18 +830,29 @@ const createStyles = (theme: AppTheme) =>
       borderRadius: theme.radius.pill,
     },
     filterChipsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: ws(8),
     },
     chip: {
+      // Transparent border on both states so total dimensions match —
+      // the active state was visibly smaller than inactives because only
+      // inactives had a 1px border adding to the outer box.
+      borderWidth: 1,
+      borderColor: 'transparent',
       paddingVertical: hs(6),
       paddingHorizontal: ws(12),
       borderRadius: theme.radius.pill,
+      // Pin a consistent height so font-weight switches don't shift
+      // line-height between active/inactive states.
+      minHeight: hs(32),
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     chipActive: {
       backgroundColor: theme.colors.primary,
     },
     chipInactive: {
-      borderWidth: 1,
       borderColor: theme.colors.border,
     },
     requestList: {

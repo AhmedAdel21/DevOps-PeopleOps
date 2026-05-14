@@ -116,7 +116,7 @@ const serializeError = (e: unknown): SerializableDomainError => {
 };
 
 export const fetchAttendanceStatus = createAsyncThunk<
-  SerializableAttendance,
+  SerializableAttendance | null,
   void,
   { rejectValue: SerializableDomainError }
 >('attendance/fetchStatus', async (_, { rejectWithValue }) => {
@@ -126,7 +126,7 @@ export const fetchAttendanceStatus = createAsyncThunk<
       DiKeys.GET_ATTENDANCE_STATUS_USE_CASE,
     );
     const result = await useCase.execute();
-    return toSerializable(result);
+    return result ? toSerializable(result) : null;
   } catch (e) {
     return rejectWithValue(serializeError(e));
   }
@@ -230,7 +230,7 @@ const attendanceSlice = createSlice({
       })
       .addCase(
         fetchAttendanceStatus.fulfilled,
-        (state, action: PayloadAction<SerializableAttendance>) => {
+        (state, action: PayloadAction<SerializableAttendance | null>) => {
           state.fetchStatus = 'loaded';
           state.current = action.payload;
         },

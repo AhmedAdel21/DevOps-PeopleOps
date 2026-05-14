@@ -2,7 +2,12 @@ import type { Attendance, AttendancePlace, AttendanceHistoryPage } from '@/domai
 import type { Coordinates } from '@/core/location';
 
 export interface AttendanceRepository {
-  getCurrentStatus(): Promise<Attendance>;
+  /**
+   * Null when the caller has no attendance row for today (i.e. hasn't
+   * signed in yet). Throws on other failures, including the BE's
+   * `employee_not_linked` 404.
+   */
+  getCurrentStatus(): Promise<Attendance | null>;
   /**
    * Sign the user in at `place`. `coordinates` are captured from the device
    * GPS at the moment of confirmation — required by the BE so it can audit

@@ -6,6 +6,7 @@ import type {
 import type { AttendanceRepository } from '@/domain/repositories';
 import type { Coordinates } from '@/core/location';
 import { AttendanceRemoteDataSource } from '@/data/data_sources/attendance';
+import { HttpError } from '@/data/data_sources/http';
 import {
   employeeStatusDtoToDomain,
   mapHttpErrorToAttendance,
@@ -14,10 +15,19 @@ import {
 } from '@/data/mappers/attendance';
 import { attendanceLog } from '@/core/logger';
 
+// BE returns 404 with no body when the caller has no row in today's
+// snapshot. A 404 with `code: "employee_not_linked"` is a different,
+// genuine error — keep that one throwing via the standard mapper.
+const isNoCurrentRow404 = (e: unknown): boolean => {
+  if (!(e instanceof HttpError) || e.status !== 404) return false;
+  const body = e.body as { code?: unknown } | null;
+  return body?.code !== 'employee_not_linked';
+};
+
 export class AttendanceRepositoryImpl implements AttendanceRepository {
   constructor(private readonly ds: AttendanceRemoteDataSource) {}
 
-  async getCurrentStatus(): Promise<Attendance> {
+  async getCurrentStatus(): Promise<Attendance | null> {
     attendanceLog.info('repository', 'getCurrentStatus called');
     try {
       const dto = await this.ds.getCurrentStatus();
@@ -28,6 +38,13 @@ export class AttendanceRepositoryImpl implements AttendanceRepository {
       );
       return entity;
     } catch (e) {
+      if (isNoCurrentRow404(e)) {
+        attendanceLog.info(
+          'repository',
+          'getCurrentStatus → 404 (no row for today, treating as not-signed-in)',
+        );
+        return null;
+      }
       const mapped = mapHttpErrorToAttendance(e);
       attendanceLog.error(
         'repository',

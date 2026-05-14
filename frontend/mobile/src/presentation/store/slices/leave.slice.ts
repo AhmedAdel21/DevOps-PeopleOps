@@ -25,10 +25,12 @@ import type {
 } from '@/domain/entities';
 import type {
   CancelLeaveRequestParams,
+  CancelPermissionRequestParams,
   GetAvailableLeaveTypesParams,
   GetLeaveBalancesParams,
   GetLeaveRequestDetailParams,
   GetLeaveRequestsParams,
+  GetPermissionRequestDetailParams,
   RequestPermissionParams,
   ReviewLeaveRequestParams,
   SubmitLeaveRequestParams,
@@ -37,11 +39,13 @@ import {
   AdminGetLeaveRequestsUseCase,
   ApproveLeaveRequestUseCase,
   CancelLeaveRequestUseCase,
+  CancelPermissionRequestUseCase,
   GetAvailableLeaveTypesUseCase,
   GetLeaveBalancesUseCase,
   GetLeaveRequestDetailUseCase,
   GetLeaveRequestsUseCase,
   GetPermissionQuotaUseCase,
+  GetPermissionRequestDetailUseCase,
   GetPermissionRequestsUseCase,
   RejectLeaveRequestUseCase,
   RequestPermissionUseCase,
@@ -311,6 +315,15 @@ export interface LeaveState {
 
   requestPermissionStatus: ActionStatus;
   requestPermissionError: SerializableDomainError | null;
+
+  // Permission detail (BE-backed)
+  permissionDetailsById: Record<string, SerializablePermissionRequest>;
+  permissionDetailFetchStatus: FetchStatus;
+  permissionDetailFetchError: SerializableLeaveError | null;
+
+  // Permission cancel (BE-backed)
+  cancelPermissionStatus: ActionStatus;
+  cancelPermissionError: SerializableLeaveError | null;
 }
 
 const initialState: LeaveState = {
@@ -363,6 +376,13 @@ const initialState: LeaveState = {
 
   requestPermissionStatus: 'idle',
   requestPermissionError: null,
+
+  permissionDetailsById: {},
+  permissionDetailFetchStatus: 'idle',
+  permissionDetailFetchError: null,
+
+  cancelPermissionStatus: 'idle',
+  cancelPermissionError: null,
 };
 
 // ── Thunks ──────────────────────────────────────────────────────────────────
@@ -658,6 +678,49 @@ export const submitPermissionRequest = createAsyncThunk<
   }
 });
 
+export const fetchPermissionRequestDetail = createAsyncThunk<
+  SerializablePermissionRequest,
+  GetPermissionRequestDetailParams,
+  { rejectValue: SerializableLeaveError }
+>('leave/fetchPermissionDetail', async (params, { rejectWithValue }) => {
+  leaveLog.info(
+    'slice',
+    `fetchPermissionRequestDetail thunk → id=${params.permissionRequestId}`,
+  );
+  try {
+    const useCase = ServiceLocator.get<GetPermissionRequestDetailUseCase>(
+      DiKeys.GET_PERMISSION_REQUEST_DETAIL_USE_CASE,
+    );
+    const result = await useCase.execute(params);
+    return toSerializablePermissionRequest(result);
+  } catch (e) {
+    return rejectWithValue(serializeLeaveError(e));
+  }
+});
+
+export const cancelPermissionRequest = createAsyncThunk<
+  string, // cancelled id
+  CancelPermissionRequestParams,
+  { rejectValue: SerializableLeaveError }
+>('leave/cancelPermission', async (params, { rejectWithValue, dispatch }) => {
+  leaveLog.info(
+    'slice',
+    `cancelPermissionRequest thunk → id=${params.permissionRequestId}`,
+  );
+  try {
+    const useCase = ServiceLocator.get<CancelPermissionRequestUseCase>(
+      DiKeys.CANCEL_PERMISSION_REQUEST_USE_CASE,
+    );
+    await useCase.execute(params);
+    // Refresh the permission list + quota so the cancelled row reflects.
+    dispatch(fetchPermissionRequests({ append: false }));
+    dispatch(fetchPermissionQuota());
+    return params.permissionRequestId;
+  } catch (e) {
+    return rejectWithValue(serializeLeaveError(e));
+  }
+});
+
 // ── Slice ───────────────────────────────────────────────────────────────────
 
 const leaveSlice = createSlice({
@@ -675,6 +738,8 @@ const leaveSlice = createSlice({
       state.reviewError = null;
       state.permissionRequestsFetchError = null;
       state.requestPermissionError = null;
+      state.permissionDetailFetchError = null;
+      state.cancelPermissionError = null;
       if (state.balancesFetchStatus === 'error')         state.balancesFetchStatus = 'idle';
       if (state.availableTypesFetchStatus === 'error')   state.availableTypesFetchStatus = 'idle';
       if (state.requestsFetchStatus === 'error')         state.requestsFetchStatus = 'idle';
@@ -685,6 +750,8 @@ const leaveSlice = createSlice({
       if (state.reviewStatus === 'error')                state.reviewStatus = 'idle';
       if (state.permissionRequestsFetchStatus === 'error') state.permissionRequestsFetchStatus = 'idle';
       if (state.requestPermissionStatus === 'error')     state.requestPermissionStatus = 'idle';
+      if (state.permissionDetailFetchStatus === 'error') state.permissionDetailFetchStatus = 'idle';
+      if (state.cancelPermissionStatus === 'error')      state.cancelPermissionStatus = 'idle';
     },
     setRequestsFilter(state, action: PayloadAction<LeaveFilter>) {
       state.requestsFilter = action.payload;
@@ -874,6 +941,44 @@ const leaveSlice = createSlice({
         state.requestPermissionStatus = 'error';
         state.requestPermissionError =
           action.payload ?? { code: 'leave/unknown', message: 'Failed to submit permission' };
+      })
+
+      // fetchPermissionRequestDetail
+      .addCase(fetchPermissionRequestDetail.pending, (state) => {
+        state.permissionDetailFetchStatus = 'pending';
+        state.permissionDetailFetchError = null;
+      })
+      .addCase(fetchPermissionRequestDetail.fulfilled, (state, action) => {
+        state.permissionDetailFetchStatus = 'loaded';
+        state.permissionDetailsById[action.payload.id] = action.payload;
+      })
+      .addCase(fetchPermissionRequestDetail.rejected, (state, action) => {
+        state.permissionDetailFetchStatus = 'error';
+        state.permissionDetailFetchError =
+          action.payload ?? fallbackError('Failed to load permission detail');
+      })
+
+      // cancelPermissionRequest
+      .addCase(cancelPermissionRequest.pending, (state) => {
+        state.cancelPermissionStatus = 'pending';
+        state.cancelPermissionError = null;
+      })
+      .addCase(cancelPermissionRequest.fulfilled, (state, action) => {
+        state.cancelPermissionStatus = 'idle';
+        // Reflect the cancel locally so the detail screen flips status
+        // before the list re-fetch lands.
+        const cached = state.permissionDetailsById[action.payload];
+        if (cached) {
+          state.permissionDetailsById[action.payload] = {
+            ...cached,
+            status: 'Cancelled',
+          };
+        }
+      })
+      .addCase(cancelPermissionRequest.rejected, (state, action) => {
+        state.cancelPermissionStatus = 'error';
+        state.cancelPermissionError =
+          action.payload ?? fallbackError('Failed to cancel permission');
       });
   },
 });

@@ -147,6 +147,11 @@ export const ar = {
       statusSubtitle: 'منذ {{time}} · مضى {{elapsed}}',
       todayLabel: 'عن بُعد · في الوقت المحدد',
     },
+    workdayComplete: {
+      statusTitle: 'أنهيت يوم عملك',
+      statusSubtitle: 'سجّلت الخروج {{time}} · اشتغلت {{worked}}',
+      todayLabel: 'تمّ إنهاء اليوم',
+    },
     signOut: 'تسجيل الخروج',
     errors: {
       sessionExpired: 'انتهت صلاحية جلستك. الرجاء تسجيل الدخول مرة أخرى.',
@@ -281,13 +286,11 @@ export const ar = {
         attendanceConflict: 'لديك سجلات حضور في بعض هذه الأيام: {{dates}}',
       },
       empty: {
-        title: 'لا توجد إجازات بعد',
-        description: 'قدّم طلب إجازتك الأول للبدء',
-        cta: '+ طلب جديد',
+        title: 'لا يوجد جدول إجازات بعد',
+        description: 'اضغط + لتخطيط إجازتك القادمة.',
         permission: {
           title: 'لا توجد أذونات بعد',
-          description: 'اطلب إذنًا قصيرًا خلال اليوم — مثل الانصراف المبكر أو موعد طبيب.',
-          cta: '+ إذن جديد',
+          description: 'اضغط + لطلب إذن قصير — كالانصراف المبكر أو موعد طبيب.',
         },
         filtered: {
           title: 'لا توجد نتائج',
@@ -361,6 +364,17 @@ export const ar = {
       balanceAfterApproval: 'الرصيد بعد الموافقة',
       balanceDays: '{{count}} أيام',
       attendanceConflict: 'كانت هناك سجلات حضور في: {{dates}}',
+      cancelButton: 'إلغاء الطلب',
+      cancelConfirm: {
+        title: 'إلغاء الطلب؟',
+        message: 'لا يمكن التراجع عن هذا الإجراء.',
+        confirm: 'إلغاء الطلب',
+      },
+    },
+    permissionDetail: {
+      navTitle: 'طلب إذن',
+      notFound: 'طلب الإذن غير موجود.',
+      notes: 'ملاحظات',
       cancelButton: 'إلغاء الطلب',
       cancelConfirm: {
         title: 'إلغاء الطلب؟',

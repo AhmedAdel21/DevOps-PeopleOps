@@ -11,10 +11,12 @@ import type {
 } from '@/domain/entities';
 import type {
   CancelLeaveRequestParams,
+  CancelPermissionRequestParams,
   GetAvailableLeaveTypesParams,
   GetLeaveBalancesParams,
   GetLeaveRequestDetailParams,
   GetLeaveRequestsParams,
+  GetPermissionRequestDetailParams,
   GetPermissionRequestsParams,
   LeaveRepository,
   RequestPermissionParams,
@@ -255,6 +257,41 @@ export class LeaveRepositoryImpl implements LeaveRepository {
       return permissionRequestDtoToDomain(dto);
     } catch (e) {
       throw mapAndLog(e, 'createPermissionRequest');
+    }
+  }
+
+  async getPermissionRequestDetail(
+    params: GetPermissionRequestDetailParams,
+  ): Promise<PermissionRequest> {
+    leaveLog.info(
+      'repository',
+      `getPermissionRequestDetail called (id=${params.permissionRequestId})`,
+    );
+    try {
+      const dto = await this.ds.getPermissionRequestDetail(params.permissionRequestId);
+      const entity = permissionRequestDtoToDomain(dto);
+      leaveLog.info(
+        'repository',
+        `getPermissionRequestDetail → status=${entity.status}`,
+      );
+      return entity;
+    } catch (e) {
+      throw mapAndLog(e, 'getPermissionRequestDetail');
+    }
+  }
+
+  async cancelPermissionRequest(
+    params: CancelPermissionRequestParams,
+  ): Promise<void> {
+    leaveLog.info(
+      'repository',
+      `cancelPermissionRequest called (id=${params.permissionRequestId})`,
+    );
+    try {
+      await this.ds.cancelPermissionRequest(params.permissionRequestId);
+      leaveLog.info('repository', 'cancelPermissionRequest → ok');
+    } catch (e) {
+      throw mapAndLog(e, 'cancelPermissionRequest');
     }
   }
 }

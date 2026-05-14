@@ -147,6 +147,11 @@ export const en = {
       statusSubtitle: 'Since {{time}} · {{elapsed}} elapsed',
       todayLabel: 'Remote · On time',
     },
+    workdayComplete: {
+      statusTitle: "You've wrapped up for today",
+      statusSubtitle: 'Signed out at {{time}} · {{worked}} worked',
+      todayLabel: 'Workday complete',
+    },
     signOut: 'Sign out',
     errors: {
       sessionExpired: 'Your session has expired. Please sign in again.',
@@ -282,13 +287,11 @@ export const en = {
         attendanceConflict: 'You had attendance records on some of these days: {{dates}}',
       },
       empty: {
-        title: 'No leave requests yet',
-        description: 'Submit your first leave request to get started',
-        cta: '+ New request',
+        title: 'Nothing scheduled yet',
+        description: 'Tap + to plan your next time off.',
         permission: {
           title: 'No permissions yet',
-          description: 'Request short time off — like an early leave or a doctor’s appointment.',
-          cta: '+ New permission',
+          description: 'Tap + for a short break — like an early leave or a doctor’s visit.',
         },
         filtered: {
           title: 'No matches',
@@ -362,6 +365,17 @@ export const en = {
       balanceAfterApproval: 'Balance after approval',
       balanceDays: '{{count}} days',
       attendanceConflict: 'Attendance records existed on: {{dates}}',
+      cancelButton: 'Cancel request',
+      cancelConfirm: {
+        title: 'Cancel request?',
+        message: 'This action cannot be undone.',
+        confirm: 'Cancel request',
+      },
+    },
+    permissionDetail: {
+      navTitle: 'Permission request',
+      notFound: 'Permission request not found.',
+      notes: 'Notes',
       cancelButton: 'Cancel request',
       cancelConfirm: {
         title: 'Cancel request?',

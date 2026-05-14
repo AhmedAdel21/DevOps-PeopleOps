@@ -10,7 +10,13 @@
       "Bash(npx jest *)",
       "Bash(echo \"exit=$?\")",
       "Bash(tee /tmp/tsc.out)",
-      "Bash(echo \"jest exit=$?\")"
+      "Bash(echo \"jest exit=$?\")",
+      "Bash(ls \"D:\\\\Work\\\\Slack_Daily_Attendance_Project\\\\Devopsolution\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" --max-time 15 \"https://devopsolution-admin-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io/health\")",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" --max-time 15 \"https://devopsolution-admin-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io/api/slack/user-oauth/callback\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" --max-time 15 \"https://devopsolution-mobile-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io/health\")",
+      "Bash(curl -s -w \"\\\\nHTTP %{http_code}\\\\n\" --max-time 15 \"https://devopsolution-mobile-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io/api/slack/user-oauth/callback\")",
+      "Bash(dotnet build *)"
     ]
   }
 }
