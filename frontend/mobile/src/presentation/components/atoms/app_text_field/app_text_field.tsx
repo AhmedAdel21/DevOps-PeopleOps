@@ -8,7 +8,8 @@ import {
     ViewStyle,
 } from 'react-native';
 import { CircleAlert, type LucideIcon } from 'lucide-react-native';
-import { useTheme, type AppTheme } from '@themes/index';
+import { useTheme, type AppTheme, type FontFamily } from '@themes/index';
+import { useFontFamily } from '@/presentation/hooks/use_font_family';
 import { hs, ws } from '@/presentation/utils/scaling';
 import { AppText } from '../app_text';
 
@@ -35,8 +36,12 @@ export const AppTextField: React.FC<AppTextFieldProps> = ({
     ...textInputProps
 }) => {
     const { theme } = useTheme();
+    const fontFamily = useFontFamily();
     const [focused, setFocused] = useState(false);
-    const styles = useMemo(() => buildStyles(theme), [theme]);
+    const styles = useMemo(
+        () => buildStyles(theme, fontFamily),
+        [theme, fontFamily],
+    );
 
     const borderColor = error
         ? theme.colors.status.error.base
@@ -114,7 +119,7 @@ export const AppTextField: React.FC<AppTextFieldProps> = ({
     );
 };
 
-const buildStyles = (theme: AppTheme) =>
+const buildStyles = (theme: AppTheme, fontFamily: FontFamily) =>
     StyleSheet.create({
         container: {
             gap: hs(6),
@@ -136,7 +141,7 @@ const buildStyles = (theme: AppTheme) =>
             flex: 1,
             height: '100%',
             fontSize: theme.typography.sizes.base,
-            fontFamily: theme.typography.fontFamily.regular,
+            fontFamily: fontFamily.regular,
             includeFontPadding: true,
         },
         inputDisabled: {

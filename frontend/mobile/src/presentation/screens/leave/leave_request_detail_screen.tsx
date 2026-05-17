@@ -341,7 +341,7 @@ const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     flex: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'transparent', // DS page wash (Phase 4 sweep)
     },
     navHeader: {
       height: hs(56),

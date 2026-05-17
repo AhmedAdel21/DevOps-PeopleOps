@@ -110,7 +110,7 @@ const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'transparent', // DS page wash (Phase 4 sweep)
       justifyContent: 'center',
       alignItems: 'center',
     },

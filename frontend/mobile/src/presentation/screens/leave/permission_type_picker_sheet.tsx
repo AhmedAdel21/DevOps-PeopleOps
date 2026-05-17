@@ -23,7 +23,6 @@ export const PERMISSION_TYPE_KEY: Record<PermissionType, string> = {
 interface PermissionTypeOption {
   type: PermissionType;
   dotColorKey: 'warning' | 'success' | 'info' | 'custom';
-  customColor?: string;
   Icon: React.ComponentType<{ size: number; color: string }>;
 }
 
@@ -31,7 +30,7 @@ const TYPE_OPTIONS: PermissionTypeOption[] = [
   { type: 'Late',      dotColorKey: 'warning', Icon: Timer },
   { type: 'Early',     dotColorKey: 'success', Icon: LogOut },
   { type: 'MiddleDay', dotColorKey: 'info',    Icon: Coffee },
-  { type: 'HalfDay',   dotColorKey: 'custom',  customColor: '#8B5CF6', Icon: CalendarMinus },
+  { type: 'HalfDay',   dotColorKey: 'custom',  Icon: CalendarMinus },
 ];
 
 export interface PermissionTypePickerSheetProps {
@@ -61,7 +60,9 @@ export const PermissionTypePickerSheet: React.FC<PermissionTypePickerSheetProps>
 
   const resolveDotColor = useCallback(
     (opt: PermissionTypeOption): string => {
-      if (opt.dotColorKey === 'custom') return opt.customColor!;
+      // HalfDay has no status sibling — DS accent-700 (matches the
+      // Phase-1 re-tint of the old purple).
+      if (opt.dotColorKey === 'custom') return theme.colors.accentHover;
       return theme.colors.status[opt.dotColorKey].base;
     },
     [theme],

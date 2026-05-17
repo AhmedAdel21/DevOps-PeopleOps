@@ -2,12 +2,14 @@ import React, { useEffect, useRef } from 'react';
 import {
     Animated,
     Modal,
+    Platform,
     Pressable,
     StyleSheet,
     useWindowDimensions,
     View,
     ViewStyle,
 } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@themes/index';
 import { ws, hs } from '@/presentation/utils/scaling';
@@ -84,32 +86,68 @@ export const AppBottomSheet: React.FC<AppBottomSheetProps> = ({
                 <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
             </Animated.View>
 
-            {/* Sheet */}
+            {/* Sheet — DS glass: real blur on iOS, DS opacity fallback on
+                Android. It sits over the dimmed backdrop, so glass always
+                has colour behind it to refract. */}
+            {/* Outer: shadow + radius + transform, NO overflow:hidden so
+                the indigo shadow actually renders. Inner: clipped glass. */}
             <Animated.View
                 style={[
-                    styles.sheet,
+                    styles.sheetOuter,
+                    theme.shadow.lg,
                     {
-                        maxHeight,
-                        backgroundColor: theme.colors.card,
                         borderTopLeftRadius: ws(16),
                         borderTopRightRadius: ws(16),
-                        paddingBottom: insets.bottom,
                         transform: [{ translateY }],
                     },
-                    style,
                 ]}
             >
-                {/* Handle */}
-                <View style={styles.handleRow}>
+                <View
+                    style={[
+                        styles.sheetInner,
+                        {
+                            maxHeight,
+                            borderColor: theme.glass.stroke,
+                            borderWidth: 1,
+                            borderTopLeftRadius: ws(16),
+                            borderTopRightRadius: ws(16),
+                            paddingBottom: insets.bottom,
+                        },
+                        style,
+                    ]}
+                >
+                    {Platform.OS === 'ios' && (
+                        <BlurView
+                            style={StyleSheet.absoluteFill}
+                            blurType={theme.dark ? 'dark' : 'light'}
+                            blurAmount={theme.glass.blurStrong}
+                            reducedTransparencyFallbackColor={theme.glass.fillStrong}
+                        />
+                    )}
                     <View
                         style={[
-                            styles.handle,
-                            { backgroundColor: theme.colors.borderStrong },
+                            StyleSheet.absoluteFill,
+                            {
+                                backgroundColor:
+                                    Platform.OS === 'ios'
+                                        ? theme.glass.fill
+                                        : theme.glass.fillStrong,
+                            },
                         ]}
                     />
-                </View>
 
-                {children}
+                    {/* Handle */}
+                    <View style={styles.handleRow}>
+                        <View
+                            style={[
+                                styles.handle,
+                                { backgroundColor: theme.colors.borderStrong },
+                            ]}
+                        />
+                    </View>
+
+                    {children}
+                </View>
             </Animated.View>
         </Modal>
     );
@@ -120,11 +158,13 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFill,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
-    sheet: {
+    sheetOuter: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
+    },
+    sheetInner: {
         overflow: 'hidden',
     },
     handleRow: {

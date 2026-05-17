@@ -138,7 +138,7 @@ const getPermissionTypeColor = (type: PermissionType, theme: AppTheme): string =
     case 'Late':      return theme.colors.status.warning.base;
     case 'Early':     return theme.colors.status.success.base;
     case 'MiddleDay': return theme.colors.status.info.base;
-    case 'HalfDay':   return '#8B5CF6';
+    case 'HalfDay':   return theme.colors.accentHover; // DS accent-700
   }
 };
 
@@ -756,7 +756,9 @@ const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     flex: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      // Phase 3 demo: transparent so the DS page wash shows through.
+      // Phase 4 sweeps the remaining screens the same way.
+      backgroundColor: 'transparent',
     },
     header: {
       height: hs(56),

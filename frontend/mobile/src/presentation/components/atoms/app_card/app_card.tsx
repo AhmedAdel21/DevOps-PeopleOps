@@ -46,12 +46,15 @@ export const AppCard: React.FC<AppCardProps> = ({
 const buildStyles = (theme: AppTheme) =>
     StyleSheet.create({
         card: {
+            // DS solid card recipe: canvas + ink-100 hairline + radius-lg
+            // + indigo-tinted shadow-md.
             backgroundColor: theme.colors.card,
             borderWidth: 1,
             borderColor: theme.colors.border,
-            borderRadius: theme.radius.m,
+            borderRadius: theme.radius.lg,
             padding: theme.spacing.l,
             gap: theme.spacing.m,
+            ...theme.shadow.md,
         },
         header: {
             gap: theme.spacing.xs,

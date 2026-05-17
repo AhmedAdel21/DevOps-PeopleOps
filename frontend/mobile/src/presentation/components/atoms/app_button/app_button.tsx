@@ -113,10 +113,10 @@ const buildStyles = (theme: AppTheme) =>
         pressed: { opacity: 0.85 },
         disabled: { opacity: 0.5 },
 
-        // sizes
-        sm: { paddingVertical: hs(6), paddingHorizontal: ws(12) },
-        md: { paddingVertical: hs(10), paddingHorizontal: ws(20) },
-        lg: { paddingVertical: hs(12), paddingHorizontal: ws(24) },
+        // sizes — DS fixed heights (48 / 40 / 32), pill radius kept via `base`
+        sm: { height: hs(32), paddingHorizontal: ws(16) },
+        md: { height: hs(40), paddingHorizontal: ws(20) },
+        lg: { height: hs(48), paddingHorizontal: ws(24) },
 
         // variants
         primary: {

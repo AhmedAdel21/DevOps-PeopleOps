@@ -488,7 +488,9 @@ const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     flex: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      // Phase 3 demo: transparent so the DS page wash shows through.
+      // Phase 4 sweeps the remaining screens the same way.
+      backgroundColor: 'transparent',
     },
     scrollContent: {
       paddingHorizontal: ws(20),

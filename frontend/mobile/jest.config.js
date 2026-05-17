@@ -27,5 +27,17 @@ module.exports = {
       __dirname,
       '__mocks__/react-native-geolocation-service.js',
     ),
+    '^react-native-linear-gradient$': path.resolve(
+      __dirname,
+      '__mocks__/react-native-linear-gradient.js',
+    ),
+    '^@react-native-community/blur$': path.resolve(
+      __dirname,
+      '__mocks__/@react-native-community/blur.js',
+    ),
+    '^react-native-svg$': path.resolve(
+      __dirname,
+      '__mocks__/react-native-svg.js',
+    ),
   },
 };

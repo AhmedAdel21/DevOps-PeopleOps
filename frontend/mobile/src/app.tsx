@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { AppState, StatusBar, type AppStateStatus } from 'react-native';
+import {
+  AppState,
+  StatusBar,
+  StyleSheet,
+  View,
+  type AppStateStatus,
+} from 'react-native';
 import { Provider as ReduxProvider } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { store } from '@/presentation/store';
@@ -12,6 +18,7 @@ import {
 import { ThemeProvider, useTheme } from '@themes/theme_context';
 import { LanguageProvider, useLanguage } from '@/presentation/localization/language_context';
 import { DialogProvider } from '@/presentation/components/molecules';
+import { AppPageBackground } from '@/presentation/components/atoms';
 import { RootNavigation } from '@/presentation/navigation/root_navigation';
 import { ServiceLocator } from '@/di';
 import { DiKeys } from '@/core/keys/di.key';
@@ -44,12 +51,21 @@ function AppContent() {
   const { isDark } = useTheme();
 
   return (
-    <>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+    <View style={styles.root}>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor="transparent"
+        translucent
+      />
+      <AppPageBackground style={StyleSheet.absoluteFill} />
       <RootNavigation />
-    </>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});
 
 function AppRoot() {
   const { remountKey } = useLanguage();

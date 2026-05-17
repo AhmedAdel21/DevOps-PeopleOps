@@ -2,92 +2,115 @@ import type { AppTheme } from './theme_context';
 import { spacing } from './spacing';
 import { radius } from './radius';
 import { fontFamily, fontSizes, fontWeights } from './typography';
+import { darkShadow } from './shadow';
+import { darkGlass } from './glass';
+import { darkGradient } from './gradient';
+import { motion } from './motion';
 
 /**
- * Dark theme — derived from the light brand palette. The Penpot file only
- * ships light tokens, so the dark variant mirrors them with sensible
- * inversions:
- *   - background/foreground are flipped
- *   - brand primary stays warm but slightly brighter for AA contrast on dark
- *   - status colors keep their hue but use darker tinted "light" surfaces
+ * Dark theme — from the DS `html.dark` override block.
+ *
+ * Brand tokens (primary / accent / spark ramps, hero gradient, motion,
+ * radii, type) are identity tokens and do NOT flip — only the canvas
+ * (surfaces, ink scale, glass, semantic bg tints, shadows) inverts.
+ * Structure mirrors light.theme.ts key-for-key.
+ *
+ * Source: design_system/colors_and_type.css (html.dark { ... }).
  */
 export const darkTheme: AppTheme = {
   dark: true,
   colors: {
-    // Brand
-    primary: '#FF7A4D',
-    primaryHover: '#FF6633',
-    primaryLight: '#3A1F18',
+    // Brand — unchanged (identity tokens)
+    primary: '#262261',
+    primaryHover: '#1B1849',
+    primaryLight: '#EFEEF7',
     primaryForeground: '#FFFFFF',
+    primary700: '#1B1849',
+    primary500: '#3A3680',
+    primary300: '#6F6CA6',
+    primary100: '#DCDBEC',
+    primary050: '#EFEEF7',
 
-    secondary: '#A9B6D6',
-    secondaryHover: '#C5CFE5',
-    secondaryLight: '#1F2A44',
-    secondaryForeground: '#0B1020',
+    accent: '#787CF2',
+    accentHover: '#5559D6',
+    accent300: '#A6A9F7',
+    accent200: '#C9CBFA',
+    accent100: '#E4E5FD',
+    accent050: '#F2F3FE',
+    accentForeground: '#FFFFFF',
 
-    // Surfaces
-    background: '#0B1020',
-    foreground: '#F9FAFB',
-    surface: '#111827',
-    card: '#111827',
-    cardForeground: '#F9FAFB',
+    spark: '#EE5C2D',
+    spark300: '#F49072',
+    spark100: '#FBDDD0',
 
-    // Neutrals
-    muted: '#1F2937',
-    mutedForeground: '#9CA3AF',
+    // Legacy alias — secondary === accent
+    secondary: '#787CF2',
+    secondaryHover: '#5559D6',
+    secondaryLight: '#E4E5FD',
+    secondaryForeground: '#FFFFFF',
+
+    // Surfaces — dark canvas (background = canvas for compat)
+    background: '#1A1838', // --bg-canvas (dark)
+    foreground: '#E5E4EE', // --ink-700 (dark)
+    surface: '#1A1838',
+    card: '#1A1838',
+    cardForeground: '#E5E4EE',
+
+    // DS surface tokens
+    page: '#0F0E2A', // --bg-page (dark)
+    pageDeep: '#080719', // --bg-page-deep (dark)
+    canvas: '#1A1838', // --bg-canvas (dark)
+    inverted: '#FFFFFF', // --bg-inverted (dark)
+
+    // Neutrals — inverted ink scale (hierarchy preserved)
+    inkDeep: '#FFFFFF',
+    ink900: '#FFFFFF',
+    ink700: '#E5E4EE',
+    ink500: '#C8C6D6',
+    ink400: '#9794AE',
+    ink300: '#6F6D8E',
+    ink200: '#2A2848',
+    ink100: '#1E1C3A',
+    ink050: '#131228',
+    muted: '#131228', // --ink-050 (dark)
+    mutedForeground: '#9794AE', // --ink-400 (dark)
 
     // Borders & inputs
-    border: '#374151',
-    borderStrong: '#4B5563',
-    divider: '#1F2937',
-    input: '#111827',
-    ring: '#FF7A4D55',
+    border: '#1E1C3A', // --ink-100 (dark)
+    borderStrong: '#2A2848', // --ink-200 (dark)
+    divider: '#1E1C3A',
+    input: '#131228',
+    ring: 'rgba(120, 124, 242, 0.55)',
 
     // Destructive
-    destructive: '#F87171',
+    destructive: '#E06B6B',
     destructiveForeground: '#FFFFFF',
 
-    // Status
+    // Status — foreground hues stay; backgrounds become low-alpha tints
     status: {
-      success: {
-        base: '#34D399',
-        foreground: '#A7F3D0',
-        light: '#0F2A22',
-      },
-      warning: {
-        base: '#FBBF24',
-        foreground: '#FDE68A',
-        light: '#2A1F09',
-      },
-      error: {
-        base: '#F87171',
-        foreground: '#FECACA',
-        light: '#2A1212',
-      },
-      info: {
-        base: '#60A5FA',
-        foreground: '#BFDBFE',
-        light: '#0F1B2E',
-      },
+      success: { base: '#1F9D74', foreground: '#6FE0BD', light: 'rgba(31, 157, 116, 0.18)' },
+      warning: { base: '#D98A00', foreground: '#F4C56B', light: 'rgba(217, 138, 0, 0.20)' },
+      error: { base: '#D14545', foreground: '#F0908F', light: 'rgba(209, 69, 69, 0.18)' },
+      info: { base: '#787CF2', foreground: '#B9BBFA', light: 'rgba(120, 124, 242, 0.18)' },
     },
 
-    // Leave type accent colors
+    // Leave type accents — brightened for dark surfaces
     leaveTypes: {
-      annual:       '#34D399', // brighter green for dark
-      casual:       '#FBBF24', // brighter amber for dark
-      sick:         '#F87171', // brighter red for dark
-      compassionate:'#A78BFA', // lighter purple for dark
-      unpaid:       '#9CA3AF', // lighter gray for dark
-      hajj:         '#60A5FA', // brighter blue for dark
-      marriage:     '#F472B6', // lighter pink for dark
+      annual: '#34D399',
+      casual: '#FBBF24',
+      sick: '#F0908F',
+      compassionate: '#A6A9F7', // accent-300
+      unpaid: '#9794AE', // ink-400 (dark)
+      hajj: '#6F6CA6', // primary-300
+      marriage: '#F49072', // spark-300
     },
 
-    // Legacy compat
+    // Legacy aliases — do NOT use in new code
     text: {
-      primary: '#F9FAFB',
-      secondary: '#9CA3AF',
-      disabled: '#4B5563',
-      inverse: '#111827',
+      primary: '#FFFFFF',
+      secondary: '#C8C6D6',
+      disabled: '#6F6D8E',
+      inverse: '#1A1838',
     },
   },
   spacing,
@@ -97,4 +120,8 @@ export const darkTheme: AppTheme = {
     sizes: fontSizes,
     weights: fontWeights,
   },
+  shadow: darkShadow,
+  glass: darkGlass,
+  gradient: darkGradient,
+  motion,
 };

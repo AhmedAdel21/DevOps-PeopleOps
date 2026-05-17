@@ -14,6 +14,7 @@ import {
     type LucideIcon,
 } from 'lucide-react-native';
 import { useTheme } from '@themes/index';
+import { useFontFamily } from '@/presentation/hooks/use_font_family';
 import { hs, ws, fs } from '@/presentation/utils/scaling';
 import { HomeScreen } from '@/presentation/screens/home';
 import { LeaveStackNavigator } from './leave_stack_navigator';
@@ -33,6 +34,7 @@ const buildIcon = (Icon: LucideIcon) =>
 
 export const MainTabsNavigator: React.FC = () => {
     const { theme } = useTheme();
+    const fontFamily = useFontFamily();
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
     // Team is the canonical "manage your people" surface — show it for any
@@ -63,7 +65,7 @@ export const MainTabsNavigator: React.FC = () => {
             paddingVertical: hs(4),
         },
         tabBarLabelStyle: {
-            fontFamily: theme.typography.fontFamily.semibold,
+            fontFamily: fontFamily.semibold,
             fontSize: fs(10),
             letterSpacing: 0.5,
             marginTop: hs(2),

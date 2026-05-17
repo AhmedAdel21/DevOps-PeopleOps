@@ -35,6 +35,23 @@ nothing in `data` or `domain` should import `presentation`.
 
 ---
 
+## Design system
+
+Brand = Devopsolution DS — `design_system/colors_and_type.css` is the token
+source of truth. Primary indigo `#262261`, accent lavender `#787CF2`; orange
+`#EE5C2D` is a *sparing* "spark" only (never a button fill). RN implementation:
+`src/presentation/themes/` (light/dark/spacing/radius/typography/shadow/glass/
+gradient/motion). Migration status + plan: `docs/design-system-migration.md`.
+
+- **AA gotcha:** `accent`/`secondary` (lavender) is only 3.5:1 on white — use
+  `theme.colors.accentHover` (accent-700, 5.5:1) for body text / inline links;
+  `accent` only for large text, fills, icons, focus rings.
+- Glass via `AppGlassSurface` / page wash via `AppPageBackground` (iOS real
+  blur, Android opacity fallback); gradients via `AppLinearGradient` (feed it
+  a theme gradient token, never hand-rolled colors).
+
+---
+
 ## Commands
 
 ```bash
@@ -80,6 +97,15 @@ Strings live in `presentation/localization/languages/{en,ar}.ts`. Both
 locales must stay in lockstep: every key added to one must exist in the
 other. Components use `t('namespace.key')`. Arabic ships full
 right-to-left translations — preserve any Egyptian-Arabic phrasing you find.
+
+### Fonts
+
+EN = Livvic, AR = Cairo (self-hosted, registered via `react-native-asset`).
+Locale-aware family resolves via `useFontFamily()` — it reads the **global
+react-i18next** instance, NOT the custom `LanguageProvider`. Providers nest
+`Theme > Dialog > Language`, so `AppText` inside dialogs is *outside*
+`LanguageProvider`; using `useLanguage` for fonts crashes every dialog.
+StyleSheet builders take the resolved map: `createStyles(theme, fontFamily)`.
 
 ### Logging
 
@@ -215,6 +241,11 @@ mocked. The pattern is in `__mocks__/` — see
 `moduleNameMapper` entry in `jest.config.js`. Any new native module
 follows the same pattern.
 
+The `react-native-svg` mock **must be a concrete enumerable object, not a
+Proxy** — `lucide-react-native` does `Object.keys(require('react-native-svg'))`
+to build its icon namespace; a Proxy enumerates nothing, so every icon
+becomes `createElement(undefined)` and crashes (often only in dialogs/icons).
+
 ---
 
 ## Things not to do
@@ -238,3 +269,6 @@ follows the same pattern.
   permission strings (`leave:approve`, `attendance:override`, etc.) are
   the canonical client-side check. The backend re-authorizes every action
   regardless, so handle 403 gracefully even when the gate is open.
+- Don't write jest tests for theme/design-token/config files (pure data) —
+  verify via `npx tsc --noEmit` + the existing suite + on-device screenshot.
+  TDD is for real logic only (resolvers, math helpers like `angleToStartEnd`).

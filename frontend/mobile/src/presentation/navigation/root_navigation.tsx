@@ -6,7 +6,14 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CommonActions, NavigationContainer } from '@react-navigation/native';
+import {
+  CommonActions,
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+  type Theme,
+} from '@react-navigation/native';
+import { useTheme } from '@themes/index';
 import {
   createNativeStackNavigator,
   type NativeStackScreenProps,
@@ -317,7 +324,20 @@ const SetPasswordWrapper: React.FC<ScreenProps<'SetPassword'>> = ({
   );
 };
 
+// Transparent nav theme so the DS page wash (rendered behind the
+// navigator) shows through any screen whose root is transparent. Screens
+// with an opaque root are unaffected — they keep covering the wash until
+// they opt in during the Phase 4 sweep.
+const navTheme = (dark: boolean): Theme => {
+  const base = dark ? DarkTheme : DefaultTheme;
+  return {
+    ...base,
+    colors: { ...base.colors, background: 'transparent' },
+  };
+};
+
 export const RootNavigation: React.FC = () => {
+  const { theme } = useTheme();
   const authStatus = useAppSelector(selectAuthStatus);
   const mustChangePassword = useAppSelector(selectMustChangePassword);
   const prevAuthStatusRef = useRef(authStatus);
@@ -382,12 +402,13 @@ export const RootNavigation: React.FC = () => {
   }, [mustChangePassword, authStatus]);
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} theme={navTheme(theme.dark)}>
       <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
+          contentStyle: { backgroundColor: 'transparent' },
         }}
       >
         <Stack.Screen

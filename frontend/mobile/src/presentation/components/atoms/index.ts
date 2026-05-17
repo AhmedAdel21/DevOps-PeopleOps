@@ -11,3 +11,6 @@ export * from './app_badge';
 export * from './app_attendance_record_card';
 export * from './app_skeleton';
 export * from './app_permission_gate';
+export * from './app_linear_gradient';
+export * from './app_page_background';
+export * from './app_glass_surface';

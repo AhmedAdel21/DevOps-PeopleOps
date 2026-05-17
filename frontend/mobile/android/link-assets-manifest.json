@@ -2,20 +2,36 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "src/assets/fonts/Inter-Bold.ttf",
-      "sha1": "9461e7c083137c2abe6d198f784fb0d341a527a1"
+      "path": "src/assets/fonts/Cairo-Bold.ttf",
+      "sha1": "dd70862b408a084a4e55aa03529eb8e06641165e"
     },
     {
-      "path": "src/assets/fonts/Inter-Medium.ttf",
-      "sha1": "c1d25d8c10adb45a970e71c387bbd6380f10992d"
+      "path": "src/assets/fonts/Cairo-Medium.ttf",
+      "sha1": "35fb6c639d86475e0ba6f1883001310d0ab4076d"
     },
     {
-      "path": "src/assets/fonts/Inter-Regular.ttf",
-      "sha1": "6e3430f906a4b42b4b63fd8f33e498a43d9f8d84"
+      "path": "src/assets/fonts/Cairo-Regular.ttf",
+      "sha1": "ff06dbd8c8a0fef12b0668cb7b849c209a21b435"
     },
     {
-      "path": "src/assets/fonts/Inter-SemiBold.ttf",
-      "sha1": "b4bdaf6bdd6a479b46c452a7bbae13f5cb2079bf"
+      "path": "src/assets/fonts/Cairo-SemiBold.ttf",
+      "sha1": "30dc3ec8aba45f975411bc675494c59b5c227f47"
+    },
+    {
+      "path": "src/assets/fonts/Livvic-Bold.ttf",
+      "sha1": "d645bd8bc21810612ee09312faeb7205a669e864"
+    },
+    {
+      "path": "src/assets/fonts/Livvic-Medium.ttf",
+      "sha1": "5c556b05b94009bedb8dec08d2cf2d6210c48139"
+    },
+    {
+      "path": "src/assets/fonts/Livvic-Regular.ttf",
+      "sha1": "1f08d62c8ef33122f48191b17a271ae213764054"
+    },
+    {
+      "path": "src/assets/fonts/Livvic-SemiBold.ttf",
+      "sha1": "2f41aa5995b886eb41c5ff5335e397c34a5c806e"
     }
   ]
 }

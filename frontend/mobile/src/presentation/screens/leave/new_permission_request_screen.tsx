@@ -21,7 +21,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar, ChevronDown } from 'lucide-react-native';
-import { useTheme, type AppTheme } from '@themes/index';
+import { useTheme, type AppTheme, type FontFamily } from '@themes/index';
+import { useFontFamily } from '@/presentation/hooks/use_font_family';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
   AppAlertBanner,
@@ -106,6 +107,7 @@ const PickerModal: React.FC<PickerModalProps> = ({
   confirmLabel,
   cardBg,
 }) => {
+  const { theme } = useTheme();
   const [pending, setPending] = useState(value);
 
   useEffect(() => {
@@ -135,10 +137,10 @@ const PickerModal: React.FC<PickerModalProps> = ({
         <View style={[pickerStyles.sheet, { backgroundColor: cardBg }]}>
           <View style={pickerStyles.toolbar}>
             <Pressable onPress={onCancel} hitSlop={8}>
-              <AppText variant="label" color="#6B7280">{cancelLabel}</AppText>
+              <AppText variant="label" color={theme.colors.mutedForeground}>{cancelLabel}</AppText>
             </Pressable>
             <Pressable onPress={() => onConfirm(pending)} hitSlop={8}>
-              <AppText variant="label" color="#FF6633">{confirmLabel}</AppText>
+              <AppText variant="label" color={theme.colors.primary}>{confirmLabel}</AppText>
             </Pressable>
           </View>
           <DateTimePicker
@@ -182,9 +184,13 @@ type PickerField = 'date' | 'startTime' | 'endTime';
 
 export const NewPermissionRequestScreen: React.FC = () => {
   const { theme } = useTheme();
+  const fontFamily = useFontFamily();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(
+    () => createStyles(theme, fontFamily),
+    [theme, fontFamily],
+  );
   const navigation =
     useNavigation<NativeStackNavigationProp<LeaveStackParamList>>();
 
@@ -319,7 +325,7 @@ export const NewPermissionRequestScreen: React.FC = () => {
       Late:      theme.colors.status.warning.base,
       Early:     theme.colors.status.success.base,
       MiddleDay: theme.colors.status.info.base,
-      HalfDay:   '#8B5CF6',
+      HalfDay:   theme.colors.accentHover, // DS accent-700
     };
     return map[permType];
   }, [permType, theme]);
@@ -559,11 +565,11 @@ export const NewPermissionRequestScreen: React.FC = () => {
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
-const createStyles = (theme: AppTheme) =>
+const createStyles = (theme: AppTheme, fontFamily: FontFamily) =>
   StyleSheet.create({
     flex: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'transparent', // DS page wash (Phase 4 sweep)
     },
     navHeader: {
       height: hs(56),
@@ -627,7 +633,7 @@ const createStyles = (theme: AppTheme) =>
       padding: ws(12),
     },
     notesInput: {
-      fontFamily: theme.typography.fontFamily.regular,
+      fontFamily: fontFamily.regular,
       fontSize: theme.typography.sizes.base,
       minHeight: hs(96),
       padding: 0,

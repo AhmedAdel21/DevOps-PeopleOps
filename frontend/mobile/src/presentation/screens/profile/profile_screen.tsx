@@ -328,7 +328,7 @@ export const ProfileScreen: React.FC = () => {
                 {profileEmail}
               </AppText>
               {hasPhotoPreview ? (
-                <AppText variant="small" color={theme.colors.secondary}>
+                <AppText variant="small" color={theme.colors.accentHover}>
                   {t('profile.photoPreview.hint')}
                 </AppText>
               ) : null}
@@ -336,7 +336,7 @@ export const ProfileScreen: React.FC = () => {
           </View>
 
           <View style={styles.departmentPill}>
-            <AppText variant="small" color={theme.colors.secondary}>
+            <AppText variant="small" color={theme.colors.accentHover}>
               {t('profile.fields.department')}: {profileDepartment}
             </AppText>
           </View>
@@ -399,6 +399,8 @@ export const ProfileScreen: React.FC = () => {
               <Link2
                 size={ws(18)}
                 color={
+                  // Slack's official brand aubergine — a third-party brand
+                  // mark, intentionally NOT a DS token.
                   slackConnected ? '#4A154B' : theme.colors.mutedForeground
                 }
               />
@@ -551,11 +553,11 @@ const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
     flex: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'transparent', // DS page wash (Phase 4 sweep)
     },
     screen: {
       flex: 1,
-      backgroundColor: theme.colors.background,
+      backgroundColor: 'transparent', // DS page wash (Phase 4 sweep)
     },
     container: {
       paddingHorizontal: ws(24),
@@ -628,10 +630,12 @@ const createStyles = (theme: AppTheme) =>
       width: '100%',
       maxWidth: ws(420),
       maxHeight: '86%',
-      borderRadius: theme.radius.l,
+      borderRadius: theme.radius.lg,
       borderWidth: 1,
       borderColor: theme.colors.borderStrong,
-      backgroundColor: '#0B1220',
+      // Intentional always-dark photo lightbox (brand-tinted DS dark
+      // indigo) — deliberately not theme-driven, photos read best on dark.
+      backgroundColor: '#0F0E2A',
       overflow: 'hidden',
     },
     photoPreviewHeader: {
