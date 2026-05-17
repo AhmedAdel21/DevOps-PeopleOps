@@ -8,11 +8,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
   AppAlertBanner,
   AppAttendanceRecordCard,
+  AppBackButton,
   AppText,
 } from '@/presentation/components/atoms';
 import {
@@ -31,8 +33,19 @@ import type { SerializableAttendanceRecord } from '@/presentation/store/slices/a
 export const HistoryScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const dispatch = useAppDispatch();
+
+  const renderHeader = () => (
+    <View style={styles.navHeader}>
+      <AppBackButton onPress={() => navigation.goBack()} />
+      <AppText variant="title" align="center" style={styles.navTitle}>
+        {t('attendance.history.title')}
+      </AppText>
+      <View style={styles.navSpacer} />
+    </View>
+  );
 
   const items = useAppSelector(selectAttendanceHistoryItems);
   const hasMore = useAppSelector(selectAttendanceHistoryHasMore);
@@ -103,7 +116,8 @@ export const HistoryScreen: React.FC = () => {
 
   if (isInitialLoad) {
     return (
-      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
+        {renderHeader()}
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
@@ -113,7 +127,8 @@ export const HistoryScreen: React.FC = () => {
 
   if (isInitialError) {
     return (
-      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
+        {renderHeader()}
         <View style={styles.centered}>
           <Pressable onPress={handleRetryInitial}>
             <AppAlertBanner
@@ -127,7 +142,8 @@ export const HistoryScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
+      {renderHeader()}
       <FlatList<SerializableAttendanceRecord>
         data={items}
         keyExtractor={(item) => item.date}
@@ -147,6 +163,19 @@ const createStyles = (theme: AppTheme) =>
     flex: {
       flex: 1,
       backgroundColor: theme.colors.background,
+    },
+    navHeader: {
+      // height: hs(56),
+      paddingHorizontal: ws(16),
+      marginTop: hs(25),
+      flexDirection: 'row',
+      gap: ws(12),
+    },
+    navTitle: {
+      flex: 1,
+    },
+    navSpacer: {
+      width: ws(32),
     },
     centered: {
       flex: 1,
