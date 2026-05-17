@@ -1,26 +1,26 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
-import { Bell } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import { AppAvatar } from '@/presentation/components/molecules';
+import { AppText } from '@/presentation/components/atoms';
 
 export interface AppHeaderBarProps {
   /** Full name shown as initials in the avatar. */
   userName: string;
   avatarUrl?: string | null;
-  hasUnreadNotifications?: boolean;
   onAvatarPress?: () => void;
-  onNotificationsPress?: () => void;
+  title?: string;
+  subtitle?: string;
   style?: ViewStyle;
 }
 
 export const AppHeaderBar: React.FC<AppHeaderBarProps> = ({
   userName,
   avatarUrl,
-  hasUnreadNotifications = false,
   onAvatarPress,
-  onNotificationsPress,
+  title,
+  subtitle,
   style,
 }) => {
   const { theme } = useTheme();
@@ -44,47 +44,46 @@ export const AppHeaderBar: React.FC<AppHeaderBarProps> = ({
         />
       </Pressable>
 
-      <Pressable
-        onPress={onNotificationsPress}
-        hitSlop={8}
-        disabled={!onNotificationsPress}
-        style={styles.bellWrap}
-        accessibilityRole="button"
-        accessibilityLabel="notifications"
-      >
-        <Bell size={ws(22)} color={theme.colors.foreground} />
-        {hasUnreadNotifications && (
-          <View
-            style={[styles.dot, { backgroundColor: theme.colors.destructive }]}
-          />
-        )}
-      </Pressable>
+      {(title || subtitle) && (
+        <View style={styles.textColumn}>
+          {title && (
+            <AppText
+              variant="subtitle"
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {title}
+            </AppText>
+          )}
+          {subtitle && (
+            <AppText
+              variant="caption"
+              color={theme.colors.mutedForeground}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {subtitle}
+            </AppText>
+          )}
+        </View>
+      )}
     </View>
   );
 };
 
-const buildStyles = (_theme: AppTheme) =>
+const buildStyles = (theme: AppTheme) =>
   StyleSheet.create({
     bar: {
       width: '100%',
-      height: hs(56),
       paddingHorizontal: ws(20),
+      paddingVertical: hs(8),
+      marginTop: hs(16),
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      gap: theme.spacing.m,
     },
-    bellWrap: {
-      width: ws(22),
-      height: ws(22),
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    dot: {
-      position: 'absolute',
-      top: 0,
-      end: 0,
-      width: ws(8),
-      height: ws(8),
-      borderRadius: ws(4),
+    textColumn: {
+      flex: 1,
+      gap: hs(2),
     },
   });

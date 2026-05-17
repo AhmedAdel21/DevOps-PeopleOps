@@ -8,7 +8,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import {
     House,
-    ScanLine,
     CalendarDays,
     Users,
     User,
@@ -17,7 +16,6 @@ import {
 import { useTheme } from '@themes/index';
 import { hs, ws, fs } from '@/presentation/utils/scaling';
 import { HomeScreen } from '@/presentation/screens/home';
-import { AttendanceScreen } from '@/presentation/screens/attendance';
 import { LeaveStackNavigator } from './leave_stack_navigator';
 import { TeamScreen } from '@/presentation/screens/team';
 import { ProfileScreen } from '@/presentation/screens/profile';
@@ -84,14 +82,6 @@ export const MainTabsNavigator: React.FC = () => {
                 options={{
                     tabBarLabel: t('tabs.home').toUpperCase(),
                     tabBarIcon: buildIcon(House),
-                }}
-            />
-            <Tab.Screen
-                name="Attendance"
-                component={AttendanceScreen}
-                options={{
-                    tabBarLabel: t('tabs.attendance').toUpperCase(),
-                    tabBarIcon: buildIcon(ScanLine),
                 }}
             />
             <Tab.Screen

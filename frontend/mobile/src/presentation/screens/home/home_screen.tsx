@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  I18nManager,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -55,10 +53,7 @@ import {
 } from '@/presentation/store/selectors';
 import type { AttendanceErrorCode } from '@/domain/errors';
 import type { RootStackParamList } from '@/presentation/navigation/types';
-import { attendanceLog, authLog } from '@/core/logger';
-import { ServiceLocator } from '@/di/service_locator';
-import { DiKeys } from '@/core/keys/di.key';
-import type { CheckSlackConnectionUseCase } from '@/domain/use_cases';
+import { attendanceLog } from '@/core/logger';
 
 export type HomeStatus =
   | 'notSignedIn'
@@ -70,8 +65,6 @@ export interface HomeScreenProps {
   userName?: string;
   annualLeaveDays?: number;
   casualLeaveDays?: number;
-  hasUnreadNotifications?: boolean;
-  onOpenNotifications?: () => void;
   onOpenProfile?: () => void;
 }
 
@@ -125,8 +118,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   userName: userNameProp,
   annualLeaveDays = 18,
   casualLeaveDays = 4,
-  hasUnreadNotifications = true,
-  onOpenNotifications,
   onOpenProfile,
 }) => {
   const { theme } = useTheme();
@@ -149,30 +140,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const [signInSheetVisible, setSignInSheetVisible] = useState(false);
 
-  // null = still checking, true/false = result
-  const [slackConnected, setSlackConnected] = useState<boolean | null>(null);
-
-  const checkSlackStatus = useCallback(() => {
-    ServiceLocator.get<CheckSlackConnectionUseCase>(
-      DiKeys.CHECK_SLACK_CONNECTION_USE_CASE,
-    )
-      .execute()
-      .then(connected => setSlackConnected(connected))
-      .catch(e => {
-        // Don't silently swallow: a network error and "not connected"
-        // look the same to the UI otherwise. Log, then fall back to
-        // the safe default so the sign-in buttons stay disabled and
-        // the banner prompts for re-connect.
-        authLog.warn(
-          'screen',
-          'HomeScreen: Slack status check failed, assuming not connected',
-          e,
-        );
-        setSlackConnected(false);
-      });
-  }, []);
-
-  // Fetch current status, recent history, and Slack connection status on mount.
   useEffect(() => {
     attendanceLog.info(
       'screen',
@@ -180,20 +147,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     );
     dispatch(fetchAttendanceStatus());
     dispatch(fetchAttendanceHistory({ append: false, pageSize: 5 }));
-    checkSlackStatus();
-  }, [dispatch, checkSlackStatus]);
-
-  // Re-check Slack status when the user returns from the profile screen
-  // (e.g. after completing OAuth). Uses the Linking deep-link for connected
-  // and also handles the case where the user navigates back normally.
-  useEffect(() => {
-    const sub = Linking.addEventListener('url', ({ url }: { url: string }) => {
-      if (url === 'devops-peopleops://slack-oauth/connected') {
-        checkSlackStatus();
-      }
-    });
-    return () => sub.remove();
-  }, [checkSlackStatus]);
+  }, [dispatch]);
 
   const status: HomeStatus = domainToHomeStatus(
     current?.status ?? 'not_signed_in',
@@ -275,10 +229,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     signInStatus === 'pending' ||
     signOutStatus === 'pending';
 
-  // Block attendance actions until the Slack connection check completes and
-  // confirms the user has completed OAuth. null = loading, false = not connected.
-  const slackReady = slackConnected === true;
-
   const handleOpenSignIn = useCallback(() => {
     dispatch(clearAttendanceErrors());
     setSignInSheetVisible(true);
@@ -316,33 +266,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <AppHeaderBar
         userName={userName}
         avatarUrl={userAvatarUrl}
-        hasUnreadNotifications={hasUnreadNotifications}
         onAvatarPress={onOpenProfile}
-        onNotificationsPress={onOpenNotifications}
+        title={greeting}
+        subtitle={today}
       />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.greeting}>
-          <AppText variant="title">{greeting}</AppText>
-          <AppText variant="caption" color={theme.colors.mutedForeground}>
-            {today}
-          </AppText>
-        </View>
-
-        {slackConnected === false && (
-          <Pressable onPress={onOpenProfile}>
-            <AppAlertBanner
-              variant="warning"
-              message={`${t('home.slackBanner.message')} ${t(
-                'home.slackBanner.cta',
-              )} ${I18nManager.isRTL ? '←' : '→'}`}
-            />
-          </Pressable>
-        )}
-
         {errorMessage && (
           <Pressable onPress={handleDismissError}>
             <AppAlertBanner variant="error" message={errorMessage} />
@@ -375,7 +307,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   onPress={handleSignOut}
                   variant="outlineDestructive"
                   loading={signOutStatus === 'pending'}
-                  disabled={isBusy || !slackReady}
+                  disabled={isBusy}
                   fullWidth
                 />
               ) : (
@@ -383,7 +315,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   label={t('home.notSignedIn.signInCta')}
                   onPress={handleOpenSignIn}
                   loading={fetchStatus === 'pending' && !current}
-                  disabled={isBusy || !slackReady}
+                  disabled={isBusy}
                   fullWidth
                 />
               )}
@@ -403,7 +335,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </AppCard>
         )}
 
-        {status === 'notSignedIn' && (
+        {/* {status === 'notSignedIn' && (
           <AppCard
             title={t('home.leaveBalance.title')}
             contentStyle={styles.leaveCardContent}
@@ -422,7 +354,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <AppBadge label={t('home.leaveBalance.sick')} />
             </View>
           </AppCard>
-        )}
+        )} */}
 
         <View style={styles.recentSection}>
           <View style={styles.recentHeader}>
@@ -562,9 +494,6 @@ const createStyles = (theme: AppTheme) =>
       paddingHorizontal: ws(20),
       paddingVertical: hs(20),
       gap: theme.spacing.l,
-    },
-    greeting: {
-      gap: hs(4),
     },
     statusCard: {
       borderStartWidth: 4,
