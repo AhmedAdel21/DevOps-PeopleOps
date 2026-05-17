@@ -12,12 +12,12 @@ export interface AppAttendanceRecordCardProps {
 }
 
 const STATUS_I18N_KEY: Record<AttendanceRecordStatus, string> = {
-  in_office:      'attendance.history.status.inOffice',
-  wfh:            'attendance.history.status.wfh',
-  signed_out:     'attendance.history.status.signedOut',
+  in_office: 'attendance.history.status.inOffice',
+  wfh: 'attendance.history.status.wfh',
+  signed_out: 'attendance.history.status.signedOut',
   not_checked_in: 'attendance.history.status.notCheckedIn',
-  vacation:       'attendance.history.status.vacation',
-  absent:         'attendance.history.status.absent',
+  vacation: 'attendance.history.status.vacation',
+  absent: 'attendance.history.status.absent',
 };
 
 const formatDate = (date: string, language: string): string => {
@@ -104,9 +104,9 @@ export const AppAttendanceRecordCard: React.FC<AppAttendanceRecordCardProps> = (
                 {t(`attendance.history.place.${record.place === 'in_office' ? 'inOffice' : 'wfh'}`)}
               </AppText>
             )}
-            {record.signInAtIso && record.signOutAtIso && (
+            {(record.signInAtIso || record.signOutAtIso) && (
               <AppText variant="caption" color={theme.colors.foreground}>
-                {`${formatTime(record.signInAtIso, i18n.language)} ${I18nManager.isRTL ? '←' : '→'} ${formatTime(record.signOutAtIso, i18n.language)}`}
+                {`${record.signInAtIso ? formatTime(record.signInAtIso ?? '', i18n.language) : ""} ${record.signOutAtIso ? `${I18nManager.isRTL ? '←' : '→'} ${formatTime(record.signOutAtIso, i18n.language)}` : ""}`}
               </AppText>
             )}
             {record.workedMinutes != null && (
