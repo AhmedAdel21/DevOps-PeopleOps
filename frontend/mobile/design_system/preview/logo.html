@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Logo</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-page); }
+  .card { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0; padding: 0; }
+  .swatch { padding: 32px 28px; display: flex; align-items: center; justify-content: center; min-height: 220px; }
+  .light { background: var(--bg-canvas); }
+  .dark { background: var(--brand-primary); background-image: var(--grad-hero); }
+  img.logo { max-width: 260px; width: 100%; height: auto; display: block; }
+  .dark img.logo { filter: brightness(0) invert(1); }
+  .meta { position: absolute; left: 24px; bottom: 18px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-400); font-weight: 600; }
+  .swatch { position: relative; }
+  .dark .meta { color: rgba(255,255,255,0.7); }
+</style></head>
+<body><div class="card">
+  <div class="swatch light"><img class="logo" src="../assets/devop-logo.png" alt="Devopsolution"><div class="meta">On light · #FFFFFF</div></div>
+  <div class="swatch dark"><img class="logo" src="../assets/devop-logo.png" alt="Devopsolution"><div class="meta">On indigo · gradient</div></div>
+</div></body></html>

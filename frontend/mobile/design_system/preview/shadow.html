@@ -1,0 +1,22 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Shadow</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-page); }
+  .card { padding: 32px 24px 24px; }
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .b { background: #fff; border-radius: 14px; height: 88px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1px solid rgba(255,255,255,0.6); }
+  .n { font-family: var(--font-mono); font-size: 11px; color: var(--brand-primary); font-weight: 600; }
+  .m { font-size: 10px; color: var(--ink-400); }
+  h6 { margin: 0 0 12px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+</style></head>
+<body><div class="card">
+  <h6>Elevation · indigo-tinted</h6>
+  <div class="grid">
+    <div class="b" style="box-shadow: var(--shadow-xs)"><span class="n">xs</span><span class="m">hairline</span></div>
+    <div class="b" style="box-shadow: var(--shadow-sm)"><span class="n">sm</span><span class="m">resting</span></div>
+    <div class="b" style="box-shadow: var(--shadow-md)"><span class="n">md</span><span class="m">card</span></div>
+    <div class="b" style="box-shadow: var(--shadow-lg)"><span class="n">lg</span><span class="m">hover</span></div>
+    <div class="b" style="box-shadow: var(--shadow-xl)"><span class="n">xl</span><span class="m">modal</span></div>
+    <div class="b" style="box-shadow: var(--shadow-glow-accent)"><span class="n">glow</span><span class="m">accent</span></div>
+  </div>
+</div></body></html>

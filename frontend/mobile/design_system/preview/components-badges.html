@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Badges</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 24px; }
+  h6 { margin: 0 0 14px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+  .lab { font-family: var(--font-mono); font-size: 10px; color: var(--ink-400); width: 88px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+  .dot { width: 6px; height: 6px; border-radius: 999px; }
+  .badge.brand { background: var(--brand-accent-100); color: var(--brand-accent-700); }
+  .badge.solid { background: var(--brand-primary); color: #fff; }
+  .badge.outline { background: #fff; color: var(--brand-primary); border: 1px solid var(--brand-primary-100); }
+  .badge.success { background: var(--success-bg); color: var(--success); }
+  .badge.warning { background: var(--warning-bg); color: var(--warning); }
+  .badge.danger  { background: var(--danger-bg); color: var(--danger); }
+  .badge.spark   { background: #FBDDD0; color: #B7401E; }
+  .chip { height: 32px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 500; border: 1px solid var(--ink-100); background: #fff; color: var(--brand-primary); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .chip.on { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); }
+</style></head>
+<body><div class="card">
+  <h6>Badges</h6>
+  <div class="row"><div class="lab">Brand</div>
+    <span class="badge brand">New</span>
+    <span class="badge solid">Featured</span>
+    <span class="badge outline">2018 — present</span>
+    <span class="badge spark"><span class="dot" style="background:#EE5C2D"></span>Live</span>
+  </div>
+  <div class="row"><div class="lab">Status</div>
+    <span class="badge success"><span class="dot" style="background:var(--success)"></span>Operational</span>
+    <span class="badge warning"><span class="dot" style="background:var(--warning)"></span>Maintenance</span>
+    <span class="badge danger"><span class="dot" style="background:var(--danger)"></span>Outage</span>
+  </div>
+  <h6 style="margin-top:18px">Filter chips</h6>
+  <div class="row">
+    <span class="chip on">All services</span>
+    <span class="chip">Web</span>
+    <span class="chip">Mobile</span>
+    <span class="chip">RPA</span>
+    <span class="chip">AI &amp; Chatbot</span>
+    <span class="chip">Branding</span>
+  </div>
+</div></body></html>

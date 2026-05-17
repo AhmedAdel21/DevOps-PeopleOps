@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Buttons</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 24px; }
+  h6 { margin: 0 0 14px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .row:last-child { margin-bottom: 0; }
+  .label { font-family: var(--font-mono); font-size: 10px; color: var(--ink-400); width: 88px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .btn { font-family: var(--font-en); font-weight: 600; font-size: 14px; border-radius: 999px; padding: 0 22px; height: 40px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent; cursor: pointer; transition: all 220ms cubic-bezier(.2,.7,.2,1); }
+  .btn.primary { background: var(--brand-primary); color: #fff; }
+  .btn.primary:hover { background: var(--brand-primary-700); }
+  .btn.accent  { background: var(--brand-accent); color: #fff; box-shadow: 0 10px 30px rgba(120,124,242,0.45); }
+  .btn.outline { background: #fff; color: var(--brand-primary); border-color: var(--brand-primary); }
+  .btn.ghost { background: transparent; color: var(--brand-primary); }
+  .btn.ghost:hover { background: var(--brand-accent-100); }
+  .btn.lg { height: 48px; padding: 0 28px; font-size: 15px; }
+  .btn.sm { height: 32px; padding: 0 16px; font-size: 13px; }
+  .arrow { display: inline-block; transform: translateY(-1px); }
+  .glass-row { background: var(--grad-hero); padding: 16px; border-radius: 14px; }
+  .btn.glass { background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(10px); }
+</style></head>
+<body><div class="card">
+  <h6>Buttons</h6>
+  <div class="row"><div class="label">Primary</div>
+    <button class="btn primary lg">Start now <span class="arrow">→</span></button>
+    <button class="btn primary">Learn more</button>
+    <button class="btn primary sm">Read</button>
+  </div>
+  <div class="row"><div class="label">Accent</div>
+    <button class="btn accent lg">Book a call</button>
+    <button class="btn accent">Get a quote</button>
+  </div>
+  <div class="row"><div class="label">Outline</div>
+    <button class="btn outline">Our services</button>
+    <button class="btn ghost">Cancel</button>
+  </div>
+  <div class="row glass-row"><div class="label" style="color:rgba(255,255,255,0.7)">Glass</div>
+    <button class="btn glass">Watch the reel</button>
+    <button class="btn glass">Contact us</button>
+  </div>
+</div></body></html>

@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Gradients</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 20px 24px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .g { height: 100px; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow-sm); }
+  .g .n { font-weight: 600; font-size: 13px; }
+  .g .meta { font-family: var(--font-mono); font-size: 10px; opacity: 0.85; }
+  .g.hero { background: var(--grad-hero); color: #fff; }
+  .g.soft { background: var(--grad-hero-soft); color: var(--brand-primary); }
+  .g.spark { background: var(--grad-spark); color: #fff; }
+  .g.page { background: var(--grad-page); color: var(--brand-primary); }
+  h6 { margin: 0 0 12px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+</style></head>
+<body><div class="card">
+  <h6>Brand gradients</h6>
+  <div class="grid">
+    <div class="g hero"><span class="n">Hero</span><span class="meta">#262261 → #3D3A8A → #787CF2 · 135°</span></div>
+    <div class="g soft"><span class="n">Hero — soft</span><span class="meta">#EFEEF7 → #E4E5FD · 135°</span></div>
+    <div class="g spark"><span class="n">Spark</span><span class="meta">accent → #EE5C2D · sparing use only</span></div>
+    <div class="g page"><span class="n">Page wash</span><span class="meta">radial highlights + linear base</span></div>
+  </div>
+</div></body></html>

@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Brand color — Primary</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 20px 24px; }
+  .ramp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .chip { border-radius: 14px; height: 110px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,0.18); box-shadow: var(--shadow-xs); }
+  .chip .n { font-weight: 600; font-size: 12px; }
+  .chip .h { font-family: var(--font-mono); font-size: 11px; opacity: 0.85; }
+  .light-text { color: #fff; }
+  .dark-text  { color: var(--brand-primary); }
+  h6 { margin: 0 0 12px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+</style></head>
+<body><div class="card">
+  <h6>Brand · Primary indigo</h6>
+  <div class="ramp">
+    <div class="chip light-text" style="background:#1B1849"><span class="n">700</span><span class="h">#1B1849</span></div>
+    <div class="chip light-text" style="background:#262261"><span class="n">600 · base</span><span class="h">#262261</span></div>
+    <div class="chip light-text" style="background:#3A3680"><span class="n">500</span><span class="h">#3A3680</span></div>
+    <div class="chip light-text" style="background:#6F6CA6"><span class="n">300</span><span class="h">#6F6CA6</span></div>
+    <div class="chip dark-text"  style="background:#DCDBEC"><span class="n">100</span><span class="h">#DCDBEC</span></div>
+    <div class="chip dark-text"  style="background:#EFEEF7"><span class="n">050</span><span class="h">#EFEEF7</span></div>
+  </div>
+</div></body></html>

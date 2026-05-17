@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Inputs</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  h6 { margin: 0 0 8px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; grid-column: 1 / -1; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 12px; font-weight: 600; color: var(--brand-primary); }
+  input, textarea, select { font-family: var(--font-en); font-size: 14px; height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--ink-200); background: #fff; color: var(--ink-700); transition: all 180ms; outline: none; }
+  textarea { height: 80px; padding: 12px 14px; resize: none; }
+  input:focus, textarea:focus, select:focus { border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(120,124,242,0.25); }
+  input.err { border-color: var(--danger); }
+  input.err + .hint { color: var(--danger); }
+  .hint { font-size: 11px; color: var(--ink-400); }
+  .check { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-700); }
+  .check .box { width: 18px; height: 18px; border-radius: 6px; border: 1px solid var(--ink-200); display: inline-flex; align-items: center; justify-content: center; }
+  .check.on .box { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; font-size: 11px; }
+</style></head>
+<body><div class="card">
+  <h6>Form inputs</h6>
+  <div class="field"><label>Full name</label><input type="text" value="Layla Mansour" /><span class="hint">As it appears on official ID.</span></div>
+  <div class="field"><label>Work email</label><input class="err" type="email" value="not-an-email" /><span class="hint">Please enter a valid email.</span></div>
+  <div class="field"><label>Service</label><select><option>Web Development</option></select></div>
+  <div class="field" style="grid-column: 1 / -1;"><label>Tell us about your project</label><textarea>We're scoping a bilingual marketing site (EN + AR) for a Series-A fintech…</textarea></div>
+  <div class="check on" style="grid-column: 1 / -1;"><span class="box">✓</span><span>I agree to be contacted about my enquiry.</span></div>
+</div></body></html>
