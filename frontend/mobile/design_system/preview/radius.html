@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Radius</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 22px 24px; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+  .swatch { height: 86px; background: linear-gradient(135deg, #EFEEF7, #E4E5FD); border: 1px solid var(--brand-primary-100); display: flex; align-items: flex-end; padding: 8px; }
+  .name { font-family: var(--font-mono); font-size: 10px; color: var(--brand-primary); font-weight: 600; }
+  .px { display: block; font-size: 10px; color: var(--ink-400); margin-top: 2px; font-family: var(--font-mono); }
+  h6 { margin: 0 0 12px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+</style></head>
+<body><div class="card">
+  <h6>Border radius</h6>
+  <div class="grid">
+    <div class="swatch" style="border-radius: 6px"><div><div class="name">xs</div><span class="px">6</span></div></div>
+    <div class="swatch" style="border-radius: 10px"><div><div class="name">sm</div><span class="px">10</span></div></div>
+    <div class="swatch" style="border-radius: 14px"><div><div class="name">md</div><span class="px">14</span></div></div>
+    <div class="swatch" style="border-radius: 20px"><div><div class="name">lg</div><span class="px">20</span></div></div>
+    <div class="swatch" style="border-radius: 28px"><div><div class="name">xl</div><span class="px">28</span></div></div>
+    <div class="swatch" style="border-radius: 36px"><div><div class="name">2xl</div><span class="px">36</span></div></div>
+    <div class="swatch" style="border-radius: 999px"><div><div class="name">pill</div><span class="px">∞</span></div></div>
+  </div>
+</div></body></html>

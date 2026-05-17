@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Brand color — Accent</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 20px 24px; }
+  .ramp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .chip { border-radius: 14px; height: 110px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,0.18); box-shadow: var(--shadow-xs); }
+  .chip .n { font-weight: 600; font-size: 12px; }
+  .chip .h { font-family: var(--font-mono); font-size: 11px; opacity: 0.9; }
+  .light-text { color: #fff; }
+  .dark-text  { color: var(--brand-primary); }
+  h6 { margin: 0 0 12px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+</style></head>
+<body><div class="card">
+  <h6>Brand · Accent lavender</h6>
+  <div class="ramp">
+    <div class="chip light-text" style="background:#5559D6"><span class="n">700</span><span class="h">#5559D6</span></div>
+    <div class="chip light-text" style="background:#787CF2"><span class="n">500 · base</span><span class="h">#787CF2</span></div>
+    <div class="chip dark-text"  style="background:#A6A9F7"><span class="n">300</span><span class="h">#A6A9F7</span></div>
+    <div class="chip dark-text"  style="background:#E4E5FD"><span class="n">100</span><span class="h">#E4E5FD</span></div>
+    <div class="chip dark-text"  style="background:#F2F3FE"><span class="n">050</span><span class="h">#F2F3FE</span></div>
+    <div class="chip light-text" style="background:#EE5C2D"><span class="n">spark</span><span class="h">#EE5C2D</span></div>
+  </div>
+</div></body></html>

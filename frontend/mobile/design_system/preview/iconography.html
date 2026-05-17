@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Iconography</title>
+<link rel="stylesheet" href="_base.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 22px 24px; }
+  h6 { margin: 0 0 12px; font-size: 13px; color: var(--ink-500); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .lab { font-family: var(--font-mono); font-size: 10px; color: var(--ink-400); width: 88px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .icn { width: 48px; height: 48px; border-radius: 14px; background: var(--brand-accent-100); color: var(--brand-accent-700); display: inline-flex; align-items: center; justify-content: center; }
+  .icn.indigo { background: var(--brand-primary); color: #fff; }
+  .icn.outline { background: #fff; border: 1px solid var(--ink-100); color: var(--brand-primary); }
+  .icn.spark { background: #FBDDD0; color: #B7401E; }
+  .icn.lg { width: 56px; height: 56px; }
+  .note { font-size: 12px; color: var(--ink-500); line-height: 1.5; margin-top: 10px; }
+  i[data-lucide] { width: 22px; height: 22px; stroke-width: 1.75; }
+  .icn.lg i[data-lucide] { width: 26px; height: 26px; }
+</style></head>
+<body><div class="card">
+  <h6>Iconography · Lucide · 1.75px stroke</h6>
+  <div class="row"><div class="lab">Services</div>
+    <span class="icn"><i data-lucide="code-2"></i></span>
+    <span class="icn"><i data-lucide="smartphone"></i></span>
+    <span class="icn"><i data-lucide="megaphone"></i></span>
+    <span class="icn"><i data-lucide="film"></i></span>
+    <span class="icn"><i data-lucide="palette"></i></span>
+    <span class="icn"><i data-lucide="bot"></i></span>
+    <span class="icn"><i data-lucide="workflow"></i></span>
+  </div>
+  <div class="row"><div class="lab">Variants</div>
+    <span class="icn outline"><i data-lucide="rocket"></i></span>
+    <span class="icn"><i data-lucide="rocket"></i></span>
+    <span class="icn indigo"><i data-lucide="rocket"></i></span>
+    <span class="icn spark"><i data-lucide="sparkles"></i></span>
+    <span class="icn lg indigo"><i data-lucide="layers"></i></span>
+  </div>
+  <div class="note">Substitution · Lucide stands in until the agency confirms the live-site icon set. Same stroke discipline; one icon family for everything in product UI; no emoji.</div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

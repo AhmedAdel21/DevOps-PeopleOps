@@ -1,0 +1,321 @@
+/* ============================================================
+   Devopsolution Design System — Colors & Type
+   Brand: Modern technology agency. Cairo, EG · Riyadh, KSA.
+   Voice: Confident, partner-led, bilingual (EN + AR).
+   ============================================================ */
+
+/* -------- Webfonts (self-hosted from /fonts) -------- */
+@font-face { font-family: "Livvic"; font-style: normal; font-weight: 100; font-display: swap; src: url("fonts/Livvic-Thin.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: italic; font-weight: 100; font-display: swap; src: url("fonts/Livvic-ThinItalic.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: normal; font-weight: 200; font-display: swap; src: url("fonts/Livvic-ExtraLight.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: italic; font-weight: 200; font-display: swap; src: url("fonts/Livvic-ExtraLightItalic.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: normal; font-weight: 300; font-display: swap; src: url("fonts/Livvic-Light.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: italic; font-weight: 300; font-display: swap; src: url("fonts/Livvic-LightItalic.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/Livvic-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: italic; font-weight: 400; font-display: swap; src: url("fonts/Livvic-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/Livvic-Medium.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: italic; font-weight: 500; font-display: swap; src: url("fonts/Livvic-MediumItalic.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/Livvic-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: italic; font-weight: 600; font-display: swap; src: url("fonts/Livvic-SemiBoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/Livvic-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: italic; font-weight: 700; font-display: swap; src: url("fonts/Livvic-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: normal; font-weight: 900; font-display: swap; src: url("fonts/Livvic-Black.ttf") format("truetype"); }
+@font-face { font-family: "Livvic"; font-style: italic; font-weight: 900; font-display: swap; src: url("fonts/Livvic-BlackItalic.ttf") format("truetype"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 200 1000; font-display: swap; src: url("fonts/Cairo-VariableFont_slnt_wght.ttf") format("truetype-variations"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 200; font-display: swap; src: url("fonts/Cairo-ExtraLight.ttf") format("truetype"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 300; font-display: swap; src: url("fonts/Cairo-Light.ttf") format("truetype"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/Cairo-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/Cairo-Medium.ttf") format("truetype"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/Cairo-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/Cairo-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 800; font-display: swap; src: url("fonts/Cairo-ExtraBold.ttf") format("truetype"); }
+@font-face { font-family: "Cairo"; font-style: normal; font-weight: 900; font-display: swap; src: url("fonts/Cairo-Black.ttf") format("truetype"); }
+
+/* ============================================================
+   COLOR TOKENS
+   ============================================================ */
+:root {
+  /* --- Brand core --- */
+  --brand-primary:        #262261;   /* Deep indigo — wordmark "SOLUTION", buttons, headlines */
+  --brand-primary-700:    #1B1849;   /* hover / pressed surfaces                              */
+  --brand-primary-500:    #3A3680;   /* body emphasis on light bg                             */
+  --brand-primary-300:    #6F6CA6;   /* secondary text on light bg                            */
+  --brand-primary-100:    #DCDBEC;   /* tinted surfaces, dividers                             */
+  --brand-primary-050:    #EFEEF7;   /* faint indigo wash                                     */
+
+  --brand-accent:         #787CF2;   /* Lavender — links, highlights, secondary CTA           */
+  --brand-accent-700:     #5559D6;   /* accent hover                                          */
+  --brand-accent-500:     #787CF2;   /* base accent                                           */
+  --brand-accent-300:     #A6A9F7;   /* subtle accent fills                                   */
+  --brand-accent-200:     #C9CBFA;   /* mid-stop in headline gradient                         */
+  --brand-accent-100:     #E4E5FD;   /* tinted hover backgrounds                              */
+  --brand-accent-050:     #F2F3FE;   /* faint lavender wash                                   */
+
+  /* --- Logo highlight (used sparingly: bullets, status dots, illustration accents) --- */
+  --brand-spark:          #EE5C2D;   /* Orange from the "DEVOP" wordmark glyph                */
+  --brand-spark-300:      #F49072;
+  --brand-spark-100:      #FBDDD0;
+
+  /* --- Neutrals (cool, slightly indigo-tinted) --- */
+  --ink-deep: #15133A;  /* deep indigo — footer surface                         */
+  --ink-900: #0E0D2A;   /* near-black, only for max contrast headlines on white */
+  --ink-700: #1F1D3D;   /* body on light                                        */
+  --ink-500: #4A4870;   /* secondary text                                       */
+  --ink-400: #6F6D8E;   /* muted / metadata                                     */
+  --ink-300: #9794AE;   /* placeholder, disabled label                          */
+  --ink-200: #C8C6D6;   /* hairlines, dividers on color                         */
+  --ink-100: #E5E4EE;   /* dividers on white                                    */
+  --ink-050: #F4F4F8;   /* page bg secondary                                    */
+  --ink-000: #FFFFFF;
+
+  /* --- Semantic --- */
+  --success: #1F9D74;
+  --success-bg: #E5F5EE;
+  --warning: #D98A00;
+  --warning-bg: #FBF1DC;
+  --danger:  #D14545;
+  --danger-bg:  #FBE5E5;
+  --info:    var(--brand-accent);
+  --info-bg: var(--brand-accent-100);
+
+  /* --- Surfaces / page --- */
+  --bg-page:        #F7F7FB;        /* default app/page bg, softly cool          */
+  --bg-page-deep:   #EFEFF7;        /* lower section bg                          */
+  --bg-canvas:      #FFFFFF;
+  --bg-inverted:    var(--brand-primary);
+
+  /* --- Glass tokens (used per the glass usage rules) --- */
+  --glass-fill:     rgba(255, 255, 255, 0.55);
+  --glass-fill-strong: rgba(255, 255, 255, 0.72);
+  --glass-fill-onbrand: rgba(255, 255, 255, 0.10);   /* glass over indigo bg     */
+  --glass-fill-onbrand-strong: rgba(255, 255, 255, 0.16);
+  --glass-stroke:   rgba(255, 255, 255, 0.65);
+  --glass-stroke-onbrand: rgba(255, 255, 255, 0.22);
+  --glass-blur:     18px;
+  --glass-blur-strong: 28px;
+
+  /* --- Brand gradients --- */
+  --grad-hero:        linear-gradient(135deg, #262261 0%, #3D3A8A 45%, #787CF2 100%);
+  --grad-hero-soft:   linear-gradient(135deg, #EFEEF7 0%, #E4E5FD 60%, #F2F3FE 100%);
+  --grad-spark:       linear-gradient(120deg, #787CF2 0%, #EE5C2D 100%); /* sparing — accents only */
+  --grad-glass-light: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.45) 100%);
+  --grad-glass-onbrand: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 100%);
+  --grad-page:        radial-gradient(1200px 600px at 10% -10%, #E4E5FD 0%, transparent 60%),
+                      radial-gradient(900px 500px at 110% 10%, #DCDBEC 0%, transparent 55%),
+                      linear-gradient(180deg, #F7F7FB 0%, #EFEFF7 100%);
+
+  /* --- Shadows / elevation --- */
+  --shadow-xs: 0 1px 2px rgba(38, 34, 97, 0.06);
+  --shadow-sm: 0 2px 6px rgba(38, 34, 97, 0.06), 0 1px 2px rgba(38, 34, 97, 0.04);
+  --shadow-md: 0 8px 24px rgba(38, 34, 97, 0.08), 0 2px 6px rgba(38, 34, 97, 0.05);
+  --shadow-lg: 0 18px 48px rgba(38, 34, 97, 0.12), 0 4px 12px rgba(38, 34, 97, 0.06);
+  --shadow-xl: 0 32px 80px rgba(38, 34, 97, 0.18), 0 8px 24px rgba(38, 34, 97, 0.08);
+  --shadow-glow-accent: 0 18px 60px rgba(120, 124, 242, 0.45);
+  --shadow-inset-hairline: inset 0 0 0 1px rgba(255,255,255,0.5);
+
+  /* --- Borders / radii / spacing --- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
+  --radius-pill: 999px;
+
+  --hairline: 1px solid var(--ink-100);
+  --hairline-strong: 1px solid var(--ink-200);
+  --hairline-onbrand: 1px solid rgba(255,255,255,0.18);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* --- Motion --- */
+  --ease-standard: cubic-bezier(.2,.7,.2,1);
+  --ease-out:      cubic-bezier(.16,.84,.32,1);
+  --ease-in:       cubic-bezier(.7,.0,.84,.0);
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
+
+  /* ============================================================
+     TYPE TOKENS
+     ============================================================ */
+  --font-en: "Livvic", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ar: "Cairo", "Tajawal", "Noto Sans Arabic", system-ui, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+
+  /* Display / Heading scale (English-first; Arabic uses Cairo at the same sizes) */
+  --fs-display-2xl: 88px;
+  --fs-display-xl:  72px;
+  --fs-display-lg:  56px;
+  --fs-h1: 44px;
+  --fs-h2: 36px;
+  --fs-h3: 28px;
+  --fs-h4: 22px;
+  --fs-h5: 18px;
+  --fs-h6: 16px;
+  --fs-body-lg: 18px;
+  --fs-body:    16px;
+  --fs-body-sm: 14px;
+  --fs-caption: 12px;
+  --fs-eyebrow: 12px;
+
+  --lh-tight: 1.08;
+  --lh-snug:  1.2;
+  --lh-default: 1.5;
+  --lh-relaxed: 1.65;
+  --lh-loose:   1.8; /* Arabic body — needs more breathing room */
+
+  --ls-tight: -0.02em;
+  --ls-snug:  -0.01em;
+  --ls-default: 0;
+  --ls-wide:    0.06em;
+  --ls-eyebrow: 0.18em;
+}
+
+/* ============================================================
+   SEMANTIC TYPE STYLES
+   ============================================================ */
+html { font-family: var(--font-en); color: var(--ink-700); }
+html[dir="rtl"], html[lang="ar"] { font-family: var(--font-ar); }
+
+.t-display-2xl, h1.t-display { font-family: var(--font-en); font-weight: 700; font-size: var(--fs-display-2xl); line-height: var(--lh-tight); letter-spacing: var(--ls-tight); color: var(--brand-primary); }
+.t-display-xl  { font-family: var(--font-en); font-weight: 700; font-size: var(--fs-display-xl);  line-height: var(--lh-tight); letter-spacing: var(--ls-tight); color: var(--brand-primary); }
+.t-display-lg  { font-family: var(--font-en); font-weight: 700; font-size: var(--fs-display-lg);  line-height: var(--lh-tight); letter-spacing: var(--ls-tight); color: var(--brand-primary); }
+
+.t-h1, h1 { font-family: var(--font-en); font-weight: 700; font-size: var(--fs-h1); line-height: var(--lh-snug); letter-spacing: var(--ls-tight); color: var(--brand-primary); }
+.t-h2, h2 { font-family: var(--font-en); font-weight: 700; font-size: var(--fs-h2); line-height: var(--lh-snug); letter-spacing: var(--ls-snug);  color: var(--brand-primary); }
+.t-h3, h3 { font-family: var(--font-en); font-weight: 600; font-size: var(--fs-h3); line-height: var(--lh-snug); color: var(--brand-primary); }
+.t-h4, h4 { font-family: var(--font-en); font-weight: 600; font-size: var(--fs-h4); line-height: 1.3; color: var(--ink-900); }
+.t-h5, h5 { font-family: var(--font-en); font-weight: 600; font-size: var(--fs-h5); line-height: 1.35; color: var(--ink-900); }
+.t-h6, h6 { font-family: var(--font-en); font-weight: 600; font-size: var(--fs-h6); line-height: 1.4; color: var(--ink-900); }
+
+.t-body-lg { font-size: var(--fs-body-lg); line-height: var(--lh-relaxed); color: var(--ink-700); }
+.t-body, p { font-size: var(--fs-body);    line-height: var(--lh-relaxed); color: var(--ink-700); }
+.t-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-default); color: var(--ink-500); }
+.t-caption { font-size: var(--fs-caption); line-height: var(--lh-default); color: var(--ink-400); }
+
+.t-eyebrow {
+  font-family: var(--font-en); font-weight: 600; font-size: var(--fs-eyebrow);
+  letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--brand-accent-700);
+}
+
+.t-link { color: var(--brand-accent-700); text-decoration: none; border-bottom: 1px solid currentColor; }
+.t-link:hover { color: var(--brand-primary); }
+
+.t-mono { font-family: var(--font-mono); font-size: var(--fs-body-sm); color: var(--ink-700); }
+
+/* Arabic adjustments — Cairo reads tightest with extra leading + slightly heavier weight */
+[dir="rtl"] .t-h1, [dir="rtl"] h1,
+[dir="rtl"] .t-h2, [dir="rtl"] h2,
+[dir="rtl"] .t-h3, [dir="rtl"] h3 { font-family: var(--font-ar); font-weight: 700; line-height: 1.3; letter-spacing: 0; }
+[dir="rtl"] .t-body, [dir="rtl"] p { font-family: var(--font-ar); line-height: var(--lh-loose); }
+[dir="rtl"] .t-eyebrow { font-family: var(--font-ar); letter-spacing: 0; }
+
+/* ============================================================
+   DARK MODE OVERRIDES
+   ------------------------------------------------------------
+   Applied when the host app sets `class="dark"` on <html> (the
+   convention used by next-themes — `attribute="class"`).
+
+   What changes: surfaces, ink scale, glass, semantic backgrounds,
+   shadows, and the page gradient — all the tokens that describe the
+   *canvas* the brand sits on.
+
+   What stays: brand (primary / accent / spark and their shade scales),
+   semantic *foreground* hues (success / warning / danger / info), the
+   hero gradient, motion, radii, type — these are identity tokens that
+   don't flip with the theme.
+
+   --ink-050-rgb / --ink-100-rgb are RGB triplets exposed so Tailwind
+   v3 utilities like `bg-ink-050/60` can compute alpha at runtime
+   (Tailwind v4 derives this automatically; v3 needs the triplet syntax).
+   ============================================================ */
+:root {
+  /* RGB triplets for the few ink shades used with opacity modifiers in the
+     app (table rows, frosted overlays). Light values mirror --ink-050 / --ink-100. */
+  --ink-050-rgb: 244 244 248; /* #F4F4F8 */
+  --ink-100-rgb: 229 228 238; /* #E5E4EE */
+}
+
+html.dark {
+  /* ---- Surfaces ---- */
+  --bg-page:        #0F0E2A; /* near-black deep indigo — page background */
+  --bg-page-deep:   #080719; /* deeper section / footer surface           */
+  --bg-canvas:      #1A1838; /* card / modal panel — one step lighter than bg-page */
+  --bg-inverted:    #FFFFFF; /* photo-negative of the light-mode value    */
+
+  /* ---- Ink scale (flipped for dark surfaces) ----
+     Hierarchy is preserved: 900 = strongest contrast, 050 = subtlest. */
+  --ink-deep: #FFFFFF;  /* was #15133A, now max contrast over dark      */
+  --ink-900: #FFFFFF;   /* page-level headings                          */
+  --ink-700: #E5E4EE;   /* body                                         */
+  --ink-500: #C8C6D6;   /* secondary / label                            */
+  --ink-400: #9794AE;   /* muted / metadata                             */
+  --ink-300: #6F6D8E;   /* placeholder / disabled label                 */
+  --ink-200: #2A2848;   /* hairlines on color                           */
+  --ink-100: #1E1C3A;   /* dividers / tonal borders                     */
+  --ink-050: #131228;   /* page bg secondary / table-row hover          */
+  --ink-000: #1A1838;   /* "canvas" equivalent on dark                  */
+
+  --ink-050-rgb: 19 18 40;   /* #131228 — opacity-modifier source for ink-050 */
+  --ink-100-rgb: 30 28 58;   /* #1E1C3A — opacity-modifier source for ink-100 */
+
+  /* ---- Glass ----
+     Light mode: white-tinted glass over color.
+     Dark mode: inverted — dark canvas with subtle white stroke catches light. */
+  --glass-fill:                rgba(26, 24, 56, 0.65);
+  --glass-fill-strong:         rgba(26, 24, 56, 0.85);
+  --glass-fill-onbrand:        rgba(255, 255, 255, 0.06);
+  --glass-fill-onbrand-strong: rgba(255, 255, 255, 0.10);
+  --glass-stroke:              rgba(255, 255, 255, 0.08);
+  --glass-stroke-onbrand:      rgba(255, 255, 255, 0.10);
+
+  /* ---- Page gradient ----
+     Light mode had bright lavender radials over cool wash. Dark mode keeps the
+     same structure (two halos top-left / top-right + linear base) but at
+     much lower saturation/alpha so the page doesn't glow — just hints depth. */
+  --grad-page:
+    radial-gradient(1200px 600px at 10% -10%, rgba(120, 124, 242, 0.16) 0%, transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(38, 34, 97, 0.45) 0%, transparent 55%),
+    linear-gradient(180deg, #0F0E2A 0%, #080719 100%);
+
+  /* ---- Semantic surface tints ----
+     Light: pale wash. Dark: low-alpha tint of the same hue so error/success
+     banners read as colored panels without blasting saturation on dark bg. */
+  --success-bg: rgba(31, 157, 116, 0.18);
+  --warning-bg: rgba(217, 138, 0,   0.20);
+  --danger-bg:  rgba(209, 69, 69,   0.18);
+  --info-bg:    rgba(120, 124, 242, 0.18);
+
+  /* ---- Shadows ----
+     Indigo-tinted shadows on dark indigo backgrounds are nearly invisible.
+     Dark mode uses near-black at higher opacity so depth still reads. */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.40), 0 2px 6px rgba(0, 0, 0, 0.24);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.50), 0 4px 12px rgba(0, 0, 0, 0.28);
+  --shadow-xl: 0 32px 80px rgba(0, 0, 0, 0.60), 0 8px 24px rgba(0, 0, 0, 0.32);
+  --shadow-glow-accent: 0 18px 60px rgba(120, 124, 242, 0.55);
+  --shadow-inset-hairline: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Adopt the system preference when next-themes is in `system` mode and no
+   explicit override exists. next-themes will toggle the .dark class itself,
+   but this fallback keeps the design system standalone for static previews. */
+@media (prefers-color-scheme: dark) {
+  html:not(.light):not(.dark) {
+    color-scheme: dark;
+  }
+}

@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Glass</title>
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background: var(--bg-canvas); }
+  .card { padding: 0; height: 280px; position: relative; overflow: hidden; }
+  .bg { position: absolute; inset: 0; background: var(--grad-hero); }
+  .blob1 { position: absolute; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, #A6A9F7 0%, transparent 70%); top: -60px; left: -40px; filter: blur(20px); }
+  .blob2 { position: absolute; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, #EE5C2D 0%, transparent 65%); bottom: -60px; right: 20px; filter: blur(30px); opacity: 0.55; }
+  .row { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 28px; height: 100%; }
+  .glass { backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+  .light { background: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.65); box-shadow: 0 8px 24px rgba(38, 34, 97, 0.08), inset 0 0 0 1px rgba(255,255,255,0.5); color: var(--brand-primary); }
+  .dark  { background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22); color: #fff; }
+  .label { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.8; font-weight: 600; }
+  .v { font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+  .hint { font-size: 11px; opacity: 0.75; }
+  .meta { position: absolute; left: 24px; bottom: 18px; font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.7); }
+</style></head>
+<body><div class="card">
+  <div class="bg"></div><div class="blob1"></div><div class="blob2"></div>
+  <div class="row">
+    <div class="glass light"><span class="label">Glass · light</span><span class="v">55% white</span><span class="hint">blur 18px · 1px white border · indigo shadow</span></div>
+    <div class="glass dark"><span class="label">Glass · on brand</span><span class="v">10% white</span><span class="hint">blur 18px · 22% white border · over indigo</span></div>
+  </div>
+  <div class="meta">Glass needs colorful background to register · never on plain white</div>
+</div></body></html>
