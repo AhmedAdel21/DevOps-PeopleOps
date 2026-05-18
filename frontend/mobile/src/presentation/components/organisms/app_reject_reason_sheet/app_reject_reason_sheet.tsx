@@ -47,8 +47,11 @@ export const AppRejectReasonSheet: React.FC<AppRejectReasonSheetProps> = ({
 
   return (
     <AppBottomSheet visible={visible} onClose={onClose} heightFraction={0.5}>
+      {/* No flex:1 here — AppBottomSheet sizes its inner container to the
+          content height, so a flex child collapses to 0 (empty sheet).
+          KeyboardAvoidingView 'padding' still lifts the input above the
+          keyboard without needing flex. */}
       <KeyboardAvoidingView
-        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.sheetBody}>
@@ -98,11 +101,10 @@ export const AppRejectReasonSheet: React.FC<AppRejectReasonSheetProps> = ({
 
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
-    flex: { flex: 1, backgroundColor: 'transparent' },
     sheetBody: {
-      flex: 1,
       paddingHorizontal: ws(20),
       paddingTop: hs(8),
+      paddingBottom: hs(24),
       gap: hs(12),
     },
     sheetSub: {},
