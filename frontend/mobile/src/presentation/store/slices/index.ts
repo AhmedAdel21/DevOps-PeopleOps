@@ -71,7 +71,6 @@ export {
   default as teamReducer,
   fetchTeamAttendanceDay,
   fetchPendingApprovals,
-  fetchDepartments,
   fetchApprovalDetail,
   setTeamSegment,
   setTeamFilter,
@@ -87,7 +86,7 @@ export {
   type SerializableTeamSummary,
   type SerializablePendingApprovalItem,
   type SerializablePendingApprovalSection,
-  type SerializableDepartment,
   type SerializableApprovalDetail,
   type SerializableManagementError,
+  type ApprovalRange,
 } from './team.slice';

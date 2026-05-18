@@ -5,6 +5,3 @@ export { SlackRepositoryImpl } from './slack.repository_impl';
 export { LeaveRepositoryImpl } from './leave.repository_impl';
 export { MeRepositoryImpl } from './me.repository_impl';
 export { TeamAttendanceRepositoryImpl } from './team_attendance.repository_impl';
-export { PendingApprovalsRepositoryImpl } from './pending_approvals.repository_impl';
-export { DepartmentRepositoryImpl } from './department.repository_impl';
-export { ApprovalDetailRepositoryImpl } from './approval_detail.repository_impl';

@@ -7,8 +7,6 @@ import { ServiceLocator } from '@/di';
 import { DiKeys } from '@/core/keys/di.key';
 import type {
   AdminLeaveRequestListItem,
-  Department,
-  PendingApprovalRange,
   TeamAttendanceDay,
   TeamAttendanceFilter,
   TeamAttendanceStatus,
@@ -20,8 +18,11 @@ import type {
 import {
   AdminGetLeaveRequestsUseCase,
   GetTeamAttendanceDayUseCase,
-  ListDepartmentsUseCase,
 } from '@/domain/use_cases';
+
+/** Client-only Approvals time filter (backend filters by status, not
+ *  time — this drives the design's chips, applied client-side). */
+export type ApprovalRange = 'all' | 'today' | 'week' | 'month';
 import {
   dateRangeLabel,
   groupPendingApprovals,
@@ -111,24 +112,6 @@ export interface SerializablePendingApprovalSection {
   items: SerializablePendingApprovalItem[];
 }
 
-export interface SerializableDepartment {
-  id: string;
-  nameEn: string;
-  nameAr: string | null;
-  memberCount: number;
-  managerEmployeeId: string | null;
-  managerName: string | null;
-}
-
-const toSerializableDepartment = (d: Department): SerializableDepartment => ({
-  id: d.id,
-  nameEn: d.nameEn,
-  nameAr: d.nameAr,
-  memberCount: d.memberCount,
-  managerEmployeeId: d.managerEmployeeId,
-  managerName: d.managerName,
-});
-
 export interface SerializableApprovalDetail {
   requestId: string;
   status: string;
@@ -207,16 +190,11 @@ export interface TeamState {
   dayFetchError: SerializableManagementError | null;
 
   // Approvals segment
-  approvalsRange: PendingApprovalRange;
+  approvalsRange: ApprovalRange;
   pendingCount: number;
   approvalSections: SerializablePendingApprovalSection[];
   approvalsFetchStatus: FetchStatus;
   approvalsFetchError: SerializableManagementError | null;
-
-  // Departments (HR dept selector)
-  departments: SerializableDepartment[];
-  departmentsFetchStatus: FetchStatus;
-  departmentsFetchError: SerializableManagementError | null;
 
   // Approval detail (cached by requestId)
   approvalDetailsById: Record<string, SerializableApprovalDetail>;
@@ -240,10 +218,6 @@ const initialState: TeamState = {
   approvalSections: [],
   approvalsFetchStatus: 'idle',
   approvalsFetchError: null,
-
-  departments: [],
-  departmentsFetchStatus: 'idle',
-  departmentsFetchError: null,
 
   approvalDetailsById: {},
   approvalDetailFetchStatus: 'idle',
@@ -280,7 +254,7 @@ export interface FetchPendingApprovalsPayload {
 
 export const fetchPendingApprovals = createAsyncThunk<
   FetchPendingApprovalsPayload,
-  { range?: PendingApprovalRange },
+  { range?: ApprovalRange },
   { rejectValue: SerializableManagementError }
 >('team/fetchPendingApprovals', async (_params, { rejectWithValue }) => {
   managementLog.info('slice', 'fetchPendingApprovals → admin leaves (Pending)');
@@ -305,22 +279,6 @@ export const fetchPendingApprovals = createAsyncThunk<
   }
 });
 
-export const fetchDepartments = createAsyncThunk<
-  SerializableDepartment[],
-  void,
-  { rejectValue: SerializableManagementError }
->('team/fetchDepartments', async (_, { rejectWithValue }) => {
-  managementLog.info('slice', 'fetchDepartments thunk');
-  try {
-    const useCase = ServiceLocator.get<ListDepartmentsUseCase>(
-      DiKeys.LIST_DEPARTMENTS_USE_CASE,
-    );
-    const result = await useCase.execute();
-    return result.map(toSerializableDepartment);
-  } catch (e) {
-    return rejectWithValue(serializeManagementError(e));
-  }
-});
 
 export const fetchApprovalDetail = createAsyncThunk<
   SerializableApprovalDetail,
@@ -410,7 +368,7 @@ const teamSlice = createSlice({
     ) {
       state.selectedDepartmentId = action.payload;
     },
-    setApprovalsRange(state, action: PayloadAction<PendingApprovalRange>) {
+    setApprovalsRange(state, action: PayloadAction<ApprovalRange>) {
       state.approvalsRange = action.payload;
     },
     clearTeamErrors(state) {
@@ -464,24 +422,6 @@ const teamSlice = createSlice({
           action.payload ?? {
             code: 'management/unknown',
             message: 'Failed to load pending approvals',
-            mgmtCode: 'unknown',
-            serverCode: null,
-          };
-      })
-      .addCase(fetchDepartments.pending, state => {
-        state.departmentsFetchStatus = 'pending';
-        state.departmentsFetchError = null;
-      })
-      .addCase(fetchDepartments.fulfilled, (state, action) => {
-        state.departmentsFetchStatus = 'loaded';
-        state.departments = action.payload;
-      })
-      .addCase(fetchDepartments.rejected, (state, action) => {
-        state.departmentsFetchStatus = 'error';
-        state.departmentsFetchError =
-          action.payload ?? {
-            code: 'management/unknown',
-            message: 'Failed to load departments',
             mgmtCode: 'unknown',
             serverCode: null,
           };

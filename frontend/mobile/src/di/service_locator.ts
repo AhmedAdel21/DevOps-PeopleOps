@@ -8,9 +8,6 @@ import type {
   LeaveRepository,
   MeRepository,
   TeamAttendanceRepository,
-  PendingApprovalsRepository,
-  DepartmentRepository,
-  ApprovalDetailRepository,
 } from '@/domain/repositories';
 import {
   LoginUseCase,
@@ -41,9 +38,6 @@ import {
   FetchMeUseCase,
   GetTeamAttendanceDayUseCase,
   GetTeamAttendanceHistoryUseCase,
-  GetPendingApprovalsUseCase,
-  ListDepartmentsUseCase,
-  GetApprovalDetailUseCase,
 } from '@/domain/use_cases';
 import {
   AttachmentRemoteDataSource,
@@ -54,9 +48,6 @@ import {
   LeaveRemoteDataSource,
   MeRemoteDataSource,
   TeamAttendanceRemoteDataSource,
-  PendingApprovalsRemoteDataSource,
-  DepartmentRemoteDataSource,
-  ApprovalDetailRemoteDataSource,
   HttpClient,
 } from '@/data/data_sources';
 import {
@@ -67,9 +58,6 @@ import {
   LeaveRepositoryImpl,
   MeRepositoryImpl,
   TeamAttendanceRepositoryImpl,
-  PendingApprovalsRepositoryImpl,
-  DepartmentRepositoryImpl,
-  ApprovalDetailRepositoryImpl,
 } from '@/data/repositories';
 
 export class ServiceLocator {
@@ -266,57 +254,12 @@ export class ServiceLocator {
       new GetTeamAttendanceHistoryUseCase(teamAttendanceRepo),
     );
 
-    // ── Pending Approvals (grouped aggregation — mock-backed) ──
-    // Approve/Reject reuse the live leave-admin use cases above.
-    const pendingApprovalsDs = new PendingApprovalsRemoteDataSource(
-      httpClient,
-    );
-    ServiceLocator.register(
-      DiKeys.PENDING_APPROVALS_REMOTE_DATA_SOURCE,
-      pendingApprovalsDs,
-    );
-    const pendingApprovalsRepo: PendingApprovalsRepository =
-      new PendingApprovalsRepositoryImpl(pendingApprovalsDs);
-    ServiceLocator.register(
-      DiKeys.PENDING_APPROVALS_REPOSITORY,
-      pendingApprovalsRepo,
-    );
-    ServiceLocator.register(
-      DiKeys.GET_PENDING_APPROVALS_USE_CASE,
-      new GetPendingApprovalsUseCase(pendingApprovalsRepo),
-    );
-
-    // ── Departments (read — HR dept selector; mock-backed) ──
-    // Mutations live in the future Department Management feature.
-    const departmentDs = new DepartmentRemoteDataSource(httpClient);
-    ServiceLocator.register(
-      DiKeys.DEPARTMENT_REMOTE_DATA_SOURCE,
-      departmentDs,
-    );
-    const departmentRepo: DepartmentRepository =
-      new DepartmentRepositoryImpl(departmentDs);
-    ServiceLocator.register(DiKeys.DEPARTMENT_REPOSITORY, departmentRepo);
-    ServiceLocator.register(
-      DiKeys.LIST_DEPARTMENTS_USE_CASE,
-      new ListDepartmentsUseCase(departmentRepo),
-    );
-
-    // ── Approval Detail (enriched — mock-backed) ────────────
-    const approvalDetailDs = new ApprovalDetailRemoteDataSource(httpClient);
-    ServiceLocator.register(
-      DiKeys.APPROVAL_DETAIL_REMOTE_DATA_SOURCE,
-      approvalDetailDs,
-    );
-    const approvalDetailRepo: ApprovalDetailRepository =
-      new ApprovalDetailRepositoryImpl(approvalDetailDs);
-    ServiceLocator.register(
-      DiKeys.APPROVAL_DETAIL_REPOSITORY,
-      approvalDetailRepo,
-    );
-    ServiceLocator.register(
-      DiKeys.GET_APPROVAL_DETAIL_USE_CASE,
-      new GetApprovalDetailUseCase(approvalDetailRepo),
-    );
+    // Team Approvals + Approval Detail reuse the live leave-admin use
+    // cases registered above (AdminGetLeaveRequests / Approve / Reject
+    // against `/api/v1/management/requests/leaves`). The bespoke
+    // pending-approvals / approval-detail / department layers were
+    // removed in the backend realignment (see
+    // docs/team-backend-answers-and-plan.md).
 
     // ── Me (GET /api/v1/auth/me) ───────────────────────────
     // Single source of truth for the BE-shaped user identity + permissions.

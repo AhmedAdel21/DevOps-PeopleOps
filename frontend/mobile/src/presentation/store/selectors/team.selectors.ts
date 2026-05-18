@@ -25,11 +25,6 @@ export const selectApprovalsFetchStatus = (s: RootState) =>
 export const selectApprovalsFetchError = (s: RootState) =>
   s.team.approvalsFetchError;
 
-// ── Departments (HR dept selector) ──────────────────────────────────────────
-export const selectDepartments = (s: RootState) => s.team.departments;
-export const selectDepartmentsFetchStatus = (s: RootState) =>
-  s.team.departmentsFetchStatus;
-
 // ── Approval detail ─────────────────────────────────────────────────────────
 export const selectApprovalDetailById =
   (requestId: string) => (s: RootState) =>

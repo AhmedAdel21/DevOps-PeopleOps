@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -17,43 +16,34 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import {
   Check,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Users,
 } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
-import {
-  AppAlertBanner,
-  AppBottomSheet,
-  AppText,
-} from '@/presentation/components/atoms';
+import { AppAlertBanner, AppText } from '@/presentation/components/atoms';
 import { AppAvatar } from '@/presentation/components/molecules';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   approveLeaveRequest,
-  fetchDepartments,
   fetchPendingApprovals,
   fetchTeamAttendanceDay,
   setApprovalsRange,
   setTeamFilter,
   setTeamSegment,
   setTeamSelectedDate,
-  setTeamSelectedDepartment,
+  type ApprovalRange,
   type SerializablePendingApprovalItem,
   type SerializablePendingApprovalSection,
   type SerializableTeamRow,
   type SerializableTeamSummary,
   type TeamSegment,
 } from '@/presentation/store/slices';
-import { Permissions } from '@/core/auth';
 import {
   selectApprovalSections,
   selectApprovalsFetchStatus,
   selectApprovalsRange,
-  selectDepartments,
-  selectHasPermission,
   selectPendingCount,
   selectTeamActiveFilter,
   selectTeamDayFetchStatus,
@@ -64,7 +54,6 @@ import {
   selectTeamSelectedDepartmentId,
 } from '@/presentation/store/selectors';
 import type {
-  PendingApprovalRange,
   TeamAttendanceFilter,
   TeamAttendanceStatus,
 } from '@/domain/entities';
@@ -128,12 +117,7 @@ const statusColor = (
 
 const SEGMENTS: TeamSegment[] = ['attendance', 'approvals'];
 
-const APPROVAL_RANGES: PendingApprovalRange[] = [
-  'all',
-  'today',
-  'week',
-  'month',
-];
+const APPROVAL_RANGES: ApprovalRange[] = ['all', 'today', 'week', 'month'];
 
 interface ApprovalCardProps {
   item: SerializablePendingApprovalItem;
@@ -282,17 +266,6 @@ export const TeamScreen: React.FC = () => {
   const approvalSections = useAppSelector(selectApprovalSections);
   const approvalsStatus = useAppSelector(selectApprovalsFetchStatus);
 
-  const departments = useAppSelector(selectDepartments);
-  // HR/admin scope gate (CLAUDE.md: gate on permission, never role nor a
-  // proxy). `attendance:override` is the admin-attendance capability a
-  // plain team Manager lacks; the BE re-authorizes regardless. `> 1` is
-  // just a UI nicety so we never open an empty/single-item picker.
-  const canSelectDepartment = useAppSelector(s =>
-    selectHasPermission(s, Permissions.Attendance.Override),
-  );
-  const showDeptSelector = canSelectDepartment && departments.length > 1;
-  const [deptSheetOpen, setDeptSheetOpen] = useState(false);
-
   const reload = useCallback(
     (date: string, filter: TeamAttendanceFilter) =>
       dispatch(
@@ -306,37 +279,11 @@ export const TeamScreen: React.FC = () => {
   );
 
   // Attendance is the default segment → eager fetch on mount.
-  // Departments load too (HR selector); on Manager scope the BE returns
-  // their own dept(s) only and the selector simply won't be shown.
   useEffect(() => {
     reload(selectedDate, activeFilter);
-    dispatch(fetchDepartments());
     // mount-only; date/filter changes go through their handlers
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
-
-  const selectedDeptName = useMemo(() => {
-    if (!departmentId) return t('team.allDepartments');
-    return (
-      departments.find(d => d.id === departmentId)?.nameEn ??
-      t('team.allDepartments')
-    );
-  }, [departmentId, departments, t]);
-
-  const handleSelectDepartment = useCallback(
-    (id: string | null) => {
-      setDeptSheetOpen(false);
-      dispatch(setTeamSelectedDepartment(id));
-      dispatch(
-        fetchTeamAttendanceDay({
-          date: selectedDate,
-          departmentId: id ?? undefined,
-          filter: activeFilter === 'All' ? undefined : activeFilter,
-        }),
-      );
-    },
-    [dispatch, selectedDate, activeFilter],
-  );
 
   const handleSegment = useCallback(
     (sgmt: TeamSegment) => dispatch(setTeamSegment(sgmt)),
@@ -366,8 +313,7 @@ export const TeamScreen: React.FC = () => {
   }, [dispatch, selectedDate, reload]);
 
   const loadApprovals = useCallback(
-    (range: PendingApprovalRange) =>
-      dispatch(fetchPendingApprovals({ range })),
+    (range: ApprovalRange) => dispatch(fetchPendingApprovals({ range })),
     [dispatch],
   );
 
@@ -381,7 +327,7 @@ export const TeamScreen: React.FC = () => {
   }, [segment, approvalsStatus, approvalsRange, loadApprovals]);
 
   const handleRange = useCallback(
-    (range: PendingApprovalRange) => {
+    (range: ApprovalRange) => {
       dispatch(setApprovalsRange(range));
       loadApprovals(range);
     },
@@ -455,23 +401,6 @@ export const TeamScreen: React.FC = () => {
           </Pressable>
         </View>
       </View>
-
-      {/* HR department selector (design dcnNd). Only rendered when the BE
-          returns more than one department — for a Manager the list comes
-          back with just their own dept (or fewer), so the picker stays
-          hidden. Scope is BE-driven; this is the client-side proxy. */}
-      {showDeptSelector ? (
-        <Pressable
-          style={styles.deptSelect}
-          onPress={() => setDeptSheetOpen(true)}
-          accessibilityRole="button"
-        >
-          <AppText variant="label" weight="medium" numberOfLines={1}>
-            {selectedDeptName}
-          </AppText>
-          <ChevronDown size={ws(16)} color={theme.colors.mutedForeground} />
-        </Pressable>
-      ) : null}
 
       {summary ? (
         <SummaryStrip summary={summary} styles={styles} theme={theme} t={t} />
@@ -792,79 +721,6 @@ export const TeamScreen: React.FC = () => {
       </View>
 
       {segment === 'attendance' ? renderAttendance() : renderApprovals()}
-
-      <AppBottomSheet
-        visible={deptSheetOpen}
-        onClose={() => setDeptSheetOpen(false)}
-        heightFraction={0.6}
-      >
-        <View style={styles.sheetBody}>
-          <View style={styles.sheetHeader}>
-            <AppText variant="cardTitle" weight="semibold">
-              {t('team.selectDepartment')}
-            </AppText>
-            <Pressable
-              onPress={() => setDeptSheetOpen(false)}
-              hitSlop={8}
-              accessibilityRole="button"
-            >
-              <AppText
-                variant="label"
-                weight="semibold"
-                color={theme.colors.accentHover}
-              >
-                {t('common.close')}
-              </AppText>
-            </Pressable>
-          </View>
-          <ScrollView>
-            <Pressable
-              style={styles.deptOption}
-              onPress={() => handleSelectDepartment(null)}
-            >
-              <AppText
-                variant="body"
-                weight={departmentId === null ? 'semibold' : 'regular'}
-                color={
-                  departmentId === null
-                    ? theme.colors.primary
-                    : theme.colors.foreground
-                }
-              >
-                {t('team.allDepartments')}
-              </AppText>
-            </Pressable>
-            {departments.map(d => {
-              const active = departmentId === d.id;
-              return (
-                <Pressable
-                  key={d.id}
-                  style={styles.deptOption}
-                  onPress={() => handleSelectDepartment(d.id)}
-                >
-                  <AppText
-                    variant="body"
-                    weight={active ? 'semibold' : 'regular'}
-                    color={
-                      active
-                        ? theme.colors.primary
-                        : theme.colors.foreground
-                    }
-                  >
-                    {d.nameAr ? `${d.nameEn} · ${d.nameAr}` : d.nameEn}
-                  </AppText>
-                  <AppText
-                    variant="caption"
-                    color={theme.colors.mutedForeground}
-                  >
-                    {`${d.memberCount} ${t('team.members')}`}
-                  </AppText>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
-      </AppBottomSheet>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -1036,36 +892,4 @@ const createStyles = (theme: AppTheme) =>
       borderRadius: theme.radius.lg,
     },
     swipeApprove: { backgroundColor: theme.colors.status.success.base },
-
-    // ── HR department selector + picker sheet ──────────────────────────
-    deptSelect: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      gap: ws(6),
-      marginTop: hs(12),
-      paddingHorizontal: ws(12),
-      paddingVertical: hs(8),
-      borderRadius: theme.radius.md,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      backgroundColor: theme.colors.canvas,
-    },
-    sheetBody: {
-      flex: 1,
-      paddingHorizontal: ws(20),
-      paddingTop: hs(8),
-    },
-    sheetHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: hs(12),
-    },
-    deptOption: {
-      paddingVertical: hs(14),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.divider,
-      gap: hs(2),
-    },
   });
