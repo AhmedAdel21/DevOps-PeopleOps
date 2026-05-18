@@ -32,26 +32,38 @@ import { leaveLog } from '@/core/logger';
 
 // ── Status ───────────────────────────────────────────────────────────────────
 
-// BE LeaveStatusEnum: 1=Pending, 2=OnGoing, 3=Canceled, 4=Done, Rejected (sequential)
-// Mobile expects 'Approved' | 'Pending' | 'Rejected' | 'Cancelled'. BE serialises
-// the enum by name when returned as a string field, e.g. "Pending".
-const toLeaveRequestStatus = (raw: string): LeaveRequestStatus => {
-  switch (raw) {
-    case 'Approved':
-    case 'OnGoing':
-    case 'Done':
-      return 'Approved';
-    case 'Pending':
+// Mobile expects 'Approved' | 'Pending' | 'Rejected' | 'Cancelled'.
+//
+// Cancel-eligibility MUST track the BE: LeaveRequestService.CancelMyLeave
+// allows self-cancel only when the *Request* status is New/InReview, and
+// the BE does NOT advance the Leave status enum on approval. Deriving
+// from leaveStatusName therefore left approved leaves looking 'Pending'
+// (Cancel shown → BE returns 404). So map from requestStatusName, and
+// use leaveStatusName only to detect a self-cancel (the BE sets
+// Request=Rejected + Leave=Canceled in that case, and we want to show
+// 'Cancelled', not 'Rejected').
+const toLeaveRequestStatus = (
+  requestStatusName: string,
+  leaveStatusName: string,
+): LeaveRequestStatus => {
+  if (leaveStatusName === 'Canceled' || leaveStatusName === 'Cancelled') {
+    return 'Cancelled';
+  }
+  switch (requestStatusName) {
     case 'New':
     case 'InReview':
       return 'Pending';
+    case 'Approved':
+    case 'Confirmed':
+    case 'Closed':
+      return 'Approved';
     case 'Rejected':
       return 'Rejected';
-    case 'Canceled':       // BE spells without double-l
-    case 'Cancelled':
-      return 'Cancelled';
     default:
-      leaveLog.warn('mapper', `Unknown leave status "${raw}", falling back to 'Pending'`);
+      leaveLog.warn(
+        'mapper',
+        `Unknown request status "${requestStatusName}", falling back to 'Pending'`,
+      );
       return 'Pending';
   }
 };
@@ -177,7 +189,7 @@ export const leaveRequestListItemDtoToDomain = (
   startDate: toIsoDate(dto.fromDate),
   endDate: toIsoDate(dto.toDate ?? dto.fromDate),
   totalDays: dto.period,
-  status: toLeaveRequestStatus(dto.leaveStatusName),
+  status: toLeaveRequestStatus(dto.requestStatusName, dto.leaveStatusName),
   hasAttendanceConflict: false,  // BE doesn't compute this on list rows
   createdAt: dto.createdDate,
 });
@@ -201,7 +213,7 @@ export const leaveRequestDetailDtoToDomain = (
   startDate: toIsoDate(dto.fromDate),
   endDate: toIsoDate(dto.toDate ?? dto.fromDate),
   totalDays: dto.period,
-  status: toLeaveRequestStatus(dto.leaveStatusName),
+  status: toLeaveRequestStatus(dto.requestStatusName, dto.leaveStatusName),
   notes: null,                    // BE doesn't expose request notes yet
   hasAttendanceConflict: false,
   conflictDetails: null,
