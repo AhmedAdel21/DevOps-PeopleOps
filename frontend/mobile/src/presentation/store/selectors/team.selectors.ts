@@ -14,6 +14,7 @@ export const selectTeamDayFetchError = (s: RootState) =>
   s.team.dayFetchError;
 
 // ── Approvals segment ───────────────────────────────────────────────────────
+export const selectPendingTab = (s: RootState) => s.team.pendingTab;
 export const selectApprovalsRange = (s: RootState) => s.team.approvalsRange;
 export const selectPendingCount = (s: RootState) => s.team.pendingCount;
 export const selectApprovalSections = (s: RootState) =>
@@ -22,6 +23,16 @@ export const selectApprovalsFetchStatus = (s: RootState) =>
   s.team.approvalsFetchStatus;
 export const selectApprovalsFetchError = (s: RootState) =>
   s.team.approvalsFetchError;
+
+// Approvals — Permissions inner tab
+export const selectPermissionPendingCount = (s: RootState) =>
+  s.team.permissionPendingCount;
+export const selectPermissionApprovalSections = (s: RootState) =>
+  s.team.permissionApprovalSections;
+export const selectPermissionApprovalsFetchStatus = (s: RootState) =>
+  s.team.permissionApprovalsFetchStatus;
+export const selectPermissionApprovalsFetchError = (s: RootState) =>
+  s.team.permissionApprovalsFetchError;
 
 // ── Approval detail ─────────────────────────────────────────────────────────
 export const selectApprovalDetailById =

@@ -11,6 +11,8 @@ import {
   sectionKeyFor,
   groupPendingApprovals,
   deriveBalanceImpact,
+  formatPermissionPeriodLabel,
+  permissionTypeLabels,
   type ApprovalSource,
 } from '../src/presentation/store/slices/team_approvals.mapping';
 
@@ -145,5 +147,57 @@ describe('deriveBalanceImpact', () => {
         sick: null,
       }),
     ).toBeNull();
+  });
+});
+
+describe('formatPermissionPeriodLabel', () => {
+  it('whole and fractional hours + the request date', () => {
+    expect(formatPermissionPeriodLabel(2, '2026-04-05')).toBe('2h · 5 Apr');
+    expect(formatPermissionPeriodLabel(2.5, '2026-04-05')).toBe(
+      '2h 30m · 5 Apr',
+    );
+    expect(formatPermissionPeriodLabel(0.25, '2026-12-09')).toBe(
+      '0h 15m · 9 Dec',
+    );
+    expect(formatPermissionPeriodLabel(1, '2026-01-01')).toBe('1h · 1 Jan');
+  });
+});
+
+describe('permissionTypeLabels', () => {
+  it('maps the known BE permission type names to EN + AR', () => {
+    expect(permissionTypeLabels('LateAttendance')).toEqual({
+      en: 'Late attendance',
+      ar: 'تأخير حضور',
+    });
+    expect(permissionTypeLabels('EarlyLeave')).toEqual({
+      en: 'Early leave',
+      ar: 'انصراف مبكر',
+    });
+  });
+
+  it('falls back to the raw name (EN=AR) for an unknown type', () => {
+    expect(permissionTypeLabels('Sabbatical')).toEqual({
+      en: 'Sabbatical',
+      ar: 'Sabbatical',
+    });
+  });
+});
+
+describe('groupPendingApprovals — dateRangeLabel override', () => {
+  it('uses the override verbatim when provided (permission period)', () => {
+    const src: ApprovalSource = {
+      id: '9',
+      employeeName: 'Mona Said',
+      leaveTypeName: 'Late attendance',
+      leaveTypeNameAr: 'تأخير حضور',
+      startDate: '2026-04-10',
+      endDate: '2026-04-10',
+      totalDays: 0,
+      createdAt: '2026-04-10T09:00:00+03:00',
+      status: 'Pending',
+      dateRangeLabelOverride: '2h 30m · 10 Apr',
+    };
+    const sections = groupPendingApprovals([src], NOW);
+    expect(sections[0].items[0].dateRangeLabel).toBe('2h 30m · 10 Apr');
   });
 });

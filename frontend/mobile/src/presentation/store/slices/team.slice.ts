@@ -7,6 +7,7 @@ import { ServiceLocator } from '@/di';
 import { DiKeys } from '@/core/keys/di.key';
 import type {
   AdminLeaveRequestListItem,
+  AdminPermissionRequestListItem,
   TeamAttendanceDay,
   TeamAttendanceFilter,
   TeamAttendanceStatus,
@@ -17,6 +18,7 @@ import type {
 } from '@/domain/repositories';
 import {
   AdminGetLeaveRequestsUseCase,
+  AdminGetPermissionRequestsUseCase,
   GetTeamAttendanceDayUseCase,
 } from '@/domain/use_cases';
 
@@ -26,7 +28,9 @@ export type ApprovalRange = 'all' | 'today' | 'week' | 'month';
 import {
   dateRangeLabel,
   deriveBalanceImpact,
+  formatPermissionPeriodLabel,
   groupPendingApprovals,
+  permissionTypeLabels,
 } from './team_approvals.mapping';
 import { DomainError, ManagementError } from '@/domain/errors';
 import { managementLog } from '@/core/logger';
@@ -160,6 +164,28 @@ const adminItemToSource = (i: AdminLeaveRequestListItem) => ({
   status: i.status,
 });
 
+// Permissions feed the SAME ApprovalSource shape (so groupPendingApprovals
+// is reused, not forked). The type → bilingual label and the hours-based
+// period label are the unit-tested pure helpers.
+const permissionAdminItemToSource = (i: AdminPermissionRequestListItem) => {
+  const labels = permissionTypeLabels(i.permissionTypeName);
+  return {
+    id: i.id,
+    employeeName: i.employeeName,
+    leaveTypeName: labels.en,
+    leaveTypeNameAr: labels.ar,
+    startDate: i.startDate,
+    endDate: i.endDate,
+    totalDays: 0, // permissions are intra-day; period is hours
+    createdAt: i.createdAt,
+    status: i.status,
+    dateRangeLabelOverride: formatPermissionPeriodLabel(
+      i.periodHours,
+      i.startDate,
+    ),
+  };
+};
+
 const toSerializableDay = (d: TeamAttendanceDay): SerializableTeamDay => ({
   date: d.date,
   summary: { ...d.summary },
@@ -183,6 +209,10 @@ const toSerializableDay = (d: TeamAttendanceDay): SerializableTeamDay => ({
 
 export type TeamSegment = 'attendance' | 'approvals';
 
+/** Inner tab inside the Approvals segment. Backend splits leave and
+ *  permission requests into separate endpoints. */
+export type PendingApprovalsTab = 'leaves' | 'permissions';
+
 export interface TeamState {
   segment: TeamSegment;
 
@@ -194,11 +224,18 @@ export interface TeamState {
   dayFetchError: SerializableManagementError | null;
 
   // Approvals segment
+  pendingTab: PendingApprovalsTab;
   approvalsRange: ApprovalRange;
   pendingCount: number;
   approvalSections: SerializablePendingApprovalSection[];
   approvalsFetchStatus: FetchStatus;
   approvalsFetchError: SerializableManagementError | null;
+
+  // Approvals — Permissions inner tab (lazy-fetched on first switch)
+  permissionPendingCount: number;
+  permissionApprovalSections: SerializablePendingApprovalSection[];
+  permissionApprovalsFetchStatus: FetchStatus;
+  permissionApprovalsFetchError: SerializableManagementError | null;
 
   // Approval detail (cached by requestId)
   approvalDetailsById: Record<string, SerializableApprovalDetail>;
@@ -216,11 +253,17 @@ const initialState: TeamState = {
   dayFetchStatus: 'idle',
   dayFetchError: null,
 
+  pendingTab: 'leaves',
   approvalsRange: 'all',
   pendingCount: 0,
   approvalSections: [],
   approvalsFetchStatus: 'idle',
   approvalsFetchError: null,
+
+  permissionPendingCount: 0,
+  permissionApprovalSections: [],
+  permissionApprovalsFetchStatus: 'idle',
+  permissionApprovalsFetchError: null,
 
   approvalDetailsById: {},
   approvalDetailFetchStatus: 'idle',
@@ -280,6 +323,41 @@ export const fetchPendingApprovals = createAsyncThunk<
     return rejectWithValue(serializeManagementError(e));
   }
 });
+
+export const fetchPendingPermissionApprovals = createAsyncThunk<
+  FetchPendingApprovalsPayload,
+  { range?: ApprovalRange },
+  { rejectValue: SerializableManagementError }
+>(
+  'team/fetchPendingPermissionApprovals',
+  async (_params, { rejectWithValue }) => {
+    managementLog.info(
+      'slice',
+      'fetchPendingPermissionApprovals → admin permissions (Pending)',
+    );
+    try {
+      // /management/requests/permissions, Pending = New|InReview server-side.
+      const useCase = ServiceLocator.get<AdminGetPermissionRequestsUseCase>(
+        DiKeys.ADMIN_GET_PERMISSION_REQUESTS_USE_CASE,
+      );
+      const page = await useCase.execute({
+        status: 'Pending',
+        page: 1,
+        pageSize: 50,
+      } as GetLeaveRequestsParams);
+      const sections = groupPendingApprovals(
+        page.items.map(permissionAdminItemToSource),
+      );
+      const pendingCount = sections.reduce(
+        (n, s) => n + s.items.length,
+        0,
+      );
+      return { pendingCount, sections };
+    } catch (e) {
+      return rejectWithValue(serializeManagementError(e));
+    }
+  },
+);
 
 
 export const fetchApprovalDetail = createAsyncThunk<
@@ -374,12 +452,19 @@ const teamSlice = createSlice({
     setApprovalsRange(state, action: PayloadAction<ApprovalRange>) {
       state.approvalsRange = action.payload;
     },
+    setPendingTab(state, action: PayloadAction<PendingApprovalsTab>) {
+      state.pendingTab = action.payload;
+    },
     clearTeamErrors(state) {
       state.dayFetchError = null;
       if (state.dayFetchStatus === 'error') state.dayFetchStatus = 'idle';
       state.approvalsFetchError = null;
       if (state.approvalsFetchStatus === 'error') {
         state.approvalsFetchStatus = 'idle';
+      }
+      state.permissionApprovalsFetchError = null;
+      if (state.permissionApprovalsFetchStatus === 'error') {
+        state.permissionApprovalsFetchStatus = 'idle';
       }
       state.approvalDetailFetchError = null;
       if (state.approvalDetailFetchStatus === 'error') {
@@ -429,6 +514,31 @@ const teamSlice = createSlice({
             serverCode: null,
           };
       })
+      .addCase(fetchPendingPermissionApprovals.pending, state => {
+        state.permissionApprovalsFetchStatus = 'pending';
+        state.permissionApprovalsFetchError = null;
+      })
+      .addCase(
+        fetchPendingPermissionApprovals.fulfilled,
+        (state, action) => {
+          state.permissionApprovalsFetchStatus = 'loaded';
+          state.permissionPendingCount = action.payload.pendingCount;
+          state.permissionApprovalSections = action.payload.sections;
+        },
+      )
+      .addCase(
+        fetchPendingPermissionApprovals.rejected,
+        (state, action) => {
+          state.permissionApprovalsFetchStatus = 'error';
+          state.permissionApprovalsFetchError =
+            action.payload ?? {
+              code: 'management/unknown',
+              message: 'Failed to load pending permission approvals',
+              mgmtCode: 'unknown',
+              serverCode: null,
+            };
+        },
+      )
       .addCase(fetchApprovalDetail.pending, state => {
         state.approvalDetailFetchStatus = 'pending';
         state.approvalDetailFetchError = null;
@@ -456,6 +566,7 @@ export const {
   setTeamFilter,
   setTeamSelectedDate,
   setApprovalsRange,
+  setPendingTab,
   clearTeamErrors,
   resetTeamState,
 } = teamSlice.actions;

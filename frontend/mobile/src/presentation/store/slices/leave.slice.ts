@@ -48,6 +48,8 @@ import {
   GetPermissionRequestDetailUseCase,
   GetPermissionRequestsUseCase,
   RejectLeaveRequestUseCase,
+  ApprovePermissionRequestUseCase,
+  RejectPermissionRequestUseCase,
   RequestPermissionUseCase,
   SubmitLeaveRequestUseCase,
 } from '@/domain/use_cases';
@@ -618,6 +620,49 @@ export const rejectLeaveRequest = createAsyncThunk<
       status: state.adminFilter === 'All' ? undefined : state.adminFilter,
       page: state.adminPage,
     }));
+    return params.leaveRequestId;
+  } catch (e) {
+    return rejectWithValue(serializeLeaveError(e));
+  }
+});
+
+// Management Permissions approve/reject (Team Approvals — Permissions tab).
+// No auto-refetch: the Team screen refetches its own pending list. `id`
+// reuses ReviewLeaveRequestParams.leaveRequestId (the permission id).
+export const approvePermissionRequest = createAsyncThunk<
+  string,
+  ReviewLeaveRequestParams,
+  { rejectValue: SerializableLeaveError }
+>('leave/approvePermissionRequest', async (params, { rejectWithValue }) => {
+  leaveLog.info(
+    'slice',
+    `approvePermissionRequest thunk → id=${params.leaveRequestId}`,
+  );
+  try {
+    const useCase = ServiceLocator.get<ApprovePermissionRequestUseCase>(
+      DiKeys.APPROVE_PERMISSION_REQUEST_USE_CASE,
+    );
+    await useCase.execute(params);
+    return params.leaveRequestId;
+  } catch (e) {
+    return rejectWithValue(serializeLeaveError(e));
+  }
+});
+
+export const rejectPermissionRequest = createAsyncThunk<
+  string,
+  ReviewLeaveRequestParams,
+  { rejectValue: SerializableLeaveError }
+>('leave/rejectPermissionRequest', async (params, { rejectWithValue }) => {
+  leaveLog.info(
+    'slice',
+    `rejectPermissionRequest thunk → id=${params.leaveRequestId}`,
+  );
+  try {
+    const useCase = ServiceLocator.get<RejectPermissionRequestUseCase>(
+      DiKeys.REJECT_PERMISSION_REQUEST_USE_CASE,
+    );
+    await useCase.execute(params);
     return params.leaveRequestId;
   } catch (e) {
     return rejectWithValue(serializeLeaveError(e));

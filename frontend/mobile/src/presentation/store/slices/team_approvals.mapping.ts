@@ -10,7 +10,9 @@ import type {
  * unit-tested (`__tests__/team_approvals_mapping.test.ts`).
  */
 
-/** Minimal structural input — maps from the leave-admin domain item. */
+/** Minimal structural input — maps from the leave- or permission-admin
+ *  domain item. Leaves derive the date-range label from the day span;
+ *  permissions supply `dateRangeLabelOverride` (an hours-based label). */
 export interface ApprovalSource {
   id: string;
   employeeName: string;
@@ -21,6 +23,8 @@ export interface ApprovalSource {
   totalDays: number;
   createdAt: string; // ISO 8601
   status: string;
+  /** When set, used verbatim instead of the computed day-range label. */
+  dateRangeLabelOverride?: string;
 }
 
 const MONTHS = [
@@ -55,6 +59,36 @@ export const dateRangeLabel = (
   startDate === endDate || totalDays <= 1
     ? `${dmy(startDate)} · ${totalDays} ${unit(totalDays)}`
     : `${dmy(startDate)} – ${dmy(endDate)} · ${totalDays} ${unit(totalDays)}`;
+
+// ── Permission helpers (Approvals — Permissions tab) ────────────────────────
+// `period` on a permission is HOURS (a float). Local h/m formatter — kept
+// here rather than importing the data-layer `formatHoursWorked` so this
+// presentation helper stays layer-clean (trivial duplication).
+const hoursLabel = (hours: number): string => {
+  const totalMin = Math.round(hours * 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+};
+
+/** Card sub-label for a permission row, e.g. "2h 30m · 5 Apr". The
+ *  permission type is rendered separately (see permissionTypeLabels). */
+export const formatPermissionPeriodLabel = (
+  hours: number,
+  fromDate: string,
+): string => `${hoursLabel(hours)} · ${dmy(fromDate)}`;
+
+const PERMISSION_TYPE_LABELS: Record<string, { en: string; ar: string }> = {
+  LateAttendance: { en: 'Late attendance', ar: 'تأخير حضور' },
+  EarlyLeave: { en: 'Early leave', ar: 'انصراف مبكر' },
+};
+
+/** BE `permissionTypeName` → bilingual display labels. Unknown types fall
+ *  back to the raw name for both languages (BE sends single-language). */
+export const permissionTypeLabels = (
+  beTypeName: string,
+): { en: string; ar: string } =>
+  PERMISSION_TYPE_LABELS[beTypeName] ?? { en: beTypeName, ar: beTypeName };
 
 export const submittedAgoLabel = (
   createdAtIso: string,
@@ -154,7 +188,9 @@ export const groupPendingApprovals = (
       unread: it.status === 'Pending',
       leaveTypeEn: it.leaveTypeName,
       leaveTypeAr: it.leaveTypeNameAr,
-      dateRangeLabel: dateRangeLabel(it.startDate, it.endDate, it.totalDays),
+      dateRangeLabel:
+        it.dateRangeLabelOverride ??
+        dateRangeLabel(it.startDate, it.endDate, it.totalDays),
       submittedAgoLabel: submittedAgoLabel(it.createdAt, now),
       submittedAt: it.createdAt,
     });
