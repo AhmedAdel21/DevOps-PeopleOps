@@ -45,7 +45,6 @@ export type {
   TeamAttendanceRow,
   TeamAttendanceSummary,
   TeamAttendanceDay,
-  TeamAttendanceHistoryPage,
   AttendancePermissionType,
   MarkCheckedInInput,
   MarkOnVacationInput,

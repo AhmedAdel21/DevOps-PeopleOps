@@ -55,7 +55,6 @@ export const DiKeys = {
   TEAM_ATTENDANCE_REMOTE_DATA_SOURCE: 'teamAttendanceRemoteDataSource',
   TEAM_ATTENDANCE_REPOSITORY: 'teamAttendanceRepository',
   GET_TEAM_ATTENDANCE_DAY_USE_CASE: 'getTeamAttendanceDayUseCase',
-  GET_TEAM_ATTENDANCE_HISTORY_USE_CASE: 'getTeamAttendanceHistoryUseCase',
 
   // ── Management: admin attendance (write — overrides + bulk) ──────────
   ADMIN_ATTENDANCE_REMOTE_DATA_SOURCE: 'adminAttendanceRemoteDataSource',

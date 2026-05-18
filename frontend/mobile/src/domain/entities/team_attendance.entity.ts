@@ -31,14 +31,18 @@ export type TeamAttendanceStatus =
   | 'NotSignedIn'
   | 'OnLeave';
 
-/** Filter chip values from the design's filter row. */
+/**
+ * Filter chip values from the design's filter row. Applied client-side on
+ * the returned roster (the backend has no filter param). 'NotSignedIn' is
+ * intentionally absent: the backend doesn't distinguish not-yet-signed-in
+ * from Absent, so a NotSignedIn chip would always match zero rows.
+ */
 export type TeamAttendanceFilter =
   | 'All'
   | 'Office'
   | 'Remote'
   | 'Absent'
-  | 'Late'
-  | 'NotSignedIn';
+  | 'Late';
 
 // ── Read entities ──────────────────────────────────────────────────────────
 
@@ -75,13 +79,6 @@ export interface TeamAttendanceDay {
   readonly date: string; // yyyy-MM-dd
   readonly summary: TeamAttendanceSummary;
   readonly rows: readonly TeamAttendanceRow[];
-}
-
-export interface TeamAttendanceHistoryPage {
-  readonly items: readonly TeamAttendanceDay[];
-  readonly totalCount: number;
-  readonly page: number;
-  readonly pageSize: number;
 }
 
 // ── Admin-override action inputs ───────────────────────────────────────────

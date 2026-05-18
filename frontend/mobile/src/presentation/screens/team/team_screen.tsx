@@ -51,7 +51,6 @@ import {
   selectTeamRows,
   selectTeamSegment,
   selectTeamSelectedDate,
-  selectTeamSelectedDepartmentId,
 } from '@/presentation/store/selectors';
 import type {
   TeamAttendanceFilter,
@@ -74,7 +73,7 @@ const shiftIso = (iso: string, deltaDays: number): string => {
 };
 
 const FILTERS: TeamAttendanceFilter[] = [
-  'All', 'Office', 'Remote', 'Absent', 'Late', 'NotSignedIn',
+  'All', 'Office', 'Remote', 'Absent', 'Late',
 ];
 
 const FILTER_I18N: Record<TeamAttendanceFilter, string> = {
@@ -83,7 +82,6 @@ const FILTER_I18N: Record<TeamAttendanceFilter, string> = {
   Remote: 'team.filters.remote',
   Absent: 'team.filters.absent',
   Late: 'team.filters.late',
-  NotSignedIn: 'team.filters.notSignedIn',
 };
 
 const STATUS_I18N: Record<TeamAttendanceStatus, string> = {
@@ -256,10 +254,17 @@ export const TeamScreen: React.FC = () => {
   const segment = useAppSelector(selectTeamSegment);
   const selectedDate = useAppSelector(selectTeamSelectedDate);
   const activeFilter = useAppSelector(selectTeamActiveFilter);
-  const departmentId = useAppSelector(selectTeamSelectedDepartmentId);
   const summary = useAppSelector(selectTeamDaySummary);
   const rows = useAppSelector(selectTeamRows);
   const fetchStatus = useAppSelector(selectTeamDayFetchStatus);
+
+  // The backend has no filter param — the chips filter the fetched roster
+  // client-side. Summary chips always reflect the whole day (unfiltered).
+  const visibleRows = useMemo(() => {
+    if (activeFilter === 'All') return rows;
+    if (activeFilter === 'Late') return rows.filter(r => r.isLate);
+    return rows.filter(r => r.status === activeFilter);
+  }, [rows, activeFilter]);
 
   const approvalsRange = useAppSelector(selectApprovalsRange);
   const pendingCount = useAppSelector(selectPendingCount);
@@ -267,21 +272,14 @@ export const TeamScreen: React.FC = () => {
   const approvalsStatus = useAppSelector(selectApprovalsFetchStatus);
 
   const reload = useCallback(
-    (date: string, filter: TeamAttendanceFilter) =>
-      dispatch(
-        fetchTeamAttendanceDay({
-          date,
-          departmentId: departmentId ?? undefined,
-          filter: filter === 'All' ? undefined : filter,
-        }),
-      ),
-    [dispatch, departmentId],
+    (date: string) => dispatch(fetchTeamAttendanceDay({ date })),
+    [dispatch],
   );
 
   // Attendance is the default segment → eager fetch on mount.
   useEffect(() => {
-    reload(selectedDate, activeFilter);
-    // mount-only; date/filter changes go through their handlers
+    reload(selectedDate);
+    // mount-only; date changes go through their handler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
@@ -294,23 +292,21 @@ export const TeamScreen: React.FC = () => {
     (delta: number) => {
       const next = shiftIso(selectedDate, delta);
       dispatch(setTeamSelectedDate(next));
-      reload(next, activeFilter);
-    },
-    [dispatch, selectedDate, activeFilter, reload],
-  );
-
-  const handleFilter = useCallback(
-    (f: TeamAttendanceFilter) => {
-      dispatch(setTeamFilter(f));
-      reload(selectedDate, f);
+      reload(next);
     },
     [dispatch, selectedDate, reload],
   );
 
-  const handleClearFilters = useCallback(() => {
-    dispatch(setTeamFilter('All'));
-    reload(selectedDate, 'All');
-  }, [dispatch, selectedDate, reload]);
+  // Filter is client-side now — no refetch, just update the active chip.
+  const handleFilter = useCallback(
+    (f: TeamAttendanceFilter) => dispatch(setTeamFilter(f)),
+    [dispatch],
+  );
+
+  const handleClearFilters = useCallback(
+    () => dispatch(setTeamFilter('All')),
+    [dispatch],
+  );
 
   const loadApprovals = useCallback(
     (range: ApprovalRange) => dispatch(fetchPendingApprovals({ range })),
@@ -497,7 +493,7 @@ export const TeamScreen: React.FC = () => {
     if (fetchStatus === 'error') {
       return (
         <View style={styles.centerFill}>
-          <Pressable onPress={() => reload(selectedDate, activeFilter)}>
+          <Pressable onPress={() => reload(selectedDate)}>
             <AppAlertBanner variant="error" message={t('team.error.load')} />
           </Pressable>
         </View>
@@ -505,7 +501,7 @@ export const TeamScreen: React.FC = () => {
     }
     return (
       <FlatList<SerializableTeamRow>
-        data={rows}
+        data={visibleRows}
         keyExtractor={r => r.userId}
         renderItem={renderRow}
         ListHeaderComponent={renderHeader}

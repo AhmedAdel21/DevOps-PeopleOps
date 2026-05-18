@@ -27,7 +27,6 @@ export type {
 export type {
   TeamAttendanceRepository,
   GetTeamAttendanceDayParams,
-  GetTeamAttendanceHistoryParams,
 } from './team_attendance.repository';
 export type {
   AdminAttendanceRepository,

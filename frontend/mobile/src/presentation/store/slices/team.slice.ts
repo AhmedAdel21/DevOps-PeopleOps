@@ -27,7 +27,7 @@ import {
   dateRangeLabel,
   groupPendingApprovals,
 } from './team_approvals.mapping';
-import { ManagementError } from '@/domain/errors';
+import { DomainError, ManagementError } from '@/domain/errors';
 import { managementLog } from '@/core/logger';
 import type { SerializableDomainError } from '../hooks';
 
@@ -41,12 +41,16 @@ export interface SerializableManagementError extends SerializableDomainError {
 const serializeManagementError = (
   e: unknown,
 ): SerializableManagementError => {
-  if (e instanceof ManagementError) {
+  // The Team feature reuses the leave-admin + attendance `/management`
+  // paths, which throw `LeaveError` via `mapHttpErrorToLeave`. Any
+  // `DomainError` carries a serializable code/message; only
+  // `ManagementError` adds the coarse mgmtCode/serverCode.
+  if (e instanceof DomainError) {
     return {
       code: e.code,
       message: e.message,
-      mgmtCode: e.mgmtCode,
-      serverCode: e.serverCode,
+      mgmtCode: e instanceof ManagementError ? e.mgmtCode : 'unknown',
+      serverCode: e instanceof ManagementError ? e.serverCode : null,
     };
   }
   return {
@@ -233,8 +237,7 @@ export const fetchTeamAttendanceDay = createAsyncThunk<
 >('team/fetchAttendanceDay', async (params, { rejectWithValue }) => {
   managementLog.info(
     'slice',
-    `fetchTeamAttendanceDay thunk → date=${params.date ?? 'today'}, ` +
-      `dept=${params.departmentId ?? '—'}, filter=${params.filter ?? 'All'}`,
+    `fetchTeamAttendanceDay thunk → date=${params.date ?? 'today'}`,
   );
   try {
     const useCase = ServiceLocator.get<GetTeamAttendanceDayUseCase>(

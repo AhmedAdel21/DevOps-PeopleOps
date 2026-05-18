@@ -1,19 +1,14 @@
-import type {
-  TeamAttendanceDay,
-  TeamAttendanceHistoryPage,
-} from '@/domain/entities';
+import type { TeamAttendanceDay } from '@/domain/entities';
 import type {
   GetTeamAttendanceDayParams,
-  GetTeamAttendanceHistoryParams,
   TeamAttendanceRepository,
 } from '@/domain/repositories';
 import { TeamAttendanceRemoteDataSource } from '@/data/data_sources/team_attendance';
-import {
-  mapHttpErrorToManagement,
-  teamAttendanceDayDtoToDomain,
-  teamAttendanceHistoryPageDtoToDomain,
-} from '@/data/mappers/team_attendance';
+import { attendanceHistoryToTeamDay } from '@/data/mappers/team_attendance';
+import { mapHttpErrorToLeave } from '@/data/mappers/leave';
 import { managementLog } from '@/core/logger';
+
+const todayIso = (): string => new Date().toISOString().slice(0, 10);
 
 export class TeamAttendanceRepositoryImpl implements TeamAttendanceRepository {
   constructor(private readonly ds: TeamAttendanceRemoteDataSource) {}
@@ -21,61 +16,26 @@ export class TeamAttendanceRepositoryImpl implements TeamAttendanceRepository {
   async getTeamAttendanceDay(
     params: GetTeamAttendanceDayParams,
   ): Promise<TeamAttendanceDay> {
-    managementLog.info(
-      'repository',
-      `getTeamAttendanceDay (date=${params.date ?? 'today'}, dept=${
-        params.departmentId ?? '—'
-      }, filter=${params.filter ?? 'All'})`,
-    );
+    const date = params.date ?? todayIso();
+    managementLog.info('repository', `getTeamAttendanceDay (date=${date})`);
     try {
-      const dto = await this.ds.getTeamAttendanceDay({
-        date: params.date,
-        departmentId: params.departmentId,
-        filter: params.filter,
-      });
-      const result = teamAttendanceDayDtoToDomain(dto);
+      // No per-day endpoint — request a single-day range and derive.
+      const dto = await this.ds.getAttendanceHistory({ from: date, to: date });
+      const result = attendanceHistoryToTeamDay(dto, date);
       managementLog.info(
         'repository',
         `getTeamAttendanceDay → ${result.rows.length} rows`,
       );
       return result;
     } catch (e) {
-      throw mapAndLog(e, 'getTeamAttendanceDay');
-    }
-  }
-
-  async getTeamAttendanceHistory(
-    params: GetTeamAttendanceHistoryParams,
-  ): Promise<TeamAttendanceHistoryPage> {
-    managementLog.info(
-      'repository',
-      `getTeamAttendanceHistory (${params.startDate}..${params.endDate}, page=${
-        params.page ?? 1
-      })`,
-    );
-    try {
-      const dto = await this.ds.getTeamAttendanceHistory({
-        startDate: params.startDate,
-        endDate: params.endDate,
-        departmentId: params.departmentId,
-        filter: params.filter,
-        page: params.page,
-        pageSize: params.pageSize,
-      });
-      const result = teamAttendanceHistoryPageDtoToDomain(dto);
-      managementLog.info(
+      // Reuse the leave error mapping — same `/management` backend, same
+      // BaseResponseObj/403 shape (mapHttpErrorToManagement removed).
+      const mapped = mapHttpErrorToLeave(e);
+      managementLog.error(
         'repository',
-        `getTeamAttendanceHistory → ${result.items.length} days`,
+        `getTeamAttendanceDay failed (${mapped.code})`,
       );
-      return result;
-    } catch (e) {
-      throw mapAndLog(e, 'getTeamAttendanceHistory');
+      throw mapped;
     }
   }
 }
-
-const mapAndLog = (e: unknown, label: string) => {
-  const mapped = mapHttpErrorToManagement(e);
-  managementLog.error('repository', `${label} failed (code=${mapped.mgmtCode})`);
-  return mapped;
-};

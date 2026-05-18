@@ -37,7 +37,6 @@ import {
   CancelPermissionRequestUseCase,
   FetchMeUseCase,
   GetTeamAttendanceDayUseCase,
-  GetTeamAttendanceHistoryUseCase,
 } from '@/domain/use_cases';
 import {
   AttachmentRemoteDataSource,
@@ -248,10 +247,6 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.GET_TEAM_ATTENDANCE_DAY_USE_CASE,
       new GetTeamAttendanceDayUseCase(teamAttendanceRepo),
-    );
-    ServiceLocator.register(
-      DiKeys.GET_TEAM_ATTENDANCE_HISTORY_USE_CASE,
-      new GetTeamAttendanceHistoryUseCase(teamAttendanceRepo),
     );
 
     // Team Approvals + Approval Detail reuse the live leave-admin use
