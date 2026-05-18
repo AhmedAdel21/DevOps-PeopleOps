@@ -18,7 +18,7 @@ import { useFontFamily } from '@/presentation/hooks/use_font_family';
 import { hs, ws, fs } from '@/presentation/utils/scaling';
 import { HomeScreen } from '@/presentation/screens/home';
 import { LeaveStackNavigator } from './leave_stack_navigator';
-import { TeamScreen } from '@/presentation/screens/team';
+import { TeamStackNavigator } from './team_stack_navigator';
 import { ProfileScreen } from '@/presentation/screens/profile';
 import type { MainTabsParamList } from './types';
 import { useAppSelector } from '@/presentation/store/hooks';
@@ -97,7 +97,7 @@ export const MainTabsNavigator: React.FC = () => {
             {showTeamTab && (
                 <Tab.Screen
                     name="Team"
-                    component={TeamScreen}
+                    component={TeamStackNavigator}
                     options={{
                         tabBarLabel: t('tabs.team').toUpperCase(),
                         tabBarIcon: buildIcon(Users),

@@ -66,3 +66,28 @@ export {
   markPasswordChanged,
   type MeState,
 } from './me.slice';
+
+export {
+  default as teamReducer,
+  fetchTeamAttendanceDay,
+  fetchPendingApprovals,
+  fetchDepartments,
+  fetchApprovalDetail,
+  setTeamSegment,
+  setTeamFilter,
+  setTeamSelectedDate,
+  setTeamSelectedDepartment,
+  setApprovalsRange,
+  clearTeamErrors,
+  resetTeamState,
+  type TeamState,
+  type TeamSegment,
+  type SerializableTeamDay,
+  type SerializableTeamRow,
+  type SerializableTeamSummary,
+  type SerializablePendingApprovalItem,
+  type SerializablePendingApprovalSection,
+  type SerializableDepartment,
+  type SerializableApprovalDetail,
+  type SerializableManagementError,
+} from './team.slice';

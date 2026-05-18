@@ -7,6 +7,10 @@ import type {
   SlackRepository,
   LeaveRepository,
   MeRepository,
+  TeamAttendanceRepository,
+  PendingApprovalsRepository,
+  DepartmentRepository,
+  ApprovalDetailRepository,
 } from '@/domain/repositories';
 import {
   LoginUseCase,
@@ -35,6 +39,11 @@ import {
   RequestPermissionUseCase,
   CancelPermissionRequestUseCase,
   FetchMeUseCase,
+  GetTeamAttendanceDayUseCase,
+  GetTeamAttendanceHistoryUseCase,
+  GetPendingApprovalsUseCase,
+  ListDepartmentsUseCase,
+  GetApprovalDetailUseCase,
 } from '@/domain/use_cases';
 import {
   AttachmentRemoteDataSource,
@@ -44,6 +53,10 @@ import {
   SlackOAuthRemoteDataSource,
   LeaveRemoteDataSource,
   MeRemoteDataSource,
+  TeamAttendanceRemoteDataSource,
+  PendingApprovalsRemoteDataSource,
+  DepartmentRemoteDataSource,
+  ApprovalDetailRemoteDataSource,
   HttpClient,
 } from '@/data/data_sources';
 import {
@@ -53,6 +66,10 @@ import {
   SlackRepositoryImpl,
   LeaveRepositoryImpl,
   MeRepositoryImpl,
+  TeamAttendanceRepositoryImpl,
+  PendingApprovalsRepositoryImpl,
+  DepartmentRepositoryImpl,
+  ApprovalDetailRepositoryImpl,
 } from '@/data/repositories';
 
 export class ServiceLocator {
@@ -226,6 +243,79 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.CANCEL_PERMISSION_REQUEST_USE_CASE,
       new CancelPermissionRequestUseCase(leaveRepo),
+    );
+
+    // ── Team Attendance (read — mock-backed until BE ships) ──
+    const teamAttendanceDs = new TeamAttendanceRemoteDataSource(httpClient);
+    ServiceLocator.register(
+      DiKeys.TEAM_ATTENDANCE_REMOTE_DATA_SOURCE,
+      teamAttendanceDs,
+    );
+    const teamAttendanceRepo: TeamAttendanceRepository =
+      new TeamAttendanceRepositoryImpl(teamAttendanceDs);
+    ServiceLocator.register(
+      DiKeys.TEAM_ATTENDANCE_REPOSITORY,
+      teamAttendanceRepo,
+    );
+    ServiceLocator.register(
+      DiKeys.GET_TEAM_ATTENDANCE_DAY_USE_CASE,
+      new GetTeamAttendanceDayUseCase(teamAttendanceRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.GET_TEAM_ATTENDANCE_HISTORY_USE_CASE,
+      new GetTeamAttendanceHistoryUseCase(teamAttendanceRepo),
+    );
+
+    // ── Pending Approvals (grouped aggregation — mock-backed) ──
+    // Approve/Reject reuse the live leave-admin use cases above.
+    const pendingApprovalsDs = new PendingApprovalsRemoteDataSource(
+      httpClient,
+    );
+    ServiceLocator.register(
+      DiKeys.PENDING_APPROVALS_REMOTE_DATA_SOURCE,
+      pendingApprovalsDs,
+    );
+    const pendingApprovalsRepo: PendingApprovalsRepository =
+      new PendingApprovalsRepositoryImpl(pendingApprovalsDs);
+    ServiceLocator.register(
+      DiKeys.PENDING_APPROVALS_REPOSITORY,
+      pendingApprovalsRepo,
+    );
+    ServiceLocator.register(
+      DiKeys.GET_PENDING_APPROVALS_USE_CASE,
+      new GetPendingApprovalsUseCase(pendingApprovalsRepo),
+    );
+
+    // ── Departments (read — HR dept selector; mock-backed) ──
+    // Mutations live in the future Department Management feature.
+    const departmentDs = new DepartmentRemoteDataSource(httpClient);
+    ServiceLocator.register(
+      DiKeys.DEPARTMENT_REMOTE_DATA_SOURCE,
+      departmentDs,
+    );
+    const departmentRepo: DepartmentRepository =
+      new DepartmentRepositoryImpl(departmentDs);
+    ServiceLocator.register(DiKeys.DEPARTMENT_REPOSITORY, departmentRepo);
+    ServiceLocator.register(
+      DiKeys.LIST_DEPARTMENTS_USE_CASE,
+      new ListDepartmentsUseCase(departmentRepo),
+    );
+
+    // ── Approval Detail (enriched — mock-backed) ────────────
+    const approvalDetailDs = new ApprovalDetailRemoteDataSource(httpClient);
+    ServiceLocator.register(
+      DiKeys.APPROVAL_DETAIL_REMOTE_DATA_SOURCE,
+      approvalDetailDs,
+    );
+    const approvalDetailRepo: ApprovalDetailRepository =
+      new ApprovalDetailRepositoryImpl(approvalDetailDs);
+    ServiceLocator.register(
+      DiKeys.APPROVAL_DETAIL_REPOSITORY,
+      approvalDetailRepo,
+    );
+    ServiceLocator.register(
+      DiKeys.GET_APPROVAL_DETAIL_USE_CASE,
+      new GetApprovalDetailUseCase(approvalDetailRepo),
     );
 
     // ── Me (GET /api/v1/auth/me) ───────────────────────────

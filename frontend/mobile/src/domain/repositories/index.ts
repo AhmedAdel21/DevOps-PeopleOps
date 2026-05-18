@@ -41,3 +41,11 @@ export type {
 export type {
   LeaveTypeConfigRepository,
 } from './leave_type_config.repository';
+export type {
+  GetPendingApprovalsParams,
+  PendingApprovalsRepository,
+} from './pending_approvals.repository';
+export type {
+  GetApprovalDetailParams,
+  ApprovalDetailRepository,
+} from './approval_detail.repository';

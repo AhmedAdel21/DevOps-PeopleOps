@@ -24,6 +24,11 @@ export type LeaveStackParamList = {
   PermissionRequestDetail: { id: string };
 };
 
+export type TeamStackParamList = {
+  TeamLanding: undefined;
+  ApprovalDetail: { requestId: string };
+};
+
 declare global {
   namespace ReactNavigation {
     interface RootParamList extends RootStackParamList { }

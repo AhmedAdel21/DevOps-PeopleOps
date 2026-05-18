@@ -4,6 +4,7 @@ import {
   attendanceReducer,
   leaveReducer,
   meReducer,
+  teamReducer,
 } from './slices';
 
 const rootReducer = combineReducers({
@@ -11,6 +12,7 @@ const rootReducer = combineReducers({
   attendance: attendanceReducer,
   leave: leaveReducer,
   me: meReducer,
+  team: teamReducer,
 });
 
 export const store = configureStore({

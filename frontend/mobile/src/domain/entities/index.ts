@@ -89,3 +89,18 @@ export type {
   UpdateLeaveTypePolicyInput,
   ResetLeaveTypePolicyInput,
 } from './leave_type_config.entity';
+export type {
+  PendingApprovalRange,
+  PendingApprovalSectionKey,
+  PendingApprovalItem,
+  PendingApprovalSection,
+  PendingApprovalsPage,
+} from './pending_approvals.entity';
+export type {
+  ApprovalStatus,
+  ApprovalEmployee,
+  ApprovalRequestInfo,
+  ApprovalBalanceImpact,
+  ApprovalConflict,
+  ApprovalDetail,
+} from './approval_detail.entity';

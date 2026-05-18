@@ -6,6 +6,7 @@ import {
   View,
   type AppStateStatus,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider as ReduxProvider } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { store } from '@/presentation/store';
@@ -104,16 +105,18 @@ function AppRoot() {
 
 export default function App() {
   return (
-    <ReduxProvider store={store}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <DialogProvider>
-            <LanguageProvider>
-              <AppRoot />
-            </LanguageProvider>
-          </DialogProvider>
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </ReduxProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <ReduxProvider store={store}>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <DialogProvider>
+              <LanguageProvider>
+                <AppRoot />
+              </LanguageProvider>
+            </DialogProvider>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </ReduxProvider>
+    </GestureHandlerRootView>
   );
 }

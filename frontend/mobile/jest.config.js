@@ -2,9 +2,10 @@ const path = require('path');
 
 module.exports = {
   preset: '@react-native/jest-preset',
+  setupFiles: [path.resolve(__dirname, 'jest.setup.js')],
   // Extends @react-native/jest-preset's default — also transforms ESM-shipping deps
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native-async-storage|@react-navigation|react-redux|@reduxjs/toolkit|immer|react-native-inappbrowser-reborn)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native-async-storage|@react-navigation|react-redux|@reduxjs/toolkit|immer|react-native-inappbrowser-reborn|react-native-gesture-handler|react-native-reanimated|react-native-worklets)/)',
   ],
   moduleNameMapper: {
     '^@react-native-async-storage/async-storage$': path.resolve(

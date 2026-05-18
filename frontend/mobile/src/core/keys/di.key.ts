@@ -99,6 +99,16 @@ export const DiKeys = {
   LIST_LEAVE_TYPE_CONFIGS_USE_CASE: 'listLeaveTypeConfigsUseCase',
   UPDATE_LEAVE_TYPE_POLICY_USE_CASE: 'updateLeaveTypePolicyUseCase',
   RESET_LEAVE_TYPE_POLICY_USE_CASE: 'resetLeaveTypePolicyUseCase',
+
+  // ── Management: pending approvals (grouped aggregation — read) ───────
+  PENDING_APPROVALS_REMOTE_DATA_SOURCE: 'pendingApprovalsRemoteDataSource',
+  PENDING_APPROVALS_REPOSITORY: 'pendingApprovalsRepository',
+  GET_PENDING_APPROVALS_USE_CASE: 'getPendingApprovalsUseCase',
+
+  // ── Management: approval detail (enriched — read) ────────────────────
+  APPROVAL_DETAIL_REMOTE_DATA_SOURCE: 'approvalDetailRemoteDataSource',
+  APPROVAL_DETAIL_REPOSITORY: 'approvalDetailRepository',
+  GET_APPROVAL_DETAIL_USE_CASE: 'getApprovalDetailUseCase',
 } as const;
 
 export type DiKey = (typeof DiKeys)[keyof typeof DiKeys];
