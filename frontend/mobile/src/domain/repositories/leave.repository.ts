@@ -1,5 +1,6 @@
 import type {
   AdminLeaveRequestsPage,
+  AdminPermissionRequestsPage,
   LeaveBalancesSummary,
   LeaveRequestDateRange,
   LeaveRequestDetail,
@@ -111,6 +112,11 @@ export interface LeaveRepository {
   adminGetLeaveRequests(params: GetLeaveRequestsParams): Promise<AdminLeaveRequestsPage>;
   adminApproveLeaveRequest(params: ReviewLeaveRequestParams): Promise<void>;
   adminRejectLeaveRequest(params: ReviewLeaveRequestParams): Promise<void>;
+  adminGetPermissionRequests(
+    params: GetLeaveRequestsParams,
+  ): Promise<AdminPermissionRequestsPage>;
+  adminApprovePermissionRequest(params: ReviewLeaveRequestParams): Promise<void>;
+  adminRejectPermissionRequest(params: ReviewLeaveRequestParams): Promise<void>;
 
   // Permission (mock)
   getPermissionQuota(): Promise<PermissionQuota | null>;

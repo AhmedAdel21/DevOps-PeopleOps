@@ -8,6 +8,8 @@ export {
   submitLeaveRequestSuccessDtoToDomain,
   adminLeaveRequestListItemDtoToDomain,
   adminLeaveRequestsPageDtoToDomain,
+  adminPermissionRequestListItemDtoToDomain,
+  adminPermissionRequestsPageDtoToDomain,
   permissionRequestDtoToDomain,
   permissionRequestsResponseDtoToDomain,
   MOCK_PERMISSION_QUOTA,

@@ -27,6 +27,7 @@ const VACATIONS_PATH         = '/api/v1/vacations';
 // methods, so this repath is isolated to Team. Approve/Reject are
 // `PUT …/{id}/{approve|reject}` with `{ reviewerComment }` (unchanged).
 const ADMIN_VACATIONS        = '/api/v1/management/requests/leaves';
+const ADMIN_PERMISSIONS      = '/api/v1/management/requests/permissions';
 const PERMISSIONS_PATH       = '/api/v1/leave/permissions';
 const PERMISSIONS_QUOTA_PATH = '/api/v1/leave/permissions/quota';
 
@@ -244,6 +245,53 @@ export class LeaveRemoteDataSource {
   async adminRejectLeaveRequest(id: string, body: ReviewLeaveRequestDto): Promise<void> {
     const path = `${ADMIN_VACATIONS}/${encodeURIComponent(id)}/reject`;
     if (AppConfig.USE_MOCK_LEAVE) {
+      leaveLog.info('data_source', `[MOCK] PUT ${path}`);
+      await mockDelay();
+      return;
+    }
+    leaveLog.info('data_source', `PUT ${path}`);
+    await this.http.put<void>(path, body);
+  }
+
+  // Management Approvals — Permissions tab. Mirrors the leave-admin trio;
+  // gated by USE_MOCK_PERMISSIONS (the self-service permission flag).
+  async adminGetPermissionRequests(params: {
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<PermissionRequestsResponseDto> {
+    const qs = buildVacationsQuery(params);
+    const path = qs ? `${ADMIN_PERMISSIONS}?${qs}` : ADMIN_PERMISSIONS;
+
+    if (AppConfig.USE_MOCK_PERMISSIONS) {
+      leaveLog.info('data_source', `[MOCK] GET ${path}`);
+      await mockDelay();
+      return mockEmpty<PermissionRequestDto>() as unknown as PermissionRequestsResponseDto;
+    }
+    leaveLog.info('data_source', `GET ${path}`);
+    return this.http.get<PermissionRequestsResponseDto>(path);
+  }
+
+  async adminApprovePermissionRequest(
+    id: string,
+    body: ReviewLeaveRequestDto,
+  ): Promise<void> {
+    const path = `${ADMIN_PERMISSIONS}/${encodeURIComponent(id)}/approve`;
+    if (AppConfig.USE_MOCK_PERMISSIONS) {
+      leaveLog.info('data_source', `[MOCK] PUT ${path}`);
+      await mockDelay();
+      return;
+    }
+    leaveLog.info('data_source', `PUT ${path}`);
+    await this.http.put<void>(path, body);
+  }
+
+  async adminRejectPermissionRequest(
+    id: string,
+    body: ReviewLeaveRequestDto,
+  ): Promise<void> {
+    const path = `${ADMIN_PERMISSIONS}/${encodeURIComponent(id)}/reject`;
+    if (AppConfig.USE_MOCK_PERMISSIONS) {
       leaveLog.info('data_source', `[MOCK] PUT ${path}`);
       await mockDelay();
       return;

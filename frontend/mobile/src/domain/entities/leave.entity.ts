@@ -178,6 +178,27 @@ export interface AdminLeaveRequestsPage {
   readonly pageSize: number;
 }
 
+/** Management Approvals — Permissions tab (`/management/requests/permissions`).
+ *  Mirrors AdminLeaveRequestListItem; permission `period` is HOURS. */
+export interface AdminPermissionRequestListItem {
+  readonly id: string;
+  readonly employeeId: string;
+  readonly employeeName: string;
+  readonly permissionTypeName: string; // BE EN, e.g. "LateAttendance"
+  readonly startDate: string;          // yyyy-MM-dd
+  readonly endDate: string;            // yyyy-MM-dd
+  readonly periodHours: number;        // BE period, in hours
+  readonly status: LeaveRequestStatus; // shared request-status enum
+  readonly createdAt: string;          // ISO 8601
+}
+
+export interface AdminPermissionRequestsPage {
+  readonly items: AdminPermissionRequestListItem[];
+  readonly totalCount: number;
+  readonly page: number;
+  readonly pageSize: number;
+}
+
 // ── Permission feature ─────────────────────────────────────────────────────
 
 export interface PermissionQuota {

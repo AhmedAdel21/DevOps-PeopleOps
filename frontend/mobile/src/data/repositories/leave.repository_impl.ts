@@ -1,5 +1,6 @@
 import type {
   AdminLeaveRequestsPage,
+  AdminPermissionRequestsPage,
   LeaveBalancesSummary,
   LeaveRequestDetail,
   LeaveRequestsPage,
@@ -26,6 +27,7 @@ import type {
 import { LeaveRemoteDataSource } from '@/data/data_sources/leave';
 import {
   adminLeaveRequestsPageDtoToDomain,
+  adminPermissionRequestsPageDtoToDomain,
   leaveBalancesResponseDtoToDomain,
   leaveRequestDetailDtoToDomain,
   leaveRequestsPageDtoToDomain,
@@ -204,6 +206,64 @@ export class LeaveRepositoryImpl implements LeaveRepository {
       leaveLog.info('repository', `adminRejectLeaveRequest → ok`);
     } catch (e) {
       throw mapAndLog(e, 'adminRejectLeaveRequest');
+    }
+  }
+
+  async adminGetPermissionRequests(
+    params: GetLeaveRequestsParams,
+  ): Promise<AdminPermissionRequestsPage> {
+    leaveLog.info(
+      'repository',
+      `adminGetPermissionRequests called (status=${params.status ?? 'all'}, page=${params.page ?? 1})`,
+    );
+    try {
+      const dto = await this.ds.adminGetPermissionRequests({
+        status: params.status,
+        page: params.page,
+        pageSize: params.pageSize,
+      });
+      const page = adminPermissionRequestsPageDtoToDomain(dto);
+      leaveLog.info(
+        'repository',
+        `adminGetPermissionRequests → ${page.items.length}/${page.totalCount} items`,
+      );
+      return page;
+    } catch (e) {
+      throw mapAndLog(e, 'adminGetPermissionRequests');
+    }
+  }
+
+  async adminApprovePermissionRequest(
+    params: ReviewLeaveRequestParams,
+  ): Promise<void> {
+    leaveLog.info(
+      'repository',
+      `adminApprovePermissionRequest called (id=${params.leaveRequestId})`,
+    );
+    try {
+      await this.ds.adminApprovePermissionRequest(params.leaveRequestId, {
+        reviewerComment: params.reviewerComment,
+      });
+      leaveLog.info('repository', `adminApprovePermissionRequest → ok`);
+    } catch (e) {
+      throw mapAndLog(e, 'adminApprovePermissionRequest');
+    }
+  }
+
+  async adminRejectPermissionRequest(
+    params: ReviewLeaveRequestParams,
+  ): Promise<void> {
+    leaveLog.info(
+      'repository',
+      `adminRejectPermissionRequest called (id=${params.leaveRequestId})`,
+    );
+    try {
+      await this.ds.adminRejectPermissionRequest(params.leaveRequestId, {
+        reviewerComment: params.reviewerComment,
+      });
+      leaveLog.info('repository', `adminRejectPermissionRequest → ok`);
+    } catch (e) {
+      throw mapAndLog(e, 'adminRejectPermissionRequest');
     }
   }
 

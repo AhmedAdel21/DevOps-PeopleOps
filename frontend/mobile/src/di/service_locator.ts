@@ -30,6 +30,9 @@ import {
   AdminGetLeaveRequestsUseCase,
   ApproveLeaveRequestUseCase,
   RejectLeaveRequestUseCase,
+  AdminGetPermissionRequestsUseCase,
+  ApprovePermissionRequestUseCase,
+  RejectPermissionRequestUseCase,
   GetPermissionQuotaUseCase,
   GetPermissionRequestsUseCase,
   GetPermissionRequestDetailUseCase,
@@ -210,6 +213,18 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.REJECT_LEAVE_REQUEST_USE_CASE,
       new RejectLeaveRequestUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.ADMIN_GET_PERMISSION_REQUESTS_USE_CASE,
+      new AdminGetPermissionRequestsUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.APPROVE_PERMISSION_REQUEST_USE_CASE,
+      new ApprovePermissionRequestUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.REJECT_PERMISSION_REQUEST_USE_CASE,
+      new RejectPermissionRequestUseCase(leaveRepo),
     );
     ServiceLocator.register(
       DiKeys.GET_PERMISSION_QUOTA_USE_CASE,

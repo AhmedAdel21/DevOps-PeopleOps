@@ -35,6 +35,8 @@ export type {
   SubmitLeaveResult,
   AdminLeaveRequestListItem,
   AdminLeaveRequestsPage,
+  AdminPermissionRequestListItem,
+  AdminPermissionRequestsPage,
   PermissionQuota,
   PermissionRequest,
   PermissionRequestsPage,

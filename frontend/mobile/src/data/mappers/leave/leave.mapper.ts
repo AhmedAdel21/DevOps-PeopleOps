@@ -1,6 +1,8 @@
 import type {
   AdminLeaveRequestListItem,
   AdminLeaveRequestsPage,
+  AdminPermissionRequestListItem,
+  AdminPermissionRequestsPage,
   LeaveBalance,
   LeaveBalancesSummary,
   LeaveRequestDetail,
@@ -256,6 +258,29 @@ export const adminLeaveRequestsPageDtoToDomain = (
   dto: AdminLeaveRequestsPageDto,
 ): AdminLeaveRequestsPage => ({
   items: dto.data.map(adminLeaveRequestListItemDtoToDomain),
+  totalCount: dto.pagination.rowCount,
+  page: dto.pagination.currentPage,
+  pageSize: dto.pagination.pageSize,
+});
+
+export const adminPermissionRequestListItemDtoToDomain = (
+  dto: PermissionRequestDto,
+): AdminPermissionRequestListItem => ({
+  id: String(dto.id),
+  employeeId: String(dto.employeeId),
+  employeeName: dto.employeeName,
+  permissionTypeName: dto.permissionTypeName,
+  startDate: toIsoDate(dto.fromDate),
+  endDate: toIsoDate(dto.toDate ?? dto.fromDate),
+  periodHours: dto.period, // BE PeriodInHours
+  status: toLeaveRequestStatus(dto.requestStatusName),
+  createdAt: dto.createdDate,
+});
+
+export const adminPermissionRequestsPageDtoToDomain = (
+  dto: PermissionRequestsResponseDto,
+): AdminPermissionRequestsPage => ({
+  items: dto.data.map(adminPermissionRequestListItemDtoToDomain),
   totalCount: dto.pagination.rowCount,
   page: dto.pagination.currentPage,
   pageSize: dto.pagination.pageSize,
