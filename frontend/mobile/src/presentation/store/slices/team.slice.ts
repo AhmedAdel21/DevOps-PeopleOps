@@ -6,25 +6,26 @@ import {
 import { ServiceLocator } from '@/di';
 import { DiKeys } from '@/core/keys/di.key';
 import type {
-  ApprovalDetail,
+  AdminLeaveRequestListItem,
   Department,
   PendingApprovalRange,
-  PendingApprovalsPage,
   TeamAttendanceDay,
   TeamAttendanceFilter,
   TeamAttendanceStatus,
 } from '@/domain/entities';
 import type {
-  GetApprovalDetailParams,
-  GetPendingApprovalsParams,
+  GetLeaveRequestsParams,
   GetTeamAttendanceDayParams,
 } from '@/domain/repositories';
 import {
-  GetApprovalDetailUseCase,
-  GetPendingApprovalsUseCase,
+  AdminGetLeaveRequestsUseCase,
   GetTeamAttendanceDayUseCase,
   ListDepartmentsUseCase,
 } from '@/domain/use_cases';
+import {
+  dateRangeLabel,
+  groupPendingApprovals,
+} from './team_approvals.mapping';
 import { ManagementError } from '@/domain/errors';
 import { managementLog } from '@/core/logger';
 import type { SerializableDomainError } from '../hooks';
@@ -156,39 +157,20 @@ export interface SerializableApprovalDetail {
   precedentLabel: string | null;
 }
 
-const toSerializableApprovalDetail = (
-  d: ApprovalDetail,
-): SerializableApprovalDetail => ({
-  requestId: d.requestId,
-  status: d.status,
-  employee: { ...d.employee },
-  request: { ...d.request },
-  balanceImpact: d.balanceImpact ? { ...d.balanceImpact } : null,
-  conflict: d.conflict
-    ? { title: d.conflict.title, rows: [...d.conflict.rows] }
-    : null,
-  precedentLabel: d.precedentLabel,
+// Approvals + detail now reuse the live leave-admin domain
+// (/api/v1/management/requests/leaves); the design's sections/labels are
+// derived client-side — see team_approvals.mapping (unit-tested).
+const adminItemToSource = (i: AdminLeaveRequestListItem) => ({
+  id: i.id,
+  employeeName: i.employeeName,
+  leaveTypeName: i.leaveTypeName,
+  leaveTypeNameAr: i.leaveTypeNameAr,
+  startDate: i.startDate,
+  endDate: i.endDate,
+  totalDays: i.totalDays,
+  createdAt: i.createdAt,
+  status: i.status,
 });
-
-const toSerializablePendingSections = (
-  page: PendingApprovalsPage,
-): SerializablePendingApprovalSection[] =>
-  page.sections.map(s => ({
-    key: s.key,
-    title: s.title,
-    items: s.items.map(i => ({
-      requestId: i.requestId,
-      employeeName: i.employeeName,
-      avatarInitials: i.avatarInitials,
-      avatarColorHex: i.avatarColorHex,
-      unread: i.unread,
-      leaveTypeEn: i.leaveTypeEn,
-      leaveTypeAr: i.leaveTypeAr,
-      dateRangeLabel: i.dateRangeLabel,
-      submittedAgoLabel: i.submittedAgoLabel,
-      submittedAt: i.submittedAt,
-    })),
-  }));
 
 const toSerializableDay = (d: TeamAttendanceDay): SerializableTeamDay => ({
   date: d.date,
@@ -298,22 +280,26 @@ export interface FetchPendingApprovalsPayload {
 
 export const fetchPendingApprovals = createAsyncThunk<
   FetchPendingApprovalsPayload,
-  GetPendingApprovalsParams,
+  { range?: PendingApprovalRange },
   { rejectValue: SerializableManagementError }
->('team/fetchPendingApprovals', async (params, { rejectWithValue }) => {
-  managementLog.info(
-    'slice',
-    `fetchPendingApprovals thunk → range=${params.range ?? 'all'}`,
-  );
+>('team/fetchPendingApprovals', async (_params, { rejectWithValue }) => {
+  managementLog.info('slice', 'fetchPendingApprovals → admin leaves (Pending)');
   try {
-    const useCase = ServiceLocator.get<GetPendingApprovalsUseCase>(
-      DiKeys.GET_PENDING_APPROVALS_USE_CASE,
+    // Reuse the live leave-admin endpoint (now /management/requests/leaves):
+    // Pending = New|InReview server-side. Sections/labels derived client-side.
+    const useCase = ServiceLocator.get<AdminGetLeaveRequestsUseCase>(
+      DiKeys.ADMIN_GET_LEAVE_REQUESTS_USE_CASE,
     );
-    const result = await useCase.execute(params);
-    return {
-      pendingCount: result.pendingCount,
-      sections: toSerializablePendingSections(result),
-    };
+    const page = await useCase.execute({
+      status: 'Pending',
+      page: 1,
+      pageSize: 50,
+    } as GetLeaveRequestsParams);
+    const sections = groupPendingApprovals(
+      page.items.map(adminItemToSource),
+    );
+    const pendingCount = sections.reduce((n, s) => n + s.items.length, 0);
+    return { pendingCount, sections };
   } catch (e) {
     return rejectWithValue(serializeManagementError(e));
   }
@@ -338,19 +324,66 @@ export const fetchDepartments = createAsyncThunk<
 
 export const fetchApprovalDetail = createAsyncThunk<
   SerializableApprovalDetail,
-  GetApprovalDetailParams,
+  { requestId: string },
   { rejectValue: SerializableManagementError }
->('team/fetchApprovalDetail', async (params, { rejectWithValue }) => {
-  managementLog.info(
-    'slice',
-    `fetchApprovalDetail thunk → ${params.requestId}`,
-  );
+>('team/fetchApprovalDetail', async ({ requestId }, { rejectWithValue }) => {
+  managementLog.info('slice', `fetchApprovalDetail → ${requestId}`);
   try {
-    const useCase = ServiceLocator.get<GetApprovalDetailUseCase>(
-      DiKeys.GET_APPROVAL_DETAIL_USE_CASE,
+    // No dedicated detail endpoint (contract §3.5 resolved) — render from
+    // the leave-admin list item. Balance/precedent have no source yet →
+    // null (screen hides them); conflict from conflictDetails if present.
+    const useCase = ServiceLocator.get<AdminGetLeaveRequestsUseCase>(
+      DiKeys.ADMIN_GET_LEAVE_REQUESTS_USE_CASE,
     );
-    const result = await useCase.execute(params);
-    return toSerializableApprovalDetail(result);
+    const page = await useCase.execute({
+      status: 'Pending',
+      page: 1,
+      pageSize: 50,
+    } as GetLeaveRequestsParams);
+    const it = page.items.find(r => r.id === requestId);
+    if (!it) {
+      return rejectWithValue({
+        code: 'management/not-found',
+        message: 'Request not found',
+        mgmtCode: 'not-found',
+        serverCode: null,
+      });
+    }
+    const initials = it.employeeName
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(w => w[0]?.toUpperCase() ?? '')
+      .join('');
+    const detail: SerializableApprovalDetail = {
+      requestId: it.id,
+      status: it.status,
+      employee: {
+        name: it.employeeName,
+        avatarInitials: initials,
+        avatarColorHex: null,
+        roleTitle: it.employeeCode,
+        departmentName: '',
+        attendanceRecordUrl: null,
+      },
+      request: {
+        typeEn: it.leaveTypeName,
+        typeAr: it.leaveTypeNameAr,
+        datesLabel: dateRangeLabel(it.startDate, it.endDate, it.totalDays),
+        durationLabel: `${it.totalDays} ${it.totalDays === 1 ? 'day' : 'days'}`,
+        submittedLabel: it.createdAt.slice(0, 10),
+        note: it.notes,
+      },
+      balanceImpact: null,
+      conflict: it.conflictDetails
+        ? {
+            title: 'Attendance conflict detected',
+            rows: [it.conflictDetails],
+          }
+        : null,
+      precedentLabel: null,
+    };
+    return detail;
   } catch (e) {
     return rejectWithValue(serializeManagementError(e));
   }

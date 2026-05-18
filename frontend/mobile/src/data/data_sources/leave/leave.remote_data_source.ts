@@ -22,7 +22,11 @@ import { AppConfig } from '@/di/config';
 const LEAVE_TYPES_PATH       = '/api/v1/vacations/leave-types';
 const BALANCES_PATH          = '/api/v1/vacations/balances';
 const VACATIONS_PATH         = '/api/v1/vacations';
-const ADMIN_VACATIONS        = '/api/v1/admin/vacations';
+// Manager/team-lead scope — delivered backend (Mobile Management Endpoints
+// Integration Guide §3/§4). Only the Team feature consumes these admin
+// methods, so this repath is isolated to Team. Approve/Reject are
+// `PUT …/{id}/{approve|reject}` with `{ reviewerComment }` (unchanged).
+const ADMIN_VACATIONS        = '/api/v1/management/requests/leaves';
 const PERMISSIONS_PATH       = '/api/v1/leave/permissions';
 const PERMISSIONS_QUOTA_PATH = '/api/v1/leave/permissions/quota';
 
