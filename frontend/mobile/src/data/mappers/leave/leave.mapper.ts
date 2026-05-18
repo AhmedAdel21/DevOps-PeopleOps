@@ -247,6 +247,9 @@ export const adminLeaveRequestListItemDtoToDomain = (
   reviewerName: dto.updatedBy ?? null,
   cancelledAt: null,
   cancelledBy: null,
+  currentAnnualLeaveBalance: dto.currentAnnualLeaveBalance ?? null,
+  currentSickLeaveBalance: dto.currentSickLeaveBalance ?? null,
+  currentUrgentLeaveBalance: dto.currentUrgentLeaveBalance ?? null,
 });
 
 export const adminLeaveRequestsPageDtoToDomain = (

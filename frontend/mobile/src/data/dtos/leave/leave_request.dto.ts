@@ -29,6 +29,12 @@ export interface LeaveRequestListItemDto {
   createdBy: string | null;
   updatedDate: string | null;
   updatedBy: string | null;
+  // Leave-specific balances — BE's LeaveInfoModel carries these on every
+  // row (list + detail), so the management Approvals list can derive the
+  // balance-impact block (design ynfPj) without a detail fetch.
+  currentAnnualLeaveBalance?: number;
+  currentSickLeaveBalance?: number;
+  currentUrgentLeaveBalance?: number;
 }
 
 /** Matches Devopsolution.Dal.Models.BaseClasses.Pagination.PaginationData. */
@@ -65,9 +71,7 @@ export interface LeaveRequestDetailDto extends LeaveRequestListItemDto {
   empJobLevel?: string;
   empTeamId?: number | null;
   empImageUrl?: string;
-  currentAnnualLeaveBalance?: number;
-  currentSickLeaveBalance?: number;
-  currentUrgentLeaveBalance?: number;
+  // currentAnnual/Sick/UrgentLeaveBalance inherited from the base.
   attachments?: AttachmentInfoDto[];
 }
 

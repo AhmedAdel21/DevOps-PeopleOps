@@ -25,6 +25,7 @@ import {
 export type ApprovalRange = 'all' | 'today' | 'week' | 'month';
 import {
   dateRangeLabel,
+  deriveBalanceImpact,
   groupPendingApprovals,
 } from './team_approvals.mapping';
 import { DomainError, ManagementError } from '@/domain/errors';
@@ -290,9 +291,10 @@ export const fetchApprovalDetail = createAsyncThunk<
 >('team/fetchApprovalDetail', async ({ requestId }, { rejectWithValue }) => {
   managementLog.info('slice', `fetchApprovalDetail → ${requestId}`);
   try {
-    // No dedicated detail endpoint (contract §3.5 resolved) — render from
-    // the leave-admin list item. Balance/precedent have no source yet →
-    // null (screen hides them); conflict from conflictDetails if present.
+    // No dedicated detail endpoint — render from the leave-admin list item
+    // (LeaveInfoModel). Balance impact is derived from the employee's
+    // current balances; conflict comes from conflictDetails if present;
+    // precedent has no backend source → null (screen hides the block).
     const useCase = ServiceLocator.get<AdminGetLeaveRequestsUseCase>(
       DiKeys.ADMIN_GET_LEAVE_REQUESTS_USE_CASE,
     );
@@ -335,7 +337,13 @@ export const fetchApprovalDetail = createAsyncThunk<
         submittedLabel: it.createdAt.slice(0, 10),
         note: it.notes,
       },
-      balanceImpact: null,
+      balanceImpact: deriveBalanceImpact({
+        leaveTypeName: it.leaveTypeName,
+        totalDays: it.totalDays,
+        annual: it.currentAnnualLeaveBalance,
+        sick: it.currentSickLeaveBalance,
+        urgent: it.currentUrgentLeaveBalance,
+      }),
       conflict: it.conflictDetails
         ? {
             title: 'Attendance conflict detected',

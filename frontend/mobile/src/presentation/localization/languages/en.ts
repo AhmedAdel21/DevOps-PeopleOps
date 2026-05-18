@@ -282,7 +282,8 @@ export const en = {
       confirmYes: 'Yes, approve',
       reject: {
         title: 'Reject Request',
-        subtitle: 'Provide a reason for rejecting this request.',
+        subtitle:
+          'Add a reason — it’s shared with the employee in the decision, but not stored as a record.',
         placeholder: 'Reason…',
         submit: 'Reject',
       },

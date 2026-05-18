@@ -113,10 +113,12 @@ const mockHistory = (date: string): AttendanceHistoryDto => {
     workingDates: [date],
     dailyStats: [
       {
+        // Consistent with the roster above: 2 InOffice, 1 Wfh, 1 SignedOut,
+        // 1 Vacation, 2 Absent (Fatima + Hana's no-record day) = 7.
         date,
         inOffice: 2,
         wfh: 1,
-        absent: 3,
+        absent: 2,
         total: 7,
         permissionCount: 0,
         lateMinutes: 15,

@@ -281,7 +281,8 @@ export const ar = {
       confirmYes: 'نعم، موافقة',
       reject: {
         title: 'رفض الطلب',
-        subtitle: 'يرجى ذكر سبب رفض هذا الطلب.',
+        subtitle:
+          'اكتب سبب الرفض — هيوصل للموظف في القرار، بس مش بيتسجّل كسجل.',
         placeholder: 'السبب…',
         submit: 'رفض',
       },

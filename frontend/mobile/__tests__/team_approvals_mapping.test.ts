@@ -10,6 +10,7 @@ import {
   submittedAgoLabel,
   sectionKeyFor,
   groupPendingApprovals,
+  deriveBalanceImpact,
   type ApprovalSource,
 } from '../src/presentation/store/slices/team_approvals.mapping';
 
@@ -92,5 +93,57 @@ describe('groupPendingApprovals', () => {
       NOW,
     );
     expect(onlyToday.map(s => s.key)).toEqual(['today']);
+  });
+});
+
+describe('deriveBalanceImpact', () => {
+  const base = {
+    totalDays: 5,
+    annual: 18,
+    sick: 10,
+    urgent: 3,
+  };
+
+  it('maps the leave type to its balance and subtracts the period', () => {
+    expect(
+      deriveBalanceImpact({ ...base, leaveTypeName: 'Annual Leave' }),
+    ).toEqual({
+      leaveTypeLabel: 'Annual Leave',
+      beforeLabel: '18 days',
+      afterLabel: '13 days',
+    });
+    expect(
+      deriveBalanceImpact({ ...base, leaveTypeName: 'Sick Leave' }),
+    ).toMatchObject({ beforeLabel: '10 days', afterLabel: '5 days' });
+    expect(
+      deriveBalanceImpact({ ...base, leaveTypeName: 'Urgent Leave' }),
+    ).toMatchObject({ beforeLabel: '3 days', afterLabel: '-2 days' });
+  });
+
+  it('singularises a one-day balance', () => {
+    expect(
+      deriveBalanceImpact({
+        ...base,
+        leaveTypeName: 'Urgent',
+        totalDays: 1,
+        urgent: 1,
+      }),
+    ).toMatchObject({ beforeLabel: '1 day', afterLabel: '0 days' });
+  });
+
+  it('returns null when the type has no tracked balance', () => {
+    expect(
+      deriveBalanceImpact({ ...base, leaveTypeName: 'Unpaid Leave' }),
+    ).toBeNull();
+  });
+
+  it('returns null when the matched balance is unknown (null)', () => {
+    expect(
+      deriveBalanceImpact({
+        ...base,
+        leaveTypeName: 'Sick Leave',
+        sick: null,
+      }),
+    ).toBeNull();
   });
 });

@@ -164,6 +164,11 @@ export interface AdminLeaveRequestListItem extends LeaveRequestListItem {
   /** Cancellation metadata (Q25) — both null on non-cancelled rows. */
   readonly cancelledAt: string | null;
   readonly cancelledBy: string | null;
+  /** Employee's current leave balances (from BE LeaveInfoModel). Drive the
+   *  Approval Detail balance-impact block; null when the BE omits them. */
+  readonly currentAnnualLeaveBalance: number | null;
+  readonly currentSickLeaveBalance: number | null;
+  readonly currentUrgentLeaveBalance: number | null;
 }
 
 export interface AdminLeaveRequestsPage {

@@ -93,6 +93,47 @@ const initials = (name: string): string =>
     .map(w => w[0]?.toUpperCase() ?? '')
     .join('');
 
+// ── Balance impact (Approval Detail — design ynfPj) ─────────────────────────
+// The backend `LeaveInfoModel` carries the employee's *current* Annual/Sick/
+// Urgent balances. The design's "18 days → 13 days" block is derived: pick
+// the balance matching the leave type, subtract the request period. Types
+// with no tracked balance (Unpaid, etc.) → the block is hidden.
+
+export interface LeaveBalanceInputs {
+  leaveTypeName: string;
+  totalDays: number;
+  annual: number | null;
+  sick: number | null;
+  urgent: number | null;
+}
+
+export interface BalanceImpactView {
+  leaveTypeLabel: string;
+  beforeLabel: string;
+  afterLabel: string;
+}
+
+const daysLabel = (n: number): string => `${n} ${Math.abs(n) === 1 ? 'day' : 'days'}`;
+
+export const deriveBalanceImpact = (
+  i: LeaveBalanceInputs,
+): BalanceImpactView | null => {
+  const name = i.leaveTypeName.toLowerCase();
+  const before = name.includes('annual')
+    ? i.annual
+    : name.includes('sick')
+      ? i.sick
+      : name.includes('urgent')
+        ? i.urgent
+        : null;
+  if (before == null) return null;
+  return {
+    leaveTypeLabel: i.leaveTypeName,
+    beforeLabel: daysLabel(before),
+    afterLabel: daysLabel(before - i.totalDays),
+  };
+};
+
 export const groupPendingApprovals = (
   items: readonly ApprovalSource[],
   now: number = Date.now(),
