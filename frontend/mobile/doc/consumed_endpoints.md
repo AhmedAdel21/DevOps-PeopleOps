@@ -67,7 +67,7 @@ directly.
 | `GET` | `/api/v1/vacations?status&page&pageSize` | `leave/leave.remote_data_source.ts → getMyLeaveRequests()` | Paginated list of the employee's own leave requests. Optional filter by status (`Pending`, `Approved`, `Rejected`, `Cancelled`). |
 | `GET` | `/api/v1/vacations/{id}` | `leave/leave.remote_data_source.ts → getLeaveRequestDetail()` | Detail view for a single leave request, including attachments and approval history. |
 | `POST` | `/api/v1/vacations` | `leave/leave.remote_data_source.ts → submitLeaveRequest()` | Submits a new leave request. Body: `SubmitLeaveRequestDto` (type, dates, reason, attachmentIds). Returns the new id plus weekend / attendance-conflict warning flags so the UI can confirm before notifying. |
-| `DELETE` | `/api/v1/vacations/{id}/cancel` | `leave/leave.remote_data_source.ts → cancelLeaveRequest()` | Employee-driven cancellation of their own pending or approved request. |
+| `DELETE` | `/api/v1/vacations/{id}/cancel` | `leave/leave.remote_data_source.ts → cancelLeaveRequest()` | Employee-driven cancellation of their own **pending** request only (New/InReview). Approved/confirmed leaves must be cancelled via HR. |
 
 ---
 
