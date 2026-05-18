@@ -242,6 +242,10 @@ export const en = {
     approvals: {
       placeholder: 'Pending approvals — coming next',
       header: 'Pending approvals',
+      tabs: {
+        leaves: 'Leaves',
+        permissions: 'Permissions',
+      },
       filters: {
         all: 'All',
         today: 'Today',

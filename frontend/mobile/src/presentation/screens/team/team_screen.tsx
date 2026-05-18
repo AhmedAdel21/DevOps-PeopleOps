@@ -30,13 +30,18 @@ import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   approveLeaveRequest,
   rejectLeaveRequest,
+  approvePermissionRequest,
+  rejectPermissionRequest,
   fetchPendingApprovals,
+  fetchPendingPermissionApprovals,
   fetchTeamAttendanceDay,
   setApprovalsRange,
+  setPendingTab,
   setTeamFilter,
   setTeamSegment,
   setTeamSelectedDate,
   type ApprovalRange,
+  type PendingApprovalsTab,
   type SerializablePendingApprovalItem,
   type SerializablePendingApprovalSection,
   type SerializableTeamRow,
@@ -48,6 +53,10 @@ import {
   selectApprovalsFetchStatus,
   selectApprovalsRange,
   selectPendingCount,
+  selectPendingTab,
+  selectPermissionApprovalSections,
+  selectPermissionApprovalsFetchStatus,
+  selectPermissionPendingCount,
   selectTeamActiveFilter,
   selectTeamDayFetchStatus,
   selectTeamDaySummary,
@@ -119,6 +128,7 @@ const statusColor = (
 const SEGMENTS: TeamSegment[] = ['attendance', 'approvals'];
 
 const APPROVAL_RANGES: ApprovalRange[] = ['all', 'today', 'week', 'month'];
+const PENDING_TABS: PendingApprovalsTab[] = ['leaves', 'permissions'];
 
 interface ApprovalCardProps {
   item: SerializablePendingApprovalItem;
@@ -296,10 +306,19 @@ export const TeamScreen: React.FC = () => {
     return rows.filter(r => r.status === activeFilter);
   }, [rows, activeFilter]);
 
+  const pendingTab = useAppSelector(selectPendingTab);
   const approvalsRange = useAppSelector(selectApprovalsRange);
-  const pendingCount = useAppSelector(selectPendingCount);
-  const approvalSections = useAppSelector(selectApprovalSections);
-  const approvalsStatus = useAppSelector(selectApprovalsFetchStatus);
+  const leavePendingCount = useAppSelector(selectPendingCount);
+  const leaveSections = useAppSelector(selectApprovalSections);
+  const leaveStatus = useAppSelector(selectApprovalsFetchStatus);
+  const permPendingCount = useAppSelector(selectPermissionPendingCount);
+  const permSections = useAppSelector(selectPermissionApprovalSections);
+  const permStatus = useAppSelector(selectPermissionApprovalsFetchStatus);
+
+  // Active inner tab (Leaves | Permissions) view.
+  const isPerm = pendingTab === 'permissions';
+  const approvalSections = isPerm ? permSections : leaveSections;
+  const approvalsStatus = isPerm ? permStatus : leaveStatus;
 
   const reload = useCallback(
     (date: string) => dispatch(fetchTeamAttendanceDay({ date })),
@@ -339,62 +358,87 @@ export const TeamScreen: React.FC = () => {
   );
 
   const loadApprovals = useCallback(
-    (range: ApprovalRange) => dispatch(fetchPendingApprovals({ range })),
+    (tab: PendingApprovalsTab, range: ApprovalRange) =>
+      tab === 'permissions'
+        ? dispatch(fetchPendingPermissionApprovals({ range }))
+        : dispatch(fetchPendingApprovals({ range })),
     [dispatch],
   );
 
-  // Lazy fetch on first switch to the Approvals segment, plus auto-retry
-  // if the previous fetch errored (CLAUDE.md tabbed-screen gotcha).
+  // Lazy-fetch the ACTIVE inner tab on first switch into Approvals or on
+  // switching Leaves↔Permissions, plus auto-retry on error (CLAUDE.md
+  // tabbed-screen gotcha — the inactive tab is never fetched on mount).
   useEffect(() => {
     if (segment !== 'approvals') return;
-    if (approvalsStatus === 'idle' || approvalsStatus === 'error') {
-      loadApprovals(approvalsRange);
+    const status = isPerm ? permStatus : leaveStatus;
+    if (status === 'idle' || status === 'error') {
+      loadApprovals(pendingTab, approvalsRange);
     }
-  }, [segment, approvalsStatus, approvalsRange, loadApprovals]);
+  }, [
+    segment,
+    pendingTab,
+    isPerm,
+    permStatus,
+    leaveStatus,
+    approvalsRange,
+    loadApprovals,
+  ]);
+
+  const handlePendingTab = useCallback(
+    (tab: PendingApprovalsTab) => dispatch(setPendingTab(tab)),
+    [dispatch],
+  );
 
   const handleRange = useCallback(
     (range: ApprovalRange) => {
       dispatch(setApprovalsRange(range));
-      loadApprovals(range);
+      loadApprovals(pendingTab, range);
     },
-    [dispatch, loadApprovals],
+    [dispatch, loadApprovals, pendingTab],
   );
 
-  // Approve/Reject reuse the existing leave-admin thunks (keyed by the
-  // same requestId). Approve fires on tapping the revealed swipe action;
-  // Reject opens the shared reason sheet (BE requires a reason).
+  // Approve/Reject reuse the live leave- OR permission-admin thunks based
+  // on the active inner tab. Approve fires on tapping the revealed swipe
+  // action; Reject opens the shared reason sheet (BE requires a reason).
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
   const [rejectSubmitting, setRejectSubmitting] = useState(false);
 
   const handleApprove = useCallback(
     (requestId: string) => {
-      dispatch(approveLeaveRequest({ leaveRequestId: requestId }))
+      const action = isPerm
+        ? approvePermissionRequest({ leaveRequestId: requestId })
+        : approveLeaveRequest({ leaveRequestId: requestId });
+      dispatch(action)
         .unwrap()
-        .then(() => loadApprovals(approvalsRange))
+        .then(() => loadApprovals(pendingTab, approvalsRange))
         .catch(() => undefined);
     },
-    [dispatch, loadApprovals, approvalsRange],
+    [dispatch, isPerm, pendingTab, approvalsRange, loadApprovals],
   );
 
   const handleSubmitReject = useCallback(
     (comment: string) => {
       if (!rejectTarget || !comment) return;
       setRejectSubmitting(true);
-      dispatch(
-        rejectLeaveRequest({
-          leaveRequestId: rejectTarget,
-          reviewerComment: comment,
-        }),
-      )
+      const action = isPerm
+        ? rejectPermissionRequest({
+            leaveRequestId: rejectTarget,
+            reviewerComment: comment,
+          })
+        : rejectLeaveRequest({
+            leaveRequestId: rejectTarget,
+            reviewerComment: comment,
+          });
+      dispatch(action)
         .unwrap()
         .then(() => {
           setRejectTarget(null);
           setRejectSubmitting(false);
-          loadApprovals(approvalsRange);
+          loadApprovals(pendingTab, approvalsRange);
         })
         .catch(() => setRejectSubmitting(false));
     },
-    [dispatch, rejectTarget, loadApprovals, approvalsRange],
+    [dispatch, isPerm, rejectTarget, pendingTab, approvalsRange, loadApprovals],
   );
 
 
@@ -594,44 +638,46 @@ export const TeamScreen: React.FC = () => {
   };
 
   const renderApprovals = () => {
-    if (approvalsStatus === 'pending' && approvalSections.length === 0) {
-      return (
-        <View style={styles.centerFill}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      );
-    }
-    if (approvalsStatus === 'error') {
-      return (
-        <View style={styles.centerFill}>
-          <Pressable onPress={() => loadApprovals(approvalsRange)}>
-            <AppAlertBanner
-              variant="error"
-              message={t('team.approvals.error')}
-            />
-          </Pressable>
-        </View>
-      );
-    }
+    const countSuffix = (n: number) => (n > 0 ? ` (${n})` : '');
 
     const approvalsHeader = (
       <View>
-        <View style={styles.approvalsTitleRow}>
-          <AppText variant="title" weight="bold">
-            {t('team.approvals.header')}
-          </AppText>
-          {pendingCount > 0 ? (
-            <View style={styles.countBadge}>
-              <AppText
-                variant="caption"
-                weight="semibold"
-                color={theme.colors.primaryForeground}
+        <AppText variant="title" weight="bold">
+          {t('team.approvals.header')}
+        </AppText>
+
+        {/* Inner tabs — leaves vs permissions are separate backend
+            endpoints; each carries its own pending count. */}
+        <View style={styles.innerTabTrack}>
+          {PENDING_TABS.map(tab => {
+            const isActive = pendingTab === tab;
+            const n =
+              tab === 'permissions' ? permPendingCount : leavePendingCount;
+            return (
+              <Pressable
+                key={tab}
+                style={[
+                  styles.innerTab,
+                  isActive && styles.innerTabActive,
+                ]}
+                onPress={() => handlePendingTab(tab)}
               >
-                {String(pendingCount)}
-              </AppText>
-            </View>
-          ) : null}
+                <AppText
+                  variant="small"
+                  weight={isActive ? 'semibold' : 'medium'}
+                  color={
+                    isActive
+                      ? theme.colors.foreground
+                      : theme.colors.mutedForeground
+                  }
+                >
+                  {`${t(`team.approvals.tabs.${tab}`)}${countSuffix(n)}`}
+                </AppText>
+              </Pressable>
+            );
+          })}
         </View>
+
         <View style={styles.filterRow}>
           {APPROVAL_RANGES.map(r => {
             const isActive = approvalsRange === r;
@@ -662,51 +708,63 @@ export const TeamScreen: React.FC = () => {
       </View>
     );
 
-    if (
-      approvalsStatus === 'loaded' &&
-      (pendingCount === 0 || approvalSections.length === 0)
-    ) {
-      return (
-        <FlatList<never>
-          data={[]}
-          keyExtractor={(_, i) => String(i)}
-          renderItem={() => null}
-          ListHeaderComponent={approvalsHeader}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIconCircle}>
-                <Check size={ws(28)} color={theme.colors.accentHover} />
-              </View>
-              <AppText variant="cardTitle" weight="semibold" align="center">
-                {t('team.approvals.empty.title')}
-              </AppText>
-              <AppText
-                variant="body"
-                align="center"
-                color={theme.colors.mutedForeground}
-              >
-                {t('team.approvals.empty.subtitle')}
-              </AppText>
-              <AppText
-                variant="caption"
-                align="center"
-                color={theme.colors.mutedForeground}
-              >
-                {t('team.approvals.empty.note')}
-              </AppText>
-            </View>
-          }
-        />
+    // Body state for the active tab. The header (incl. the tab switcher)
+    // stays mounted in every state so the user can switch tabs while one
+    // is loading or errored.
+    let body: React.ReactNode = null;
+    if (approvalsStatus === 'pending' && approvalSections.length === 0) {
+      body = (
+        <View style={styles.approvalsBodyFill}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      );
+    } else if (approvalsStatus === 'error') {
+      body = (
+        <View style={styles.approvalsBodyFill}>
+          <Pressable
+            onPress={() => loadApprovals(pendingTab, approvalsRange)}
+          >
+            <AppAlertBanner
+              variant="error"
+              message={t('team.approvals.error')}
+            />
+          </Pressable>
+        </View>
+      );
+    } else if (approvalSections.length === 0) {
+      body = (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconCircle}>
+            <Check size={ws(28)} color={theme.colors.accentHover} />
+          </View>
+          <AppText variant="cardTitle" weight="semibold" align="center">
+            {t('team.approvals.empty.title')}
+          </AppText>
+          <AppText
+            variant="body"
+            align="center"
+            color={theme.colors.mutedForeground}
+          >
+            {t('team.approvals.empty.subtitle')}
+          </AppText>
+          <AppText
+            variant="caption"
+            align="center"
+            color={theme.colors.mutedForeground}
+          >
+            {t('team.approvals.empty.note')}
+          </AppText>
+        </View>
       );
     }
 
     return (
       <FlatList<SerializablePendingApprovalSection>
-        data={approvalSections}
+        data={body ? [] : approvalSections}
         keyExtractor={s => s.key}
         ListHeaderComponent={approvalsHeader}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={body as React.ReactElement | null}
         renderItem={({ item: section }) => (
           <View style={styles.approvalSection}>
             <AppText
@@ -811,6 +869,28 @@ const createStyles = (theme: AppTheme) =>
     segmentActive: {
       backgroundColor: theme.colors.canvas,
       ...theme.shadow.xs,
+    },
+    innerTabTrack: {
+      flexDirection: 'row',
+      marginTop: hs(12),
+      backgroundColor: theme.colors.muted,
+      borderRadius: theme.radius.pill,
+      padding: ws(4),
+    },
+    innerTab: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: hs(7),
+      borderRadius: theme.radius.pill,
+    },
+    innerTabActive: {
+      backgroundColor: theme.colors.canvas,
+      ...theme.shadow.xs,
+    },
+    approvalsBodyFill: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: hs(48),
     },
     listContent: {
       paddingHorizontal: ws(20),

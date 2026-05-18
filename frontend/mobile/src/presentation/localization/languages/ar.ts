@@ -241,6 +241,10 @@ export const ar = {
     approvals: {
       placeholder: 'الموافقات المعلّقة — قريبًا',
       header: 'الموافقات المعلّقة',
+      tabs: {
+        leaves: 'الإجازات',
+        permissions: 'الأذونات',
+      },
       filters: {
         all: 'الكل',
         today: 'اليوم',
