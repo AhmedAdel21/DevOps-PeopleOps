@@ -8,7 +8,10 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Swipeable } from 'react-native-gesture-handler';
+import {
+  GestureHandlerRootView,
+  Swipeable,
+} from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
@@ -757,7 +760,12 @@ export const TeamScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
+    // Nested GHRV: native-stack (react-native-screens) hosts each screen
+    // in a detached native container, so the app-root GestureHandlerRootView
+    // doesn't extend here in the *native* tree — the Approvals Swipeable
+    // needs a gesture root inside this screen.
+    <GestureHandlerRootView style={styles.flex}>
+      <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
       <View style={styles.segmentedTrack}>
         {SEGMENTS.map(sgmt => {
           const isActive = segment === sgmt;
@@ -857,7 +865,8 @@ export const TeamScreen: React.FC = () => {
           </ScrollView>
         </View>
       </AppBottomSheet>
-    </SafeAreaView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 
