@@ -83,3 +83,28 @@ No open blockers — ready to implement on request. Recommend slicing:
 (1) delete bespoke + repath Approvals/approve-reject to `/management` (reuse, fast),
 (2) Attendance rewrite + derivation tests,
 (3) detail-from-list-item + copy/UI trims.
+
+---
+
+## F. Execution status — ✅ COMPLETE
+
+All slices implemented, type-checked (tsc 0), tested (jest 66/66), committed
+to `leaves-feature`:
+
+| Slice | Commit | What |
+|---|---|---|
+| 1A | `42de4fc` | Repath + rewire Approvals/detail to live `/management/requests/leaves` |
+| 1B | `bb5b8e9` | Delete dead bespoke pending_approvals/approval_detail/department layers + HR dept picker |
+| 2 | `a03ca8c` | Rewrite Attendance to `/management/attendance/history?from&to`; derive day roster; client-side filter; reuse `mapHttpErrorToLeave` |
+| 3 | `1300068` | Derive Approval Detail balance impact; soften reject-sheet copy (B3); conflict/precedent trim (screen already guards null) |
+
+**Remaining (out of realignment scope, deferred):**
+- Flip `USE_MOCK_TEAM_ATTENDANCE` / `USE_MOCK_ADMIN_ATTENDANCE` off in
+  `src/di/config.ts` once `/management/attendance/history` is verified
+  on-device (config.ts is env-local, never committed — same as the leave
+  feature's go-live).
+- Permissions Approvals (`/management/requests/permissions`) — identical
+  pattern, explicit fast-follow (plan B1), not part of this realignment.
+- `ManagementError` class is now unused by the error path but still
+  referenced by pre-existing prior-management scaffolding — separate
+  cleanup pass.
