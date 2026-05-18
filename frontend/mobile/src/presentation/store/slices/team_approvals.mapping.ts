@@ -118,6 +118,10 @@ const daysLabel = (n: number): string => `${n} ${Math.abs(n) === 1 ? 'day' : 'da
 export const deriveBalanceImpact = (
   i: LeaveBalanceInputs,
 ): BalanceImpactView | null => {
+  // Matches the BE's English `leaveTypeName` (LeaveInfoModel sends it
+  // single-language; the AR name is a client map keyed by leaveTypeId).
+  // If the BE ever localizes this field, switch to leaveTypeId matching —
+  // otherwise the block silently disappears rather than mis-mapping.
   const name = i.leaveTypeName.toLowerCase();
   const before = name.includes('annual')
     ? i.annual

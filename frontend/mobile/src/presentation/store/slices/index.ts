@@ -75,7 +75,6 @@ export {
   setTeamSegment,
   setTeamFilter,
   setTeamSelectedDate,
-  setTeamSelectedDepartment,
   setApprovalsRange,
   clearTeamErrors,
   resetTeamState,

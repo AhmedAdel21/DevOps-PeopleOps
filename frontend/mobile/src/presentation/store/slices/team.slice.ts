@@ -189,7 +189,6 @@ export interface TeamState {
   // Attendance segment
   selectedDate: string; // yyyy-MM-dd
   activeFilter: TeamAttendanceFilter;
-  selectedDepartmentId: string | null;
   day: SerializableTeamDay | null;
   dayFetchStatus: FetchStatus;
   dayFetchError: SerializableManagementError | null;
@@ -213,7 +212,6 @@ const initialState: TeamState = {
   segment: 'attendance',
   selectedDate: todayIso(),
   activeFilter: 'All',
-  selectedDepartmentId: null,
   day: null,
   dayFetchStatus: 'idle',
   dayFetchError: null,
@@ -373,12 +371,6 @@ const teamSlice = createSlice({
     setTeamSelectedDate(state, action: PayloadAction<string>) {
       state.selectedDate = action.payload;
     },
-    setTeamSelectedDepartment(
-      state,
-      action: PayloadAction<string | null>,
-    ) {
-      state.selectedDepartmentId = action.payload;
-    },
     setApprovalsRange(state, action: PayloadAction<ApprovalRange>) {
       state.approvalsRange = action.payload;
     },
@@ -463,7 +455,6 @@ export const {
   setTeamSegment,
   setTeamFilter,
   setTeamSelectedDate,
-  setTeamSelectedDepartment,
   setApprovalsRange,
   clearTeamErrors,
   resetTeamState,

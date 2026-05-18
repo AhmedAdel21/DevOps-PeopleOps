@@ -4,8 +4,6 @@ export const selectTeamSegment = (s: RootState) => s.team.segment;
 
 export const selectTeamSelectedDate = (s: RootState) => s.team.selectedDate;
 export const selectTeamActiveFilter = (s: RootState) => s.team.activeFilter;
-export const selectTeamSelectedDepartmentId = (s: RootState) =>
-  s.team.selectedDepartmentId;
 
 export const selectTeamDay = (s: RootState) => s.team.day;
 export const selectTeamDaySummary = (s: RootState) => s.team.day?.summary ?? null;
