@@ -30,8 +30,8 @@ export const AppConfig = {
    * reviewed before the backend ships the management endpoints. Flip to
    * false per feature as endpoints become available.
    */
-  USE_MOCK_TEAM_ATTENDANCE: true,
-  USE_MOCK_ADMIN_ATTENDANCE: true,
+  USE_MOCK_TEAM_ATTENDANCE: false,
+  USE_MOCK_ADMIN_ATTENDANCE: false,
   USE_MOCK_EMPLOYEES: true,
   USE_MOCK_DEPARTMENTS: true,
   USE_MOCK_LEAVE_CONFIG: true,

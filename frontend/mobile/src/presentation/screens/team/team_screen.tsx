@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -19,14 +19,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
+  X,
 } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import { AppAlertBanner, AppText } from '@/presentation/components/atoms';
 import { AppAvatar } from '@/presentation/components/molecules';
+import { AppRejectReasonSheet } from '@/presentation/components/organisms';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   approveLeaveRequest,
+  rejectLeaveRequest,
   fetchPendingApprovals,
   fetchTeamAttendanceDay,
   setApprovalsRange,
@@ -123,15 +126,16 @@ interface ApprovalCardProps {
   theme: AppTheme;
   t: (k: string) => string;
   onApprove: (requestId: string) => void;
+  onReject: (requestId: string) => void;
   onPress: (requestId: string) => void;
 }
 
 /**
- * Swipe-right reveals Approve (green, left action) — fires on full open,
- * then the row closes. Swipe-left/Reject is intentionally NOT here: the
- * BE requires a reject reason (contract §2/§4-Q3), so reject goes through
- * the row-tap → Approval Detail → reject sheet flow in Slice 4. Adding a
- * no-reason swipe-reject now would silently 400.
+ * Swipe reveals an action button the user must TAP to act — it never
+ * auto-fires on release (deliberate two-step confirm). Swipe-right reveals
+ * Approve (green); swipe-left reveals Reject (red) which opens the
+ * reject-reason sheet (BE requires a reason). Tapping the row opens the
+ * Approval Detail.
  */
 const ApprovalCard: React.FC<ApprovalCardProps> = ({
   item,
@@ -139,12 +143,20 @@ const ApprovalCard: React.FC<ApprovalCardProps> = ({
   theme,
   t,
   onApprove,
+  onReject,
   onPress,
 }) => {
   const ref = React.useRef<Swipeable>(null);
 
-  const leftActions = () => (
-    <View style={[styles.swipeAction, styles.swipeApprove]}>
+  const approveAction = () => (
+    <Pressable
+      style={[styles.swipeAction, styles.swipeApprove]}
+      accessibilityRole="button"
+      onPress={() => {
+        ref.current?.close();
+        onApprove(item.requestId);
+      }}
+    >
       <Check size={ws(22)} color={theme.colors.primaryForeground} />
       <AppText
         variant="small"
@@ -153,19 +165,37 @@ const ApprovalCard: React.FC<ApprovalCardProps> = ({
       >
         {t('team.approvals.actions.approve')}
       </AppText>
-    </View>
+    </Pressable>
+  );
+
+  const rejectAction = () => (
+    <Pressable
+      style={[styles.swipeAction, styles.swipeReject]}
+      accessibilityRole="button"
+      onPress={() => {
+        ref.current?.close();
+        onReject(item.requestId);
+      }}
+    >
+      <X size={ws(22)} color={theme.colors.primaryForeground} />
+      <AppText
+        variant="small"
+        weight="semibold"
+        color={theme.colors.primaryForeground}
+      >
+        {t('team.approvals.actions.reject')}
+      </AppText>
+    </Pressable>
   );
 
   return (
     <Swipeable
       ref={ref}
-      renderLeftActions={leftActions}
+      renderLeftActions={approveAction}
+      renderRightActions={rejectAction}
       leftThreshold={64}
+      rightThreshold={64}
       friction={2}
-      onSwipeableOpen={direction => {
-        ref.current?.close();
-        if (direction === 'left') onApprove(item.requestId);
-      }}
     >
       <Pressable
         style={styles.approvalCard}
@@ -331,8 +361,11 @@ export const TeamScreen: React.FC = () => {
   );
 
   // Approve/Reject reuse the existing leave-admin thunks (keyed by the
-  // same requestId). Reject reason capture (design uAdAe) lands in Slice 4;
-  // swipe-reject sends no comment for now.
+  // same requestId). Approve fires on tapping the revealed swipe action;
+  // Reject opens the shared reason sheet (BE requires a reason).
+  const [rejectTarget, setRejectTarget] = useState<string | null>(null);
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
+
   const handleApprove = useCallback(
     (requestId: string) => {
       dispatch(approveLeaveRequest({ leaveRequestId: requestId }))
@@ -341,6 +374,27 @@ export const TeamScreen: React.FC = () => {
         .catch(() => undefined);
     },
     [dispatch, loadApprovals, approvalsRange],
+  );
+
+  const handleSubmitReject = useCallback(
+    (comment: string) => {
+      if (!rejectTarget || !comment) return;
+      setRejectSubmitting(true);
+      dispatch(
+        rejectLeaveRequest({
+          leaveRequestId: rejectTarget,
+          reviewerComment: comment,
+        }),
+      )
+        .unwrap()
+        .then(() => {
+          setRejectTarget(null);
+          setRejectSubmitting(false);
+          loadApprovals(approvalsRange);
+        })
+        .catch(() => setRejectSubmitting(false));
+    },
+    [dispatch, rejectTarget, loadApprovals, approvalsRange],
   );
 
 
@@ -671,6 +725,7 @@ export const TeamScreen: React.FC = () => {
                 theme={theme}
                 t={t}
                 onApprove={handleApprove}
+                onReject={setRejectTarget}
                 onPress={id =>
                   navigation.navigate('ApprovalDetail', {
                     requestId: id,
@@ -717,6 +772,13 @@ export const TeamScreen: React.FC = () => {
       </View>
 
       {segment === 'attendance' ? renderAttendance() : renderApprovals()}
+
+      <AppRejectReasonSheet
+        visible={rejectTarget !== null}
+        onClose={() => setRejectTarget(null)}
+        onSubmit={handleSubmitReject}
+        submitting={rejectSubmitting}
+      />
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -888,4 +950,5 @@ const createStyles = (theme: AppTheme) =>
       borderRadius: theme.radius.lg,
     },
     swipeApprove: { backgroundColor: theme.colors.status.success.base },
+    swipeReject: { backgroundColor: theme.colors.status.error.base },
   });

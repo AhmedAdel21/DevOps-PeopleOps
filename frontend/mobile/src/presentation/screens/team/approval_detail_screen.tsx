@@ -1,12 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,12 +20,12 @@ import { hs, ws } from '@/presentation/utils/scaling';
 import {
   AppAlertBanner,
   AppBackButton,
-  AppBottomSheet,
   AppButton,
   AppCard,
   AppText,
 } from '@/presentation/components/atoms';
 import { AppAvatar } from '@/presentation/components/molecules';
+import { AppRejectReasonSheet } from '@/presentation/components/organisms';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   approveLeaveRequest,
@@ -61,7 +58,6 @@ export const ApprovalDetailScreen: React.FC = () => {
 
   const [confirmMode, setConfirmMode] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
-  const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -81,23 +77,25 @@ export const ApprovalDetailScreen: React.FC = () => {
       .catch(() => setSubmitting(false));
   }, [dispatch, requestId, afterDecision]);
 
-  const handleSubmitReject = useCallback(() => {
-    const comment = reason.trim();
-    if (!comment) return;
-    setSubmitting(true);
-    dispatch(
-      rejectLeaveRequest({
-        leaveRequestId: requestId,
-        reviewerComment: comment,
-      }),
-    )
-      .unwrap()
-      .then(() => {
-        setRejectOpen(false);
-        afterDecision();
-      })
-      .catch(() => setSubmitting(false));
-  }, [dispatch, requestId, reason, afterDecision]);
+  const handleSubmitReject = useCallback(
+    (comment: string) => {
+      if (!comment) return;
+      setSubmitting(true);
+      dispatch(
+        rejectLeaveRequest({
+          leaveRequestId: requestId,
+          reviewerComment: comment,
+        }),
+      )
+        .unwrap()
+        .then(() => {
+          setRejectOpen(false);
+          afterDecision();
+        })
+        .catch(() => setSubmitting(false));
+    },
+    [dispatch, requestId, afterDecision],
+  );
 
   const renderHeader = () => (
     <View style={styles.navHeader}>
@@ -339,57 +337,12 @@ export const ApprovalDetailScreen: React.FC = () => {
         )}
       </View>
 
-      <AppBottomSheet
+      <AppRejectReasonSheet
         visible={rejectOpen}
         onClose={() => setRejectOpen(false)}
-        heightFraction={0.5}
-      >
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <View style={styles.sheetBody}>
-          <AppText variant="cardTitle" weight="semibold">
-            {t('team.detail.reject.title')}
-          </AppText>
-          <AppText
-            variant="caption"
-            color={theme.colors.mutedForeground}
-            style={styles.sheetSub}
-          >
-            {t('team.detail.reject.subtitle')}
-          </AppText>
-          <TextInput
-            style={styles.reasonInput}
-            placeholder={t('team.detail.reject.placeholder')}
-            placeholderTextColor={theme.colors.mutedForeground}
-            value={reason}
-            onChangeText={setReason}
-            multiline
-            textAlignVertical="top"
-          />
-          <View style={styles.btnRow}>
-            <AppButton
-              label={t('common.cancel')}
-              variant="outline"
-              onPress={() => setRejectOpen(false)}
-              disabled={submitting}
-              fullWidth
-              style={styles.btnFlex}
-            />
-            <AppButton
-              label={t('team.detail.reject.submit')}
-              variant="destructive"
-              onPress={handleSubmitReject}
-              loading={submitting}
-              disabled={reason.trim().length === 0}
-              fullWidth
-              style={styles.btnFlex}
-            />
-          </View>
-          </View>
-        </KeyboardAvoidingView>
-      </AppBottomSheet>
+        onSubmit={handleSubmitReject}
+        submitting={submitting}
+      />
     </SafeAreaView>
   );
 };
@@ -509,20 +462,4 @@ const createStyles = (theme: AppTheme) =>
     confirmText: {},
     btnRow: { flexDirection: 'row', gap: ws(12) },
     btnFlex: { flex: 1 },
-    sheetBody: {
-      flex: 1,
-      paddingHorizontal: ws(20),
-      paddingTop: hs(8),
-      gap: hs(12),
-    },
-    sheetSub: {},
-    reasonInput: {
-      minHeight: hs(96),
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      borderRadius: theme.radius.md,
-      padding: ws(12),
-      color: theme.colors.foreground,
-      backgroundColor: theme.colors.input,
-    },
   });
