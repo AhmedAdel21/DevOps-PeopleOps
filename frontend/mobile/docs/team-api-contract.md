@@ -1,3 +1,9 @@
+> ⚠️ **SUPERSEDED & HISTORICAL — do NOT implement against this.** This was
+> the *proposed* bespoke contract. The backend chose a different design
+> (manager-scoped reuse under `/api/v1/management/…`) and the mobile
+> realignment is **done**. Authoritative: **`docs/team-backend-answers-and-plan.md`**
+> (§F execution status). Kept only for design/decision history.
+
 # Team tab — API contract (for the backend team)
 
 Status: **proposed — client builds against mocks until each endpoint ships**

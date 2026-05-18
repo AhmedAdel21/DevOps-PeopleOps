@@ -115,7 +115,7 @@ export type SubmitLeaveRequestErrorDto = SubmitLeaveRequestSuccessDto;
 export type AdminLeaveRequestListItemDto = LeaveRequestListItemDto;
 export type AdminLeaveRequestsPageDto = LeaveRequestsPageDto;
 
-/** Body for PUT /admin/vacations/{id}/approve and /reject. */
+/** Body for PUT /api/v1/management/requests/leaves/{id}/{approve|reject}. */
 export interface ReviewLeaveRequestDto {
   reviewerComment?: string;
 }

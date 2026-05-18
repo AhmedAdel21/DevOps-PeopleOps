@@ -1,3 +1,7 @@
+> ⚠️ **SUPERSEDED — all answered.** Resolved in
+> **`docs/team-backend-answers-and-plan.md`**; the realignment is done
+> (§F status). Kept for history.
+
 # Backend questions — answer these to apply the server changes into mobile
 
 Paste-ready for the backend team. The mobile **UI is done** (screens,

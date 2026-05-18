@@ -1,3 +1,7 @@
+> ⚠️ **SUPERSEDED — historical diff.** The gaps below are all resolved &
+> implemented. Authoritative: **`docs/team-backend-answers-and-plan.md`**
+> (§F status).
+
 # Team tab — Backend design vs Mobile design (side-by-side)
 
 Pure factual diff. **Backend** = the delivered "Mobile Management Endpoints

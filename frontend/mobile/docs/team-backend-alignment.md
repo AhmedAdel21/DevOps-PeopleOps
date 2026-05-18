@@ -1,3 +1,7 @@
+> ⚠️ **SUPERSEDED — concretized & implemented.** Authoritative:
+> **`docs/team-backend-answers-and-plan.md`** (§F execution status). Kept
+> for history.
+
 # Team tab ↔ Backend alignment
 
 Reconciles the **mobile client** (built mock-first against the *proposed*
