@@ -98,13 +98,22 @@ to `leaves-feature`:
 | 2 | `a03ca8c` | Rewrite Attendance to `/management/attendance/history?from&to`; derive day roster; client-side filter; reuse `mapHttpErrorToLeave` |
 | 3 | `1300068` | Derive Approval Detail balance impact; soften reject-sheet copy (B3); conflict/precedent trim (screen already guards null) |
 
+**Post-realignment follow-ups (delivered):**
+- **Permissions Approvals fast-follow + swipe-UX redesign — DONE**
+  (S1 `f17fa11` · P1 `efe4ce4` · P2 `c89249a` · P3 `a672a9a`):
+  Approvals now has inner Leaves|Permissions tabs (each its own
+  `/management/requests/{leaves|permissions}` endpoint + count + lazy
+  fetch). Swipe no longer auto-fires — both directions reveal a button
+  the user taps (swipe-right Approve, swipe-left Reject → shared
+  `AppRejectReasonSheet`). Permission period/type labels TDD'd in
+  `team_approvals.mapping`. tsc 0, jest 70/70.
+
 **Remaining (out of realignment scope, deferred):**
 - Flip `USE_MOCK_TEAM_ATTENDANCE` / `USE_MOCK_ADMIN_ATTENDANCE` off in
   `src/di/config.ts` once `/management/attendance/history` is verified
   on-device (config.ts is env-local, never committed — same as the leave
-  feature's go-live).
-- Permissions Approvals (`/management/requests/permissions`) — identical
-  pattern, explicit fast-follow (plan B1), not part of this realignment.
+  feature's go-live). Note: leave **and permission** management Approvals
+  already run live (`USE_MOCK_LEAVE`/`USE_MOCK_PERMISSIONS` = false).
 - `ManagementError` class is now unused by the error path but still
   referenced by pre-existing prior-management scaffolding — separate
   cleanup pass.
