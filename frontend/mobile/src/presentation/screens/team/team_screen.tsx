@@ -385,7 +385,12 @@ export const TeamScreen: React.FC = () => {
   ]);
 
   const handlePendingTab = useCallback(
-    (tab: PendingApprovalsTab) => dispatch(setPendingTab(tab)),
+    (tab: PendingApprovalsTab) => {
+      // Drop any in-flight reject target — it belongs to the old tab; the
+      // reject thunk reads `isPerm` fresh, so a stale id would 404.
+      setRejectTarget(null);
+      dispatch(setPendingTab(tab));
+    },
     [dispatch],
   );
 
