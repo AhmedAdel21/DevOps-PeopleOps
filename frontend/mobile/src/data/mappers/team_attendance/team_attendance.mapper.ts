@@ -32,6 +32,18 @@ const STATUS_MAP: Record<string, TeamAttendanceStatus> = {
 const toStatus = (raw: string | null | undefined): TeamAttendanceStatus =>
   (raw && STATUS_MAP[raw]) || 'Absent';
 
+// Wire `place` is title-case `InOffice | Wfh | null` (same endpoint family
+// as attendance_history.dto — see its comment). Kept separate from
+// STATUS_MAP because `place` survives a SignedOut status collapse.
+const PLACE_MAP: Record<string, 'Office' | 'Remote'> = {
+  InOffice: 'Office',
+  Wfh: 'Remote',
+};
+
+const toPlace = (
+  raw: string | null | undefined,
+): 'Office' | 'Remote' | null => (raw && PLACE_MAP[raw]) || null;
+
 const initials = (name: string): string =>
   name
     .trim()
@@ -141,6 +153,7 @@ const employeeDayToRow = (
     departmentId: emp.departmentId,
     departmentName: null, // no name source — dcnNd dept sub-label trimmed
     status,
+    place: toPlace(rec?.place),
     isLate,
     signedInAt,
     signedOutAt,

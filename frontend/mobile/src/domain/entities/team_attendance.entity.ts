@@ -55,6 +55,14 @@ export interface TeamAttendanceRow {
   readonly departmentId: string | null;
   readonly departmentName: string | null;
   readonly status: TeamAttendanceStatus;
+  /**
+   * Where the row was/is working, from the wire `place`. Unlike `status`
+   * (which collapses to `SignedOut` and loses Office/Remote), this survives
+   * the sign-out — so the screen can still show "Office"/"Remote" for a
+   * signed-out employee. Null when the BE sends no place (Absent / OnLeave
+   * / never-signed-in).
+   */
+  readonly place: 'Office' | 'Remote' | null;
   /** Late overlays Office/Remote — see comment on TeamAttendanceStatus. */
   readonly isLate: boolean;
   /** ISO 8601, viewer's TZ. Null if no sign-in yet for the day. */

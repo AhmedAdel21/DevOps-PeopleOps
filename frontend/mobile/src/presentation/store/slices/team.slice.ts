@@ -81,6 +81,7 @@ export interface SerializableTeamRow {
   departmentId: string | null;
   departmentName: string | null;
   status: TeamAttendanceStatus;
+  place: 'Office' | 'Remote' | null;
   isLate: boolean;
   signedInAt: string | null;
   signedOutAt: string | null;
@@ -198,6 +199,7 @@ const toSerializableDay = (d: TeamAttendanceDay): SerializableTeamDay => ({
     departmentId: r.departmentId,
     departmentName: r.departmentName,
     status: r.status,
+    place: r.place,
     isLate: r.isLate,
     signedInAt: r.signedInAt,
     signedOutAt: r.signedOutAt,

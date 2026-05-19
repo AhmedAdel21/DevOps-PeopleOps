@@ -125,6 +125,26 @@ const statusColor = (
   }
 };
 
+/**
+ * Right-side chip content. Present rows show their working *place*
+ * (Office/Remote); Absent / NotSignedIn / OnLeave show the *status*. A
+ * SignedOut row also shows the *place* it worked from — recovered from
+ * `row.place` because `status` collapses to SignedOut and loses it. If the
+ * BE sent no place, fall back to the "Signed out" label rather than an
+ * empty chip (so the `null` branch is currently unreachable for any real
+ * response; it stays only as a defensive guard at the call site).
+ */
+const statusChipKey = (row: SerializableTeamRow): string | null => {
+  if (row.status === 'SignedOut') {
+    return row.place === 'Office'
+      ? STATUS_I18N.Office
+      : row.place === 'Remote'
+        ? STATUS_I18N.Remote
+        : STATUS_I18N.SignedOut;
+  }
+  return STATUS_I18N[row.status];
+};
+
 const SEGMENTS: TeamSegment[] = ['attendance', 'approvals'];
 
 const APPROVAL_RANGES: ApprovalRange[] = ['all', 'today', 'week', 'month'];
@@ -533,7 +553,9 @@ export const TeamScreen: React.FC = () => {
   );
 
   const renderRow = useCallback(
-    ({ item }: { item: SerializableTeamRow }) => (
+    ({ item }: { item: SerializableTeamRow }) => {
+      const chipKey = statusChipKey(item);
+      return (
       <View style={styles.employeeRow}>
         <AppAvatar
           name={item.displayName}
@@ -554,20 +576,22 @@ export const TeamScreen: React.FC = () => {
           </AppText>
         </View>
         <View style={styles.rightCol}>
-          <View
-            style={[
-              styles.statusChip,
-              { borderColor: statusColor(theme, item.status) },
-            ]}
-          >
-            <AppText
-              variant="micro"
-              weight="semibold"
-              color={statusColor(theme, item.status)}
+          {chipKey ? (
+            <View
+              style={[
+                styles.statusChip,
+                { borderColor: statusColor(theme, item.status) },
+              ]}
             >
-              {t(STATUS_I18N[item.status])}
-            </AppText>
-          </View>
+              <AppText
+                variant="micro"
+                weight="semibold"
+                color={statusColor(theme, item.status)}
+              >
+                {t(chipKey)}
+              </AppText>
+            </View>
+          ) : null}
           {item.isLate ? (
             <View style={styles.lateBadge}>
               <AppText
@@ -581,7 +605,8 @@ export const TeamScreen: React.FC = () => {
           ) : null}
         </View>
       </View>
-    ),
+      );
+    },
     [styles, theme, t],
   );
 

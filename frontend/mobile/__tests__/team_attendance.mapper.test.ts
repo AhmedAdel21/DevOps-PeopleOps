@@ -236,6 +236,66 @@ describe('attendanceHistoryToTeamDay', () => {
     expect(hana.isLate).toBe(false);
     expect(hana.signedInAt).toBeNull();
     expect(hana.statusLabel).toBe('Absent today');
+    expect(hana.place).toBeNull();
+  });
+
+  it('derives place from the wire and preserves it across a SignedOut collapse', () => {
+    const d: AttendanceHistoryDto = {
+      ...dto,
+      employees: [
+        {
+          ...baseEmp('U_OFFICE', 'In Office'),
+          days: [day({ status: 'InOffice', place: 'InOffice' })],
+        },
+        {
+          ...baseEmp('U_REMOTE', 'Works Remote'),
+          days: [day({ status: 'Wfh', place: 'Wfh' })],
+        },
+        {
+          ...baseEmp('U_SO_OFF', 'Left Office'),
+          days: [
+            day({
+              status: 'SignedOut',
+              place: 'InOffice',
+              signOut: '2026-04-08T18:00:00+03:00',
+              hoursWorked: 8,
+            }),
+          ],
+        },
+        {
+          ...baseEmp('U_SO_REM', 'Left Remote'),
+          days: [
+            day({
+              status: 'SignedOut',
+              place: 'Wfh',
+              signOut: '2026-04-08T17:00:00+03:00',
+              hoursWorked: 7,
+            }),
+          ],
+        },
+        {
+          ...baseEmp('U_ABSENT', 'No Place'),
+          days: [day({ status: 'Absent', place: null })],
+        },
+        {
+          ...baseEmp('U_WEIRD', 'Weird Place'),
+          days: [day({ status: 'InOffice', place: 'Teleporting' })],
+        },
+      ],
+    };
+    const byId = Object.fromEntries(
+      attendanceHistoryToTeamDay(d, DATE).rows.map(r => [r.userId, r]),
+    );
+    expect(byId.U_OFFICE.place).toBe('Office');
+    expect(byId.U_REMOTE.place).toBe('Remote');
+    // Status collapses to SignedOut, but place must survive — that's the
+    // whole point of this mapping (the chip shows where they were).
+    expect(byId.U_SO_OFF.status).toBe('SignedOut');
+    expect(byId.U_SO_OFF.place).toBe('Office');
+    expect(byId.U_SO_REM.status).toBe('SignedOut');
+    expect(byId.U_SO_REM.place).toBe('Remote');
+    expect(byId.U_ABSENT.place).toBeNull();
+    expect(byId.U_WEIRD.place).toBeNull(); // unknown wire place → null
   });
 
   it('derives avatar initials and collapses userId → slackUserId', () => {
