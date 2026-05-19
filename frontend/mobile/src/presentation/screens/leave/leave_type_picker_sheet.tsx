@@ -100,7 +100,6 @@ export const LeaveTypePickerSheet: React.FC<LeaveTypePickerSheetProps> = ({
 
       {/* Type list */}
       <ScrollView
-        style={styles.list}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
@@ -210,9 +209,6 @@ const createStyles = (theme: AppTheme) =>
       paddingHorizontal: ws(20),
       gap: hs(8),
       paddingBottom: hs(4),
-    },
-    list: {
-      flex: 1,
     },
     listContent: {
       paddingHorizontal: ws(20),

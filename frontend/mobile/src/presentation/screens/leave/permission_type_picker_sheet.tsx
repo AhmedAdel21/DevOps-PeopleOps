@@ -103,7 +103,6 @@ export const PermissionTypePickerSheet: React.FC<PermissionTypePickerSheetProps>
 
       {/* Type list */}
       <ScrollView
-        style={styles.list}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
@@ -191,9 +190,6 @@ const createStyles = (theme: AppTheme) =>
       paddingHorizontal: ws(10),
       paddingVertical: hs(4),
       borderRadius: theme.radius.pill,
-    },
-    list: {
-      flex: 1,
     },
     listContent: {
       paddingHorizontal: ws(20),
