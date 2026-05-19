@@ -311,6 +311,7 @@ export const en = {
       slackId: 'Slack user ID',
     },
     languageRow: 'Language',
+    themeRow: 'Theme',
     slackConnect: {
       row: 'Connect Slack account',
       connected: 'Slack connected',
@@ -328,6 +329,15 @@ export const en = {
       languages: {
         en: { title: 'English', body: 'Switch app to English' },
         ar: { title: 'Arabic', body: 'Switch app to Arabic' },
+      },
+    },
+    themeSheet: {
+      title: 'Select Theme',
+      confirm: 'Apply',
+      cancel: 'Cancel',
+      modes: {
+        light: { title: 'Light', body: 'Bright canvas, indigo accents' },
+        dark: { title: 'Dark', body: 'Deep indigo canvas, easy on the eyes' },
       },
     },
     rtlRestart: {

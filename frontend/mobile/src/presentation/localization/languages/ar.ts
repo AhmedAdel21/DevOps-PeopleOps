@@ -310,6 +310,7 @@ export const ar = {
       slackId: 'معرّف مستخدم Slack',
     },
     languageRow: 'اللغة',
+    themeRow: 'المظهر',
     slackConnect: {
       row: 'ربط حساب Slack',
       connected: 'Slack مرتبط',
@@ -327,6 +328,15 @@ export const ar = {
       languages: {
         en: { title: 'الإنجليزية', body: 'تغيير التطبيق إلى الإنجليزية' },
         ar: { title: 'العربية', body: 'تغيير التطبيق إلى العربية' },
+      },
+    },
+    themeSheet: {
+      title: 'اختر المظهر',
+      confirm: 'تطبيق',
+      cancel: 'إلغاء',
+      modes: {
+        light: { title: 'فاتح', body: 'خلفية مضيئة بلمسات نيلية' },
+        dark: { title: 'داكن', body: 'خلفية نيلية غامقة ومريحة للعين' },
       },
     },
     rtlRestart: {

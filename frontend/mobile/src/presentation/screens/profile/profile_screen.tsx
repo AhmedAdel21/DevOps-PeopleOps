@@ -50,9 +50,10 @@ import type {
   DisconnectSlackUseCase,
 } from '@/domain/use_cases';
 import { LanguagePickerSheet } from './language_picker_sheet';
+import { ThemePickerSheet, type ThemeMode } from './theme_picker_sheet';
 
 export const ProfileScreen: React.FC = () => {
-  const { theme } = useTheme();
+  const { theme, isDark, setThemeMode } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -64,6 +65,7 @@ export const ProfileScreen: React.FC = () => {
   const { language, changeLanguage } = useLanguage();
   const { showDialog } = useDialog();
   const [langSheetVisible, setLangSheetVisible] = useState(false);
+  const [themeSheetVisible, setThemeSheetVisible] = useState(false);
   const [photoPreviewVisible, setPhotoPreviewVisible] = useState(false);
   const [photoPreviewFailed, setPhotoPreviewFailed] = useState(false);
   const photoPreviewOpacity = useRef(new Animated.Value(0)).current;
@@ -217,6 +219,14 @@ export const ProfileScreen: React.FC = () => {
       await changeLanguage(lng);
     },
     [changeLanguage],
+  );
+
+  const handleThemeConfirm = useCallback(
+    (mode: ThemeMode) => {
+      setThemeSheetVisible(false);
+      setThemeMode(mode);
+    },
+    [setThemeMode],
   );
 
   const profileDisplayName =
@@ -461,6 +471,34 @@ export const ProfileScreen: React.FC = () => {
               )}
             </View>
           </Pressable>
+
+          <View style={styles.divider} />
+
+          <Pressable
+            style={styles.langRow}
+            onPress={() => setThemeSheetVisible(true)}
+            hitSlop={4}
+          >
+            <AppText variant="body">{t('profile.themeRow')}</AppText>
+            <View style={styles.langRight}>
+              <AppText variant="body" color={theme.colors.mutedForeground}>
+                {isDark
+                  ? t('profile.themeSheet.modes.dark.title')
+                  : t('profile.themeSheet.modes.light.title')}
+              </AppText>
+              {I18nManager.isRTL ? (
+                <ChevronLeft
+                  size={ws(18)}
+                  color={theme.colors.mutedForeground}
+                />
+              ) : (
+                <ChevronRight
+                  size={ws(18)}
+                  color={theme.colors.mutedForeground}
+                />
+              )}
+            </View>
+          </Pressable>
         </AppCard>
 
         <AppButton
@@ -479,6 +517,13 @@ export const ProfileScreen: React.FC = () => {
         currentLanguage={language}
         onClose={() => setLangSheetVisible(false)}
         onConfirm={handleLanguageConfirm}
+      />
+
+      <ThemePickerSheet
+        visible={themeSheetVisible}
+        currentMode={isDark ? 'dark' : 'light'}
+        onClose={() => setThemeSheetVisible(false)}
+        onConfirm={handleThemeConfirm}
       />
 
       <Modal
@@ -568,7 +613,7 @@ const createStyles = (theme: AppTheme) =>
       gap: theme.spacing.xs,
     },
     profileHeroCard: {
-      backgroundColor: theme.colors.primaryLight,
+      backgroundColor: theme.colors.background,
       borderColor: theme.colors.primary,
     },
     profileHeroTop: {
