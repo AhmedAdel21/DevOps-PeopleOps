@@ -111,7 +111,7 @@ const statusColor = (
 ): string => {
   switch (status) {
     case 'Office':
-      return theme.colors.primary;
+      return theme.colors.text.primary;
     case 'Remote':
       return theme.colors.accentHover;
     case 'Absent':
