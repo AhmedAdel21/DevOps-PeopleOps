@@ -368,14 +368,14 @@ export const ProfileScreen: React.FC = () => {
             <AppText variant="body">{profileDepartment}</AppText>
           </View>
 
-          <View style={styles.divider} />
+          {/* <View style={styles.divider} /> */}
 
-          <View style={styles.row}>
+          {/* <View style={styles.row}>
             <AppText variant="caption" color={theme.colors.mutedForeground}>
               {t('profile.fields.slackId')}
             </AppText>
             <AppText variant="body">{profileSlackId}</AppText>
-          </View>
+          </View> */}
         </AppCard>
 
         <AppCard>
@@ -385,7 +385,7 @@ export const ProfileScreen: React.FC = () => {
             </AppText>
           </View>
 
-          <View style={styles.divider} />
+          {/* <View style={styles.divider} />
 
           <Pressable
             style={styles.langRow}
@@ -408,10 +408,10 @@ export const ProfileScreen: React.FC = () => {
                 {slackDisconnecting
                   ? t('profile.slackConnect.disconnecting')
                   : slackConnected
-                  ? t('profile.slackConnect.connected')
-                  : slackConnecting
-                  ? t('profile.slackConnect.connecting')
-                  : t('profile.slackConnect.row')}
+                    ? t('profile.slackConnect.connected')
+                    : slackConnecting
+                      ? t('profile.slackConnect.connecting')
+                      : t('profile.slackConnect.row')}
               </AppText>
             </View>
             {slackConnected ? (
@@ -434,7 +434,7 @@ export const ProfileScreen: React.FC = () => {
             >
               {t('profile.slackConnect.hint')}
             </AppText>
-          ) : null}
+          ) : null} */}
 
           <View style={styles.divider} />
 

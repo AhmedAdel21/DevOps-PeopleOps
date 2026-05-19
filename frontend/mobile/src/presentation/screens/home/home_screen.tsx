@@ -493,7 +493,7 @@ const createStyles = (theme: AppTheme) =>
       backgroundColor: 'transparent',
     },
     scrollContent: {
-      paddingHorizontal: ws(20),
+      paddingHorizontal: ws(30),
       paddingVertical: hs(20),
       gap: theme.spacing.l,
     },
