@@ -134,7 +134,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                         >
                             <AppText
                                 variant="caption"
-                                color={theme.colors.primary}
+                                color={theme.colors.primaryInk}
                                 weight="medium"
                             >
                                 {t('auth.loginScreen.forgotLink')}

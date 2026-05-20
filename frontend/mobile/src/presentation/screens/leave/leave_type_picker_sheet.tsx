@@ -105,7 +105,7 @@ export const LeaveTypePickerSheet: React.FC<LeaveTypePickerSheetProps> = ({
       >
         {fetchStatus === 'pending' && availableTypes.length === 0 ? (
           <View style={styles.loadingWrap}>
-            <ActivityIndicator color={theme.colors.primary} />
+            <ActivityIndicator color={theme.colors.primaryInk} />
           </View>
         ) : availableTypes.length === 0 && !showStartDateRequired ? (
           <View style={styles.loadingWrap}>
@@ -156,7 +156,7 @@ export const LeaveTypePickerSheet: React.FC<LeaveTypePickerSheetProps> = ({
                       styles.radio,
                       {
                         borderColor: isSelected
-                          ? theme.colors.primary
+                          ? theme.colors.primaryInk
                           : theme.colors.borderStrong,
                       },
                     ]}
@@ -165,7 +165,7 @@ export const LeaveTypePickerSheet: React.FC<LeaveTypePickerSheetProps> = ({
                       <View
                         style={[
                           styles.radioDot,
-                          { backgroundColor: theme.colors.primary },
+                          { backgroundColor: theme.colors.primaryInk },
                         ]}
                       />
                     )}

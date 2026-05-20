@@ -87,7 +87,7 @@ export const ThemePickerSheet: React.FC<ThemePickerSheetProps> = ({
                   styles.card,
                   {
                     backgroundColor: theme.colors.card,
-                    borderColor: isSelected ? theme.colors.primary : theme.colors.border,
+                    borderColor: isSelected ? theme.colors.primaryInk : theme.colors.border,
                   },
                 ]}
               >
@@ -117,7 +117,7 @@ export const ThemePickerSheet: React.FC<ThemePickerSheetProps> = ({
                     styles.radio,
                     {
                       borderColor: isSelected
-                        ? accent.base
+                        ? theme.colors.primaryInk
                         : theme.colors.borderStrong,
                     },
                   ]}
@@ -126,7 +126,7 @@ export const ThemePickerSheet: React.FC<ThemePickerSheetProps> = ({
                     <View
                       style={[
                         styles.radioDot,
-                        { backgroundColor: accent.base },
+                        { backgroundColor: theme.colors.primaryInk },
                       ]}
                     />
                   )}

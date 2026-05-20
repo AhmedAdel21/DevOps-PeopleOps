@@ -51,7 +51,7 @@ export const MainTabsNavigator: React.FC = () => {
 
     const screenOptions: BottomTabNavigationOptions = {
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
+        tabBarActiveTintColor: theme.colors.primaryInk,
         tabBarInactiveTintColor: theme.colors.mutedForeground,
         tabBarStyle: {
             backgroundColor: theme.colors.card,

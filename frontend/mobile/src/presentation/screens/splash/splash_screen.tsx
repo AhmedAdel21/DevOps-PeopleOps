@@ -48,7 +48,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onReady }) => {
         </View>
 
         <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <ActivityIndicator size="small" color={theme.colors.primaryInk} />
           <AppText variant="label" color={theme.colors.mutedForeground}>
             {t('common.loading')}
           </AppText>

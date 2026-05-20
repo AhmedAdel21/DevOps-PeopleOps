@@ -129,7 +129,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
                             color={theme.colors.mutedForeground}
                         >
                             {t('auth.otp.sentTo')}{' '}
-                            <AppText variant="bodyMedium" color={theme.colors.primary}>
+                            <AppText variant="bodyMedium" color={theme.colors.primaryInk}>
                                 {email}
                             </AppText>
                         </AppText>
@@ -174,7 +174,7 @@ export const OtpScreen: React.FC<OtpScreenProps> = ({
                             </AppText>
                         ) : (
                             <Pressable onPress={handleResend} hitSlop={8}>
-                                <AppText variant="caption" color={theme.colors.primary} weight="medium">
+                                <AppText variant="caption" color={theme.colors.primaryInk} weight="medium">
                                     {t('auth.otp.resendNow')}
                                 </AppText>
                             </Pressable>

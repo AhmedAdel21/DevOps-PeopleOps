@@ -363,7 +363,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               onPress={() => navigation.navigate('History')}
               hitSlop={8}
             >
-              <AppText variant="caption" color={theme.colors.primary}>
+              <AppText variant="caption" color={theme.colors.primaryInk}>
                 {t('home.historyLink')}
               </AppText>
             </Pressable>
@@ -371,7 +371,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
           {historyFetchStatus === 'pending' && historyItems.length === 0 && (
             <View style={styles.recentSpinner}>
-              <ActivityIndicator color={theme.colors.primary} />
+              <ActivityIndicator color={theme.colors.primaryInk} />
             </View>
           )}
 

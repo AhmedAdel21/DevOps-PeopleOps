@@ -46,6 +46,16 @@ gradient/motion). Migration status + plan: `docs/design-system-migration.md`.
 - **AA gotcha:** `accent`/`secondary` (lavender) is only 3.5:1 on white — use
   `theme.colors.accentHover` (accent-700, 5.5:1) for body text / inline links;
   `accent` only for large text, fills, icons, focus rings.
+- **Dark-mode foreground:** `theme.colors.primary` (`#262261`) is pinned in
+  both themes — fine as a **fill** (button bg, badge bg, status bar — pairs
+  with white `primaryForeground`) but invisible as a **foreground** on the
+  dark canvas (`#1A1838`, ~1.5:1). Rule: any time `primary` would be a
+  text/icon/border/ActivityIndicator color on the page or card surface, use
+  **`theme.colors.primaryInk`** instead. It resolves to `#262261` in light
+  and `#A6A9F7` (accent-300, ~7:1) in dark. Same applies to `accentHover`
+  for foreground use — it's already flipped in `dark.theme.ts` to `#A6A9F7`.
+  Self-contained "brand chips" (icon on `primaryLight` background) stay
+  pinned — the chip looks identical in both themes by design.
 - Glass via `AppGlassSurface` / page wash via `AppPageBackground` (iOS real
   blur, Android opacity fallback); gradients via `AppLinearGradient` (feed it
   a theme gradient token, never hand-rolled colors).

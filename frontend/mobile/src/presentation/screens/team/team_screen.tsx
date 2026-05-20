@@ -614,7 +614,7 @@ export const TeamScreen: React.FC = () => {
     if (fetchStatus === 'pending' && rows.length === 0) {
       return (
         <View style={styles.centerFill}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primaryInk} />
         </View>
       );
     }
@@ -745,7 +745,7 @@ export const TeamScreen: React.FC = () => {
     if (approvalsStatus === 'pending' && approvalSections.length === 0) {
       body = (
         <View style={styles.approvalsBodyFill}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primaryInk} />
         </View>
       );
     } else if (approvalsStatus === 'error') {

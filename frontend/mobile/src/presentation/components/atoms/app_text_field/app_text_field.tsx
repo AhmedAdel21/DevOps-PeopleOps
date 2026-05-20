@@ -46,7 +46,7 @@ export const AppTextField: React.FC<AppTextFieldProps> = ({
     const borderColor = error
         ? theme.colors.status.error.base
         : focused
-            ? theme.colors.primary
+            ? theme.colors.primaryInk
             : theme.colors.border;
 
     const iconColor = error

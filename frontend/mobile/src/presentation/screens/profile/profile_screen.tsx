@@ -425,7 +425,7 @@ export const ProfileScreen: React.FC = () => {
               </AppText>
             </View>
             {slackConnected ? (
-              <CheckCircle size={ws(18)} color={theme.colors.primary} />
+              <CheckCircle size={ws(18)} color={theme.colors.primaryInk} />
             ) : I18nManager.isRTL ? (
               <ChevronLeft size={ws(18)} color={theme.colors.mutedForeground} />
             ) : (
@@ -614,7 +614,7 @@ const createStyles = (theme: AppTheme) =>
     },
     profileHeroCard: {
       backgroundColor: theme.colors.background,
-      borderColor: theme.colors.primary,
+      borderColor: theme.colors.primaryInk,
     },
     profileHeroTop: {
       flexDirection: 'row',
@@ -623,7 +623,7 @@ const createStyles = (theme: AppTheme) =>
     },
     profileAvatar: {
       borderWidth: 2,
-      borderColor: theme.colors.primary,
+      borderColor: theme.colors.primaryInk,
     },
     profileIdentityWrap: {
       flex: 1,

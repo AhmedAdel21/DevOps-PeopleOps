@@ -55,7 +55,7 @@ export const AppOtpInput: React.FC<AppOtpInputProps> = ({
         const borderColor = error
             ? theme.colors.status.error.base
             : isActive
-                ? theme.colors.primary
+                ? theme.colors.primaryInk
                 : isFilled
                     ? theme.colors.borderStrong
                     : theme.colors.border;

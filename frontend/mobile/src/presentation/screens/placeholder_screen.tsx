@@ -122,7 +122,7 @@ const createStyles = (theme: AppTheme) =>
     subtitle: {
       fontSize: theme.typography.sizes.heading,
       fontWeight: theme.typography.weights.medium,
-      color: theme.colors.primary,
+      color: theme.colors.primaryInk,
       marginTop: 8,
     },
   });

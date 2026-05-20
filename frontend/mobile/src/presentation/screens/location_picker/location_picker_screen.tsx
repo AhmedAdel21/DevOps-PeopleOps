@@ -99,7 +99,7 @@ export const LocationPickerSheet: React.FC<LocationPickerSheetProps> = ({
                 <View style={[styles.iconBox, selected && styles.iconBoxSelected]}>
                   <MapPin
                     size={ws(20)}
-                    color={selected ? theme.colors.primary : theme.colors.mutedForeground}
+                    color={selected ? theme.colors.primaryInk : theme.colors.mutedForeground}
                   />
                 </View>
 
@@ -173,7 +173,7 @@ const createStyles = (theme: AppTheme) =>
       gap: ws(14),
     },
     cardSelected: {
-      borderColor: theme.colors.primary,
+      borderColor: theme.colors.primaryInk,
     },                                                                                                             
     cardText: {
       flex: 1,                                                                                                     
@@ -204,12 +204,12 @@ const createStyles = (theme: AppTheme) =>
       justifyContent: 'center',
     },                                                                                                             
     radioSelected: {
-      borderColor: theme.colors.primary,
+      borderColor: theme.colors.primaryInk,
     },
     radioDot: {
       width: ws(10),
       height: ws(10),                                                                                              
       borderRadius: ws(5),
-      backgroundColor: theme.colors.primary,                                                                       
+      backgroundColor: theme.colors.primaryInk,                                                                       
     },          
   });

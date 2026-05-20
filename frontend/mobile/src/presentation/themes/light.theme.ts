@@ -24,6 +24,7 @@ export const lightTheme: AppTheme = {
     primaryHover: '#1B1849', // --brand-primary-700
     primaryLight: '#EFEEF7', // --brand-primary-050
     primaryForeground: '#FFFFFF',
+    primaryInk: '#262261', // primary as text/icon — same as primary on light
     primary700: '#1B1849',
     primary500: '#3A3680',
     primary300: '#6F6CA6',

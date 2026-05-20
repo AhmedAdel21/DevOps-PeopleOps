@@ -20,26 +20,12 @@ export interface LanguagePickerSheetProps {
 interface LanguageOption {
   code: string;
   icon: LucideIcon;
-  accentKey: 'primary' | 'info';
 }
 
 const LANGUAGE_OPTIONS: LanguageOption[] = [
-  { code: 'en', icon: Globe, accentKey: 'primary' },
-  { code: 'ar', icon: Globe, accentKey: 'info' },
+  { code: 'en', icon: Globe },
+  { code: 'ar', icon: Globe },
 ];
-
-const resolveAccent = (
-  theme: AppTheme,
-  key: 'primary' | 'info',
-): { base: string; light: string } => {
-  if (key === 'primary') {
-    return { base: theme.colors.primary, light: theme.colors.primaryLight };
-  }
-  return {
-    base: theme.colors.status.info.base,
-    light: theme.colors.status.info.light,
-  };
-};
 
 export const LanguagePickerSheet: React.FC<LanguagePickerSheetProps> = ({
   visible,
@@ -74,7 +60,6 @@ export const LanguagePickerSheet: React.FC<LanguagePickerSheetProps> = ({
         <View style={styles.cards}>
           {LANGUAGE_OPTIONS.map((option) => {
             const isSelected = selected === option.code;
-            const accent = resolveAccent(theme, option.accentKey);
             const Icon = option.icon;
 
             return (
@@ -85,7 +70,7 @@ export const LanguagePickerSheet: React.FC<LanguagePickerSheetProps> = ({
                   styles.card,
                   {
                     backgroundColor: theme.colors.card,
-                    borderColor: isSelected ? theme.colors.primary : theme.colors.border,
+                    borderColor: isSelected ? theme.colors.primaryInk : theme.colors.border,
                   },
                 ]}
               >
@@ -112,7 +97,7 @@ export const LanguagePickerSheet: React.FC<LanguagePickerSheetProps> = ({
                     styles.radio,
                     {
                       borderColor: isSelected
-                        ? accent.base
+                        ? theme.colors.primaryInk
                         : theme.colors.borderStrong,
                     },
                   ]}
@@ -121,7 +106,7 @@ export const LanguagePickerSheet: React.FC<LanguagePickerSheetProps> = ({
                     <View
                       style={[
                         styles.radioDot,
-                        { backgroundColor: accent.base },
+                        { backgroundColor: theme.colors.primaryInk },
                       ]}
                     />
                   )}

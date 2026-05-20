@@ -105,6 +105,7 @@ export interface AppTheme {
     primaryHover: string;
     primaryLight: string;
     primaryForeground: string;
+    primaryInk: string; // primary used as text/icon/border (flips in dark mode)
     primary700: string;
     primary500: string;
     primary300: string;

@@ -25,6 +25,7 @@ export const darkTheme: AppTheme = {
     primaryHover: '#1B1849',
     primaryLight: '#EFEEF7',
     primaryForeground: '#FFFFFF',
+    primaryInk: '#A6A9F7', // primary as text/icon — flipped to accent-300 for ~7:1 on dark canvas
     primary700: '#1B1849',
     primary500: '#3A3680',
     primary300: '#6F6CA6',
@@ -32,7 +33,7 @@ export const darkTheme: AppTheme = {
     primary050: '#EFEEF7',
 
     accent: '#787CF2',
-    accentHover: '#5559D6',
+    accentHover: '#A6A9F7', // flipped to accent-300 for ~7:1 fg contrast on dark canvas
     accent300: '#A6A9F7',
     accent200: '#C9CBFA',
     accent100: '#E4E5FD',

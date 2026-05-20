@@ -86,7 +86,7 @@ export const HistoryScreen: React.FC = () => {
     if (isAppending) {
       return (
         <View style={styles.footer}>
-          <ActivityIndicator color={theme.colors.primary} />
+          <ActivityIndicator color={theme.colors.primaryInk} />
         </View>
       );
     }
@@ -119,7 +119,7 @@ export const HistoryScreen: React.FC = () => {
       <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
         {renderHeader()}
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primaryInk} />
         </View>
       </SafeAreaView>
     );

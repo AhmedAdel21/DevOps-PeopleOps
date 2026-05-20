@@ -133,7 +133,7 @@ export const PermissionTypePickerSheet: React.FC<PermissionTypePickerSheetProps>
                     styles.radio,
                     {
                       borderColor: isSelected
-                        ? theme.colors.primary
+                        ? theme.colors.primaryInk
                         : theme.colors.borderStrong,
                     },
                   ]}
@@ -142,7 +142,7 @@ export const PermissionTypePickerSheet: React.FC<PermissionTypePickerSheetProps>
                     <View
                       style={[
                         styles.radioDot,
-                        { backgroundColor: theme.colors.primary },
+                        { backgroundColor: theme.colors.primaryInk },
                       ]}
                     />
                   )}

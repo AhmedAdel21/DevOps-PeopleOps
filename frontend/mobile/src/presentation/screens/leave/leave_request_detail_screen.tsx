@@ -159,14 +159,14 @@ export const LeaveRequestDetailScreen: React.FC = () => {
           <RefreshControl
             refreshing={fetchStatus === 'pending'}
             onRefresh={reload}
-            tintColor={theme.colors.primary}
+            tintColor={theme.colors.primaryInk}
           />
         }
         showsVerticalScrollIndicator={false}
       >
         {isLoading ? (
           <View style={styles.centerFill}>
-            <ActivityIndicator color={theme.colors.primary} />
+            <ActivityIndicator color={theme.colors.primaryInk} />
           </View>
         ) : !detail ? (
           <View style={styles.centerFill}>

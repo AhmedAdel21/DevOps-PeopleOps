@@ -112,7 +112,7 @@ export const ApprovalDetailScreen: React.FC = () => {
       <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
         {renderHeader()}
         <View style={styles.centerFill}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primaryInk} />
         </View>
       </SafeAreaView>
     );
@@ -176,14 +176,7 @@ export const ApprovalDetailScreen: React.FC = () => {
         ) : null}
 
         <View style={styles.heroCard}>
-          <Clock
-            size={ws(28)}
-            color={
-              theme.dark
-                ? theme.colors.status.info.base
-                : theme.colors.primary
-            }
-          />
+          <Clock size={ws(28)} color={theme.colors.primaryInk} />
           <AppText variant="cardTitle" weight="semibold">
             {t('team.detail.heroPendingTitle')}
           </AppText>
@@ -272,7 +265,7 @@ export const ApprovalDetailScreen: React.FC = () => {
                 <AppText
                   variant="label"
                   weight="semibold"
-                  color={theme.colors.primary}
+                  color={theme.colors.primaryInk}
                 >
                   {balanceImpact.afterLabel}
                 </AppText>

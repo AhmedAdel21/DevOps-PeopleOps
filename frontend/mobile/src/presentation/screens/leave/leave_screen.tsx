@@ -552,7 +552,7 @@ export const LeaveScreen: React.FC = () => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={theme.colors.primary}
+            tintColor={theme.colors.primaryInk}
           />
         }
       >

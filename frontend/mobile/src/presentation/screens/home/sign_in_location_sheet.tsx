@@ -130,7 +130,7 @@ export const SignInLocationSheet: React.FC<SignInLocationSheetProps> = ({
                             { backgroundColor: theme.colors.background },
                         ]}
                     >
-                        <Clock size={ws(20)} color={theme.colors.primary} />
+                        <Clock size={ws(20)} color={theme.colors.primaryInk} />
                     </View>
                     <View style={styles.timeTextCol}>
                         <AppText
@@ -169,7 +169,7 @@ export const SignInLocationSheet: React.FC<SignInLocationSheetProps> = ({
                                     {
                                         backgroundColor: theme.colors.card,
                                         borderColor: isSelected
-                                            ? theme.colors.primary
+                                            ? theme.colors.primaryInk
                                             : theme.colors.border,
                                     },
                                 ]}
@@ -200,7 +200,7 @@ export const SignInLocationSheet: React.FC<SignInLocationSheetProps> = ({
                                         styles.radio,
                                         {
                                             borderColor: isSelected
-                                                ? accent.base
+                                                ? theme.colors.primaryInk
                                                 : theme.colors.borderStrong,
                                         },
                                     ]}
@@ -209,7 +209,7 @@ export const SignInLocationSheet: React.FC<SignInLocationSheetProps> = ({
                                         <View
                                             style={[
                                                 styles.radioDot,
-                                                { backgroundColor: accent.base },
+                                                { backgroundColor: theme.colors.primaryInk },
                                             ]}
                                         />
                                     )}

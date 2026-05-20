@@ -160,7 +160,7 @@ const PickerModal: React.FC<PickerModalProps> = ({
               <AppText variant="label" color={theme.colors.mutedForeground}>{cancelLabel}</AppText>
             </Pressable>
             <Pressable onPress={() => onConfirm(pending)} hitSlop={8}>
-              <AppText variant="label" color={theme.colors.primary}>{confirmLabel}</AppText>
+              <AppText variant="label" color={theme.colors.primaryInk}>{confirmLabel}</AppText>
             </Pressable>
           </View>
           <DateTimePicker
