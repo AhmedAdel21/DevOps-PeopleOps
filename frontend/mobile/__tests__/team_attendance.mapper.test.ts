@@ -115,19 +115,19 @@ const dto: TeamDayDto = {
   employees: [
     emp({ empCode: 'E_AHMED', displayName: 'Ahmed El-Sayed',
           status: 'office', place: 'office' }),
-    emp({ empCode: 'U_NOUR', displayName: 'Nour Khaled',
+    emp({ empCode: 'E_NOUR', displayName: 'Nour Khaled',
           status: 'home', place: 'home',
           signIn: '2026-04-08T09:15:00+03:00' }),
-    emp({ empCode: 'U_OMAR', displayName: 'Omar Mostafa',
+    emp({ empCode: 'E_OMAR', displayName: 'Omar Mostafa',
           status: 'office', place: 'office',
           signIn: '2026-04-08T09:45:00+03:00', isLate: true }),
-    emp({ empCode: 'U_YOUSSEF', displayName: 'Youssef Samir',
+    emp({ empCode: 'E_YOUSSEF', displayName: 'Youssef Samir',
           status: 'signedOut', place: 'office',
           signIn: '2026-04-08T10:00:00+03:00',
           signOut: '2026-04-08T18:00:00+03:00', hoursWorked: 8 }),
-    emp({ empCode: 'U_LAYLA', displayName: 'Layla Hassan',
+    emp({ empCode: 'E_LAYLA', displayName: 'Layla Hassan',
           status: 'vacation', place: null, signIn: null }),
-    emp({ empCode: 'U_HANA', displayName: 'Hana Ali',
+    emp({ empCode: 'E_HANA', displayName: 'Hana Ali',
           status: 'notCheckedIn', place: null, signIn: null,
           avatarUrl: 'https://example.test/hana.jpg' }),
   ],
@@ -167,7 +167,7 @@ describe('teamDayDtoToTeamDay', () => {
 
   it('maps an explicit notCheckedIn record to NotSignedIn with the new label', () => {
     const hana = teamDayDtoToTeamDay(dto).rows.find(
-      r => r.userId === 'U_HANA',
+      r => r.userId === 'E_HANA',
     )!;
     expect(hana.status).toBe('NotSignedIn');
     expect(hana.isLate).toBe(false);
@@ -180,9 +180,9 @@ describe('teamDayDtoToTeamDay', () => {
     const d: TeamDayDto = {
       ...dto,
       employees: [
-        emp({ empCode: 'U_OFFICE', status: 'office', place: 'office' }),
-        emp({ empCode: 'U_HOME',   status: 'home',   place: 'home' }),
-        emp({ empCode: 'U_SO_OFF', status: 'signedOut', place: 'office',
+        emp({ empCode: 'E_OFFICE', status: 'office', place: 'office' }),
+        emp({ empCode: 'E_HOME',   status: 'home',   place: 'home' }),
+        emp({ empCode: 'E_SO_OFF', status: 'signedOut', place: 'office',
               signOut: '2026-04-08T18:00:00+03:00', hoursWorked: 8 }),
         emp({ empCode: 'U_SO_HOM', status: 'signedOut', place: 'home',
               signOut: '2026-04-08T17:00:00+03:00', hoursWorked: 7 }),
@@ -207,7 +207,7 @@ describe('teamDayDtoToTeamDay', () => {
   it('pipes avatarUrl through unchanged and derives initials from displayName', () => {
     const rows = teamDayDtoToTeamDay(dto).rows;
     const ahmed = rows.find(r => r.userId === 'E_AHMED')!;
-    const hana = rows.find(r => r.userId === 'U_HANA')!;
+    const hana = rows.find(r => r.userId === 'E_HANA')!;
     expect(ahmed.avatarUrl).toBeNull();
     expect(ahmed.avatarInitials).toBe('AE');
     expect(hana.avatarUrl).toBe('https://example.test/hana.jpg');
@@ -216,7 +216,7 @@ describe('teamDayDtoToTeamDay', () => {
 
   it('uses backend hoursWorked for the SignedOut worked-time suffix', () => {
     const y = teamDayDtoToTeamDay(dto).rows.find(
-      r => r.userId === 'U_YOUSSEF',
+      r => r.userId === 'E_YOUSSEF',
     )!;
     expect(y.statusLabel).toBe('Signed out at 6:00 PM · 8h worked');
   });
