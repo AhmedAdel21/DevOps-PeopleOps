@@ -42,7 +42,7 @@ const mockTeamDay = (date: string): TeamDayDto => ({
   },
   employees: [
     {
-      slackUserId: 'U04AE',
+      empCode: 'E001',
       displayName: 'Ahmed El-Sayed',
       avatarUrl: null,
       departmentId: 'd_eng',
@@ -54,7 +54,7 @@ const mockTeamDay = (date: string): TeamDayDto => ({
       isLate: false,
     },
     {
-      slackUserId: 'U04NK',
+      empCode: 'E002',
       displayName: 'Nour Khaled',
       avatarUrl: null,
       departmentId: 'd_eng',
@@ -66,7 +66,7 @@ const mockTeamDay = (date: string): TeamDayDto => ({
       isLate: false,
     },
     {
-      slackUserId: 'U04OM',
+      empCode: 'E003',
       displayName: 'Omar Mostafa',
       avatarUrl: null,
       departmentId: 'd_eng',
@@ -78,7 +78,7 @@ const mockTeamDay = (date: string): TeamDayDto => ({
       isLate: true,
     },
     {
-      slackUserId: 'U04FT',
+      empCode: 'E004',
       displayName: 'Fatima Taha',
       avatarUrl: null,
       departmentId: 'd_eng',
@@ -90,7 +90,7 @@ const mockTeamDay = (date: string): TeamDayDto => ({
       isLate: false,
     },
     {
-      slackUserId: 'U04YS',
+      empCode: 'E005',
       displayName: 'Youssef Samir',
       avatarUrl: null,
       departmentId: 'd_eng',
@@ -102,7 +102,7 @@ const mockTeamDay = (date: string): TeamDayDto => ({
       isLate: false,
     },
     {
-      slackUserId: 'U04LH',
+      empCode: 'E006',
       displayName: 'Layla Hassan',
       avatarUrl: null,
       departmentId: 'd_eng',
@@ -114,7 +114,7 @@ const mockTeamDay = (date: string): TeamDayDto => ({
       isLate: false,
     },
     {
-      slackUserId: 'U04HA',
+      empCode: 'E007',
       displayName: 'Hana Ali',
       avatarUrl: null,
       departmentId: 'd_eng',
