@@ -3,16 +3,24 @@
 Instructions for Claude Code (and human teammates) working in this app.
 Read this **before** making changes.
 
-> **Backend** lives at `D:\Work\Slack-Daily-Attendance` (separate repo) with
-> its own `CLAUDE.md`. The two repos move together; coordinate API changes.
+> **Backend** lives at `D:\Work\Slack_Daily_Attendance_Project\Devopsolution`
+> (separate repo, the `Mobile.Api.Employee` project specifically; the
+> companion `Web.Api.Admin` powers the admin dashboard). Each has its own
+> `CLAUDE.md`. The two repos move together; coordinate API changes.
+>
+> Prod base URL: `https://devopsolution-mobile-api.wittyplant-a959848a.uaenorth.azurecontainerapps.io`.
+> Local development goes through an ngrok tunnel — see `AppConfig.API_BASE_URL`
+> in `src/di/config.ts`. The endpoint reference for the
+> hierarchical-approval surface (submit / inbox / decide) lives in the BE
+> repo at `docs/mobile-api-approvals.md`.
 
 ---
 
 ## Project overview
 
 React Native 0.85 + React 19 + Redux Toolkit + i18next bare app (no Expo).
-Targets Android and iOS. Connects to the Slack-Daily-Attendance .NET
-backend via JWT-authenticated REST. Authentication is Firebase (email +
+Targets Android and iOS. Connects to the Devopsolution `Mobile.Api.Employee`
+.NET backend via JWT-authenticated REST. Authentication is Firebase (email +
 password) or Zoho OAuth; identity (am I logged in?) is owned by the auth
 slice + Firebase SDK, while profile + permissions (who am I, what can I
 do?) come from `GET /api/auth/me` and live in the `me` slice. The Firebase
