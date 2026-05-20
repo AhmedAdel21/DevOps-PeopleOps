@@ -1,5 +1,5 @@
 export {
   formatTeamStatusLabel,
   formatHoursWorked,
-  attendanceHistoryToTeamDay,
+  teamDayDtoToTeamDay,
 } from './team_attendance.mapper';

@@ -73,9 +73,13 @@ type FetchStatus = 'idle' | 'pending' | 'loaded' | 'error';
 // ── Serializable projections ────────────────────────────────────────────────
 
 export interface SerializableTeamRow {
-  userId: string;
-  slackUserId: string | null;
+  /** Canonical HR identifier (BE `AppUser.EmpCode`). FlatList key on the
+   *  team screen. */
+  empCode: string;
   displayName: string;
+  /** Remote avatar URL — when present the row renders an Image, otherwise
+   *  falls back to the initials chip. */
+  avatarUrl: string | null;
   avatarInitials: string;
   avatarColorHex: string | null;
   departmentId: string | null;
@@ -191,9 +195,9 @@ const toSerializableDay = (d: TeamAttendanceDay): SerializableTeamDay => ({
   date: d.date,
   summary: { ...d.summary },
   rows: d.rows.map(r => ({
-    userId: r.userId,
-    slackUserId: r.slackUserId,
+    empCode: r.empCode,
     displayName: r.displayName,
+    avatarUrl: r.avatarUrl,
     avatarInitials: r.avatarInitials,
     avatarColorHex: r.avatarColorHex,
     departmentId: r.departmentId,

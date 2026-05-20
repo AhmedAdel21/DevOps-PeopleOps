@@ -218,17 +218,21 @@ export const en = {
     },
     summary: {
       inOffice: 'In office',
-      remote: 'Remote',
+      remote: 'Home',
       absent: 'Absent',
+      notSignedIn: 'Not checked in',
       late: 'Late',
     },
     status: {
       office: 'Office',
-      remote: 'Remote',
+      // Per-row primary badge for `home` rows — was 'Remote'; rebranded to
+      // 'Home' per the four-badge spec (Office / Home / Vacation /
+      // Not Checked In).
+      remote: 'Home',
       absent: 'Absent',
       signedOut: 'Signed out',
-      notSignedIn: 'Not in',
-      onLeave: 'On leave',
+      notSignedIn: 'Not checked in',
+      onLeave: 'Vacation',
     },
     empty: {
       title: 'No employees match this filter',

@@ -217,17 +217,20 @@ export const ar = {
     },
     summary: {
       inOffice: 'بالمكتب',
-      remote: 'عن بُعد',
+      remote: 'من المنزل',
       absent: 'غائب',
+      notSignedIn: 'لم يسجّل دخول',
       late: 'متأخر',
     },
     status: {
       office: 'بالمكتب',
-      remote: 'عن بُعد',
+      // Per-row primary badge for `home` rows — was 'عن بُعد' (Remote);
+      // rebranded to 'من المنزل' (Home) per the four-badge spec.
+      remote: 'من المنزل',
       absent: 'غائب',
       signedOut: 'سجّل خروج',
-      notSignedIn: 'لم يسجّل',
-      onLeave: 'في إجازة',
+      notSignedIn: 'لم يسجّل دخول',
+      onLeave: 'إجازة',
     },
     empty: {
       title: 'لا موظفين مطابقين لعوامل التصفية',

@@ -4,7 +4,7 @@ import type {
   TeamAttendanceRepository,
 } from '@/domain/repositories';
 import { TeamAttendanceRemoteDataSource } from '@/data/data_sources/team_attendance';
-import { attendanceHistoryToTeamDay } from '@/data/mappers/team_attendance';
+import { teamDayDtoToTeamDay } from '@/data/mappers/team_attendance';
 import { mapHttpErrorToLeave } from '@/data/mappers/leave';
 import { managementLog } from '@/core/logger';
 
@@ -19,9 +19,9 @@ export class TeamAttendanceRepositoryImpl implements TeamAttendanceRepository {
     const date = params.date ?? todayIso();
     managementLog.info('repository', `getTeamAttendanceDay (date=${date})`);
     try {
-      // No per-day endpoint — request a single-day range and derive.
-      const dto = await this.ds.getAttendanceHistory({ from: date, to: date });
-      const result = attendanceHistoryToTeamDay(dto, date);
+      // Slim per-day endpoint — no nested day arrays, no aggregate counters.
+      const dto = await this.ds.getTeamDay({ date });
+      const result = teamDayDtoToTeamDay(dto);
       managementLog.info(
         'repository',
         `getTeamAttendanceDay → ${result.rows.length} rows`,

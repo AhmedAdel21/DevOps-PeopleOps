@@ -4,40 +4,39 @@ import type {
   TeamAttendanceStatus,
 } from '@/domain/entities';
 import type {
-  AttendanceHistoryDto,
-  EmployeeDayRecordDto,
-  EmployeeSummaryDto,
+  TeamDayDto,
+  TeamDayEmployeeDto,
 } from '@/data/dtos/team_attendance';
 
 /**
- * The backend returns `AttendanceHistoryDto` for a *date range* — never the
- * per-day, per-employee roster the design (EfKE5/dcnNd) needs. The Team tab
- * queries `from=to=selectedDate`; everything the screen renders (summary
- * chips, per-row status pill, "Since 8:30 AM" / "· 8h worked", Late badge)
- * is derived here. Real logic → unit-tested
- * (`__tests__/team_attendance.mapper.test.ts`).
+ * The mobile-only endpoint `/api/v1/management/attendance/team-day?date=…`
+ * returns a per-day shape with one record per employee — no working-dates
+ * array, no nested per-employee days, no aggregate counters the screen
+ * doesn't render. Mapping is now a straight 1-to-1 translation of wire
+ * values into the domain entity. Real logic — status/place mapping,
+ * status-label formatting — is unit-tested in
+ * `__tests__/team_attendance.mapper.test.ts`.
  */
 
 // ── Status mapping (wire → domain) ──────────────────────────────────────────
-// Backend statuses: InOffice | Wfh | SignedOut | Absent | Vacation.
-// The backend has no "NotSignedIn" — a not-yet-signed-in employee is Absent.
+// Wire vocabulary (lowercase, mirrors the web dashboard):
+//   office | home | signedOut | vacation | notCheckedIn.
 const STATUS_MAP: Record<string, TeamAttendanceStatus> = {
-  InOffice: 'Office',
-  Wfh: 'Remote',
-  SignedOut: 'SignedOut',
-  Absent: 'Absent',
-  Vacation: 'OnLeave',
+  office: 'Office',
+  home: 'Remote',
+  signedOut: 'SignedOut',
+  vacation: 'OnLeave',
+  notCheckedIn: 'NotSignedIn',
 };
 
 const toStatus = (raw: string | null | undefined): TeamAttendanceStatus =>
-  (raw && STATUS_MAP[raw]) || 'Absent';
+  (raw && STATUS_MAP[raw]) || 'NotSignedIn';
 
-// Wire `place` is title-case `InOffice | Wfh | null` (same endpoint family
-// as attendance_history.dto — see its comment). Kept separate from
-// STATUS_MAP because `place` survives a SignedOut status collapse.
+// Wire `place` is lowercase too (`office | home | null`). Kept separate
+// from STATUS_MAP because `place` survives a SignedOut status collapse.
 const PLACE_MAP: Record<string, 'Office' | 'Remote'> = {
-  InOffice: 'Office',
-  Wfh: 'Remote',
+  office: 'Office',
+  home: 'Remote',
 };
 
 const toPlace = (
@@ -107,9 +106,12 @@ export function formatTeamStatusLabel(
         ? `Office · Since ${clockFromIso(signedInAt)}`
         : 'Office';
     case 'Remote':
+      // Domain status stays `Remote` for back-compat, but the row label
+      // reads "Home" per the four-badge spec (Office / Home / Vacation /
+      // Not Checked In). i18n labels for the chip badge are updated too.
       return signedInAt
-        ? `Remote · Since ${clockFromIso(signedInAt)}`
-        : 'Remote';
+        ? `Home · Since ${clockFromIso(signedInAt)}`
+        : 'Home';
     case 'SignedOut': {
       if (!signedOutAt) return 'Signed out';
       const worked =
@@ -128,82 +130,54 @@ export function formatTeamStatusLabel(
       return 'On leave';
     case 'NotSignedIn':
     default:
-      return 'Not signed in';
+      return 'Not checked in';
   }
 }
 
-// ── AttendanceHistoryDto → one day's roster ─────────────────────────────────
+// ── TeamDayDto → domain ─────────────────────────────────────────────────────
 
-const employeeDayToRow = (
-  emp: EmployeeSummaryDto,
-  rec: EmployeeDayRecordDto | undefined,
-): TeamAttendanceRow => {
-  const status = rec ? toStatus(rec.status) : 'Absent';
-  const isLate = (rec?.unexcusedLateMinutes ?? 0) > 0;
-  const signedInAt = rec?.signIn ?? null;
-  const signedOutAt = rec?.signOut ?? null;
+const employeeToRow = (emp: TeamDayEmployeeDto): TeamAttendanceRow => {
+  const status = toStatus(emp.status);
   return {
-    // Backend exposes only `slackUserId`; the row entity carries both a
-    // `userId` and `slackUserId` — collapse them onto the same value.
-    userId: emp.slackUserId,
-    slackUserId: emp.slackUserId,
+    empCode: emp.empCode,
     displayName: emp.displayName,
+    avatarUrl: emp.avatarUrl,
     avatarInitials: initials(emp.displayName),
     avatarColorHex: null,
     departmentId: emp.departmentId,
     departmentName: null, // no name source — dcnNd dept sub-label trimmed
     status,
-    place: toPlace(rec?.place),
-    isLate,
-    signedInAt,
-    signedOutAt,
+    place: toPlace(emp.place),
+    isLate: emp.isLate,
+    signedInAt: emp.signIn,
+    signedOutAt: emp.signOut,
     statusLabel: formatTeamStatusLabel(
       status,
-      isLate,
-      signedInAt,
-      signedOutAt,
-      rec?.hoursWorked ?? null,
+      emp.isLate,
+      emp.signIn,
+      emp.signOut,
+      emp.hoursWorked,
     ),
   };
 };
 
 /**
- * Derive the design's per-day roster for `date` from the range bundle.
- * Summary chips come from `dailyStats[date]`; Late/OnLeave are counted
- * from the employees' day records; rows are one per employee (a missing
- * record for `date` → an Absent row).
+ * Turn a `TeamDayDto` from the slim mobile endpoint into the domain
+ * `TeamAttendanceDay` the screen renders. Summary chips read straight off
+ * the BE-computed counters — no client-side re-counting needed.
  */
-export const attendanceHistoryToTeamDay = (
-  dto: AttendanceHistoryDto,
-  date: string,
-): TeamAttendanceDay => {
-  const stats = dto.dailyStats.find(s => s.date === date) ?? null;
-
-  const dayRecOf = (emp: EmployeeSummaryDto) =>
-    emp.days.find(d => d.date === date);
-
-  let late = 0;
-  let onLeave = 0;
-  const rows = dto.employees.map(emp => {
-    const rec = dayRecOf(emp);
-    if (rec) {
-      if ((rec.unexcusedLateMinutes ?? 0) > 0) late += 1;
-      if (rec.status === 'Vacation') onLeave += 1;
-    }
-    return employeeDayToRow(emp, rec);
-  });
-
-  return {
-    date,
-    summary: {
-      inOffice: stats?.inOffice ?? 0,
-      remote: stats?.wfh ?? 0,
-      absent: stats?.absent ?? 0,
-      late,
-      // Backend has no NotSignedIn status — folded into Absent.
-      notSignedIn: 0,
-      onLeave,
-    },
-    rows,
-  };
-};
+export const teamDayDtoToTeamDay = (dto: TeamDayDto): TeamAttendanceDay => ({
+  date: dto.date,
+  summary: {
+    inOffice: dto.summary.office,
+    remote: dto.summary.home,
+    // `absent` is kept on the domain entity for back-compat but the BE no
+    // longer emits an "absent" bucket — route the new counter to
+    // `notSignedIn` and zero `absent`.
+    absent: 0,
+    late: dto.summary.late,
+    notSignedIn: dto.summary.notCheckedIn,
+    onLeave: dto.summary.vacation,
+  },
+  rows: dto.employees.map(employeeToRow),
+});

@@ -2,5 +2,5 @@ export {
   TeamAttendanceRemoteDataSource,
 } from './team_attendance.remote_data_source';
 export type {
-  GetTeamAttendanceRangeQuery,
+  GetTeamDayQuery,
 } from './team_attendance.remote_data_source';

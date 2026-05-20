@@ -47,9 +47,15 @@ export type TeamAttendanceFilter =
 // ── Read entities ──────────────────────────────────────────────────────────
 
 export interface TeamAttendanceRow {
-  readonly userId: string;
-  readonly slackUserId: string | null;
+  /** Canonical HR identifier (BE `AppUser.EmpCode`). Used as the FlatList
+   *  key on the team screen. Replaces the old `userId` / `slackUserId`
+   *  pair — Slack id is HR-irrelevant and was only ever doubling as a key. */
+  readonly empCode: string;
   readonly displayName: string;
+  /** Remote avatar URL (Slack / Gravatar / etc.) — when present the screen
+   *  renders an Image; falls back to `avatarInitials` on null/missing/
+   *  failed-to-load. */
+  readonly avatarUrl: string | null;
   readonly avatarInitials: string;
   readonly avatarColorHex: string | null;
   readonly departmentId: string | null;

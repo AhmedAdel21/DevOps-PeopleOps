@@ -284,7 +284,10 @@ const SummaryStrip: React.FC<SummaryStripProps> = ({
   const chips: Array<[number, string]> = [
     [summary.inOffice, t('team.summary.inOffice')],
     [summary.remote, t('team.summary.remote')],
-    [summary.absent, t('team.summary.absent')],
+    // The BE used to bucket "no attendance row" rows as `absent`; that wire
+    // value was renamed to `notCheckedIn` and the mapper now routes the
+    // count to `summary.notSignedIn`. The chip reads "Not signed in".
+    [summary.notSignedIn, t('team.summary.notSignedIn')],
     [summary.late, t('team.summary.late')],
   ];
   return (
@@ -560,6 +563,7 @@ export const TeamScreen: React.FC = () => {
         <AppAvatar
           name={item.displayName}
           size="md"
+          imageUrl={item.avatarUrl}
           backgroundColor={item.avatarColorHex ?? theme.colors.primary}
           textColor={theme.colors.primaryForeground}
         />
@@ -630,7 +634,7 @@ export const TeamScreen: React.FC = () => {
     return (
       <FlatList<SerializableTeamRow>
         data={visibleRows}
-        keyExtractor={r => r.userId}
+        keyExtractor={r => r.empCode}
         renderItem={renderRow}
         ListHeaderComponent={renderHeader}
         ItemSeparatorComponent={() => <View style={styles.divider} />}
