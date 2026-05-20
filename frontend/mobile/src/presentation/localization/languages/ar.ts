@@ -492,6 +492,20 @@ export const ar = {
         confirm: 'إلغاء الطلب',
       },
     },
+    approvalProgress: {
+      title: 'مسار الموافقة',
+      legs: {
+        manager: 'المدير',
+        hr: 'الموارد البشرية',
+        ceo: 'الرئيس التنفيذي',
+      },
+      statuses: {
+        Pending: 'قيد الانتظار',
+        Approved: 'تمت الموافقة',
+        Rejected: 'مرفوض',
+        Superseded: 'غير مطلوب',
+      },
+    },
     newPermissionRequest: {
       navTitle: 'طلب جديد',
       typeSection: 'نوع الاستئذان',

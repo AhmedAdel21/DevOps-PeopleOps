@@ -494,6 +494,20 @@ export const en = {
         confirm: 'Cancel request',
       },
     },
+    approvalProgress: {
+      title: 'Approval progress',
+      legs: {
+        manager: 'Manager',
+        hr: 'HR',
+        ceo: 'CEO',
+      },
+      statuses: {
+        Pending: 'Pending',
+        Approved: 'Approved',
+        Rejected: 'Rejected',
+        Superseded: 'Not required',
+      },
+    },
     newPermissionRequest: {
       navTitle: 'New request',
       typeSection: 'Permission type',

@@ -3,6 +3,9 @@ import type {
   AdminLeaveRequestsPage,
   AdminPermissionRequestListItem,
   AdminPermissionRequestsPage,
+  ApprovalLeg,
+  ApprovalLegStatus,
+  ApprovalProgress,
   LeaveBalance,
   LeaveBalancesSummary,
   LeaveRequestDetail,
@@ -91,6 +94,96 @@ const toPermissionType = (raw: string): PermissionType => {
       leaveLog.warn('mapper', `Unknown permissionType "${raw}", falling back to 'Late'`);
       return 'Late';
   }
+};
+
+// ── Per-leg approval progress (BE Phase 3) ──────────────────────────────────
+// The BE projects the flat columns `Manager/Hr/Ceo ApprovalStatus`,
+// `ApprovedById`, `ActedDate` (+ NeedCeoApprove + DecidedBy/DecidedDate)
+// onto every Leave/Permission Info row. Mobile renders these via the
+// `ApprovalProgress` component on detail screens. When the BE hasn't
+// shipped the new projection yet, the per-leg fields are absent —
+// toApprovalProgress returns null and the UI hides the section.
+
+/** Shape used by toApprovalProgress — structural so it accepts both
+ *  LeaveRequestListItemDto and PermissionRequestDto (the per-leg fields
+ *  are identical across the two DTO shapes, just optional). */
+interface ApprovalLegDtoShape {
+  needCeoApprove?: boolean;
+  managerApprovalStatus?: number;
+  managerApprovedById?: number | null;
+  managerActedDate?: string | null;
+  hrApprovalStatus?: number;
+  hrApprovedById?: number | null;
+  hrActedDate?: string | null;
+  ceoApprovalStatus?: number;
+  ceoApprovedById?: number | null;
+  ceoActedDate?: string | null;
+  decidedById?: number | null;
+  decidedDate?: string | null;
+}
+
+const toApprovalLegStatus = (
+  raw: number | undefined | null,
+): ApprovalLegStatus => {
+  // BE enum: 1=Pending 2=Approved 3=Rejected 4=Superseded.
+  switch (raw) {
+    case 2:
+      return 'Approved';
+    case 3:
+      return 'Rejected';
+    case 4:
+      return 'Superseded';
+    case 1:
+    default:
+      return 'Pending';
+  }
+};
+
+const toApprovalLeg = (
+  status: number | undefined | null,
+  actorId: number | null | undefined,
+  actedAt: string | null | undefined,
+): ApprovalLeg => ({
+  status: toApprovalLegStatus(status),
+  actorId: actorId != null ? String(actorId) : null,
+  actedAt: actedAt ?? null,
+});
+
+const toApprovalProgress = (
+  dto: ApprovalLegDtoShape,
+): ApprovalProgress | null => {
+  // Detection — the BE either ships the full per-leg trio or none of it
+  // (the SQL projection is all-or-nothing). If ANY of the three is
+  // missing, treat it as "BE didn't surface the snapshot" and hide the
+  // section, instead of rendering misleading defaults during a partial
+  // / mid-flight deploy.
+  if (
+    dto.managerApprovalStatus === undefined ||
+    dto.hrApprovalStatus === undefined ||
+    dto.ceoApprovalStatus === undefined
+  ) {
+    return null;
+  }
+  return {
+    decisiveLevel: dto.needCeoApprove ? 'Ceo' : 'HrManager',
+    manager: toApprovalLeg(
+      dto.managerApprovalStatus,
+      dto.managerApprovedById,
+      dto.managerActedDate,
+    ),
+    hr: toApprovalLeg(
+      dto.hrApprovalStatus,
+      dto.hrApprovedById,
+      dto.hrActedDate,
+    ),
+    ceo: toApprovalLeg(
+      dto.ceoApprovalStatus,
+      dto.ceoApprovedById,
+      dto.ceoActedDate,
+    ),
+    decidedBy: dto.decidedById != null ? String(dto.decidedById) : null,
+    decidedAt: dto.decidedDate ?? null,
+  };
 };
 
 const toPermissionRequestStatus = (raw: string): PermissionRequestStatus => {
@@ -198,6 +291,7 @@ export const leaveRequestListItemDtoToDomain = (
   status: toLeaveRequestStatus(dto.requestStatusName, dto.leaveStatusName),
   hasAttendanceConflict: false,  // BE doesn't compute this on list rows
   createdAt: dto.createdDate,
+  approvalProgress: toApprovalProgress(dto),
 });
 
 export const leaveRequestsPageDtoToDomain = (
@@ -232,6 +326,7 @@ export const leaveRequestDetailDtoToDomain = (
   precedentCount: null,
   cancelledAt: null,
   cancelledBy: null,
+  approvalProgress: toApprovalProgress(dto),
 });
 
 // ── Submit result ────────────────────────────────────────────────────────────
@@ -294,6 +389,7 @@ export const adminPermissionRequestListItemDtoToDomain = (
   // which uses the same vocabulary in both child enums.
   status: toLeaveRequestStatus(dto.requestStatusName, dto.permissionStatusName),
   createdAt: dto.createdDate,
+  approvalProgress: toApprovalProgress(dto),
 });
 
 export const adminPermissionRequestsPageDtoToDomain = (
@@ -333,6 +429,7 @@ export const permissionRequestDtoToDomain = (dto: PermissionRequestDto): Permiss
     notes: undefined,
     status: toPermissionRequestStatus(dto.permissionStatusName),
     attachments: [],            // BE doesn't expose permission attachments yet
+    approvalProgress: toApprovalProgress(dto),
   };
 };
 

@@ -20,6 +20,45 @@ export interface LeaveTypeMeta extends LeaveTypeRef {
 
 export type LeaveRequestStatus = 'Approved' | 'Pending' | 'Rejected' | 'Cancelled';
 
+// ── Per-leg approval progress (BE Phase 3 — wire-surfaced) ────────────────
+// The hierarchical workflow runs through up to three legs: Manager (the
+// resolved manager-leg approver) → HR Manager → CEO. Each leg has its own
+// status; the request terminalizes when an acting leg ≥ the decisive
+// level decides. Mobile uses this to render "Manager ✓, HR pending"
+// progress UI on detail screens. `null` on the parent entity means the
+// BE didn't surface the per-leg state (older deploy or non-Vacation/
+// Permission request type) — UI hides the progress block in that case.
+
+export type ApprovalLegStatus =
+  | 'Pending'
+  | 'Approved'
+  | 'Rejected'
+  | 'Superseded';
+
+/** A single leg of the approval chain (Manager, HR, or CEO). */
+export interface ApprovalLeg {
+  readonly status: ApprovalLegStatus;
+  /** AppUser id of the actor (stringified). Null when leg is still
+   *  Pending or Superseded without action. */
+  readonly actorId: string | null;
+  /** ISO 8601 timestamp of the leg action. Null while Pending. */
+  readonly actedAt: string | null;
+}
+
+/** Aggregate progress snapshot for a single request. */
+export interface ApprovalProgress {
+  /** Highest level that, when it acts ≥, terminalizes the request.
+   *  `HrManager` for short leave + all permissions; `Ceo` for long
+   *  leave or anything escalated past HR (e.g. HR-Manager self-submit). */
+  readonly decisiveLevel: 'HrManager' | 'Ceo';
+  readonly manager: ApprovalLeg;
+  readonly hr: ApprovalLeg;
+  readonly ceo: ApprovalLeg;
+  /** AppUser id of whoever terminalized the request (null while Pending). */
+  readonly decidedBy: string | null;
+  readonly decidedAt: string | null;
+}
+
 // ── Filter / sort options for the Approvals list (designs QosTu + 6.x) ──
 
 /** Date-range chips — the value set differs per status (Pending uses the
@@ -74,6 +113,10 @@ export interface LeaveRequestListItem {
   readonly status: LeaveRequestStatus;
   readonly hasAttendanceConflict: boolean;
   readonly createdAt: string;   // ISO 8601
+  /** Per-leg approval snapshot. Null when the BE didn't surface it
+   *  (older deploy, or aggregate-only filter). Cascades to
+   *  AdminLeaveRequestListItem via `extends`. */
+  readonly approvalProgress: ApprovalProgress | null;
 }
 
 export interface LeaveRequestsPage {
@@ -137,6 +180,9 @@ export interface LeaveRequestDetail {
   readonly cancelledAt: string | null;
   /** Display name of the cancelling actor — "requester" or a reviewer. */
   readonly cancelledBy: string | null;
+
+  /** Per-leg approval snapshot for the "Approval Progress" UI section. */
+  readonly approvalProgress: ApprovalProgress | null;
 }
 
 // ── Submit ─────────────────────────────────────────────────────────────────
@@ -190,6 +236,8 @@ export interface AdminPermissionRequestListItem {
   readonly periodHours: number;        // BE period, in hours
   readonly status: LeaveRequestStatus; // shared request-status enum
   readonly createdAt: string;          // ISO 8601
+  /** Per-leg approval snapshot — same shape used on leave rows. */
+  readonly approvalProgress: ApprovalProgress | null;
 }
 
 export interface AdminPermissionRequestsPage {
@@ -225,6 +273,11 @@ export interface PermissionRequest {
   readonly notes?: string;
   readonly status: PermissionRequestStatus;
   readonly attachments: readonly AttachmentSnapshot[];
+  /** Per-leg approval snapshot — null while BE hasn't surfaced it
+   *  (older deploy). Permissions are always 2-step (Manager → HR);
+   *  the CEO leg is always Superseded except for HR-self-submit
+   *  escalations. */
+  readonly approvalProgress: ApprovalProgress | null;
 }
 
 export interface PermissionRequestsPage {

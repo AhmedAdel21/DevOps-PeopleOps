@@ -6,3 +6,4 @@ export * from './app_password_rules_list';
 export * from './app_avatar';
 export * from './app_alert_dialog';
 export * from './app_attachment_picker';
+export * from './app_approval_progress';

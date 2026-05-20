@@ -9,6 +9,7 @@ import { AppConfig } from '@/di/config';
 import type {
   AdminLeaveRequestListItem,
   AdminLeaveRequestsPage,
+  ApprovalProgress,
   LeaveBalance,
   LeaveBalancesSummary,
   LeaveRequestDetail,
@@ -121,6 +122,10 @@ export interface SerializableLeaveRequest {
   status: LeaveRequestStatus;
   hasAttendanceConflict: boolean;
   createdAt: string;
+  /** Per-leg approval snapshot (Phase 3c). Null when BE didn't surface it
+   *  (older deploy). `ApprovalProgress` is structural — plain JSON values
+   *  only — so it's safe to keep in Redux state. */
+  approvalProgress: ApprovalProgress | null;
 }
 
 export interface SerializableLeaveRequestDetail extends SerializableLeaveRequest {
@@ -156,6 +161,8 @@ export interface SerializablePermissionRequest {
   endTime: string;
   durationMinutes: number;
   status: PermissionRequestStatus;
+  /** Per-leg approval snapshot (Phase 3c). Null when BE didn't surface it. */
+  approvalProgress: ApprovalProgress | null;
 }
 
 export interface SerializablePermissionQuota {
@@ -198,6 +205,7 @@ const toSerializableRequest = (r: LeaveRequestListItem): SerializableLeaveReques
   status: r.status,
   hasAttendanceConflict: r.hasAttendanceConflict,
   createdAt: r.createdAt,
+  approvalProgress: r.approvalProgress,
 });
 
 const toSerializableDetail = (r: LeaveRequestDetail): SerializableLeaveRequestDetail => ({
@@ -212,6 +220,7 @@ const toSerializableDetail = (r: LeaveRequestDetail): SerializableLeaveRequestDe
     status: r.status,
     hasAttendanceConflict: r.hasAttendanceConflict,
     createdAt: r.createdAt,
+    approvalProgress: r.approvalProgress,
   }),
   notes: r.notes,
   conflictDetails: r.conflictDetails,
@@ -246,6 +255,7 @@ const toSerializablePermissionRequest = (r: PermissionRequest): SerializablePerm
   endTime: r.endTime,
   durationMinutes: r.durationMinutes,
   status: r.status,
+  approvalProgress: r.approvalProgress,
 });
 
 const toSerializableQuota = (q: PermissionQuota): SerializablePermissionQuota => ({

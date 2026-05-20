@@ -23,8 +23,15 @@ import {
   AppPermissionGate,
   AppText,
 } from '@/presentation/components/atoms';
+import {
+  AppApprovalProgress,
+  type ApprovalProgressLabels,
+} from '@/presentation/components/molecules';
 import { Permissions } from '@/core/auth';
-import type { LeaveRequestStatus } from '@/domain/entities';
+import type {
+  ApprovalLegStatus,
+  LeaveRequestStatus,
+} from '@/domain/entities';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   cancelLeaveRequest,
@@ -86,6 +93,14 @@ const STATUS_I18N_KEY: Record<LeaveRequestStatus, string> = {
 const pickLocalizedName = (en: string, ar: string, lang: string): string =>
   lang.startsWith('ar') ? ar : en;
 
+// Closed set used to build the i18n-keyed `statuses` map for AppApprovalProgress.
+const APPROVAL_STATUS_KEYS: readonly ApprovalLegStatus[] = [
+  'Pending',
+  'Approved',
+  'Rejected',
+  'Superseded',
+];
+
 // ── Screen ──────────────────────────────────────────────────────────────────
 
 type DetailRoute = RouteProp<LeaveStackParamList, 'LeaveRequestDetail'>;
@@ -106,6 +121,23 @@ export const LeaveRequestDetailScreen: React.FC = () => {
   const fetchError      = useAppSelector(selectLeaveRequestDetailFetchError);
   const cancelStatus    = useAppSelector(selectCancelStatus);
   const cancelError     = useAppSelector(selectCancelError);
+
+  // i18n-agnostic component takes labels as props — build once per t change.
+  const approvalLabels = useMemo<ApprovalProgressLabels>(
+    () => ({
+      title: t('leave.approvalProgress.title'),
+      legs: {
+        manager: t('leave.approvalProgress.legs.manager'),
+        hr: t('leave.approvalProgress.legs.hr'),
+        ceo: t('leave.approvalProgress.legs.ceo'),
+      },
+      statuses: APPROVAL_STATUS_KEYS.reduce(
+        (acc, k) => ({ ...acc, [k]: t(`leave.approvalProgress.statuses.${k}`) }),
+        {} as Record<ApprovalLegStatus, string>,
+      ),
+    }),
+    [t],
+  );
 
   const reload = useCallback(() => {
     dispatch(fetchLeaveRequestDetail({ leaveRequestId: id }));
@@ -211,6 +243,20 @@ export const LeaveRequestDetailScreen: React.FC = () => {
                   dates: detail.conflictDetails,
                 })}
               />
+            )}
+
+            {/* Per-leg approval progress (BE Phase 3 — Manager → HR → CEO).
+             *  Hidden when (a) the BE didn't surface the per-leg snapshot
+             *  (older deploy), or (b) the request was cancelled — per-leg
+             *  state can read as "still waiting" but the request is
+             *  terminal, which is misleading. */}
+            {detail.approvalProgress && detail.status !== 'Cancelled' && (
+              <View style={styles.card}>
+                <AppApprovalProgress
+                  progress={detail.approvalProgress}
+                  labels={approvalLabels}
+                />
+              </View>
             )}
 
             {/* Notes */}
