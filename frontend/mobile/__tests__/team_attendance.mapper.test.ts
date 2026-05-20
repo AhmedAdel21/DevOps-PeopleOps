@@ -149,14 +149,14 @@ describe('teamDayDtoToTeamDay', () => {
 
   it('maps every wire status; unknown → NotSignedIn; isLate passes through', () => {
     const rows = teamDayDtoToTeamDay(dto).rows;
-    const byId = Object.fromEntries(rows.map(r => [r.userId, r]));
-    expect(byId.U_AHMED.status).toBe('Office');
-    expect(byId.U_NOUR.status).toBe('Remote');
-    expect(byId.U_OMAR.status).toBe('Office');
-    expect(byId.U_OMAR.isLate).toBe(true);
-    expect(byId.U_YOUSSEF.status).toBe('SignedOut');
-    expect(byId.U_LAYLA.status).toBe('OnLeave');
-    expect(byId.U_HANA.status).toBe('NotSignedIn');
+    const byId = Object.fromEntries(rows.map(r => [r.empCode, r]));
+    expect(byId.E_AHMED.status).toBe('Office');
+    expect(byId.E_NOUR.status).toBe('Remote');
+    expect(byId.E_OMAR.status).toBe('Office');
+    expect(byId.E_OMAR.isLate).toBe(true);
+    expect(byId.E_YOUSSEF.status).toBe('SignedOut');
+    expect(byId.E_LAYLA.status).toBe('OnLeave');
+    expect(byId.E_HANA.status).toBe('NotSignedIn');
 
     const weird = teamDayDtoToTeamDay({
       ...dto,
@@ -167,7 +167,7 @@ describe('teamDayDtoToTeamDay', () => {
 
   it('maps an explicit notCheckedIn record to NotSignedIn with the new label', () => {
     const hana = teamDayDtoToTeamDay(dto).rows.find(
-      r => r.userId === 'E_HANA',
+      r => r.empCode === 'E_HANA',
     )!;
     expect(hana.status).toBe('NotSignedIn');
     expect(hana.isLate).toBe(false);
@@ -188,26 +188,26 @@ describe('teamDayDtoToTeamDay', () => {
               signOut: '2026-04-08T17:00:00+03:00', hoursWorked: 7 }),
         emp({ empCode: 'E_NCI',    status: 'notCheckedIn', place: null,
               signIn: null }),
-        emp({ empCode: 'U_WEIRD',  status: 'office', place: 'Teleporting' }),
+        emp({ empCode: 'E_WEIRD',  status: 'office', place: 'Teleporting' }),
       ],
     };
     const byId = Object.fromEntries(
-      teamDayDtoToTeamDay(d).rows.map(r => [r.userId, r]),
+      teamDayDtoToTeamDay(d).rows.map(r => [r.empCode, r]),
     );
-    expect(byId.U_OFFICE.place).toBe('Office');
-    expect(byId.U_HOME.place).toBe('Remote');
-    expect(byId.U_SO_OFF.status).toBe('SignedOut');
-    expect(byId.U_SO_OFF.place).toBe('Office');
-    expect(byId.U_SO_HOM.status).toBe('SignedOut');
-    expect(byId.U_SO_HOM.place).toBe('Remote');
-    expect(byId.U_NCI.place).toBeNull();
-    expect(byId.U_WEIRD.place).toBeNull(); // unknown wire place → null
+    expect(byId.E_OFFICE.place).toBe('Office');
+    expect(byId.E_HOME.place).toBe('Remote');
+    expect(byId.E_SO_OFF.status).toBe('SignedOut');
+    expect(byId.E_SO_OFF.place).toBe('Office');
+    expect(byId.E_SO_HOM.status).toBe('SignedOut');
+    expect(byId.E_SO_HOM.place).toBe('Remote');
+    expect(byId.E_NCI.place).toBeNull();
+    expect(byId.E_WEIRD.place).toBeNull(); // unknown wire place → null
   });
 
   it('pipes avatarUrl through unchanged and derives initials from displayName', () => {
     const rows = teamDayDtoToTeamDay(dto).rows;
-    const ahmed = rows.find(r => r.userId === 'E_AHMED')!;
-    const hana = rows.find(r => r.userId === 'E_HANA')!;
+    const ahmed = rows.find(r => r.empCode === 'E_AHMED')!;
+    const hana = rows.find(r => r.empCode === 'E_HANA')!;
     expect(ahmed.avatarUrl).toBeNull();
     expect(ahmed.avatarInitials).toBe('AE');
     expect(hana.avatarUrl).toBe('https://example.test/hana.jpg');
@@ -216,7 +216,7 @@ describe('teamDayDtoToTeamDay', () => {
 
   it('uses backend hoursWorked for the SignedOut worked-time suffix', () => {
     const y = teamDayDtoToTeamDay(dto).rows.find(
-      r => r.userId === 'E_YOUSSEF',
+      r => r.empCode === 'E_YOUSSEF',
     )!;
     expect(y.statusLabel).toBe('Signed out at 6:00 PM · 8h worked');
   });
