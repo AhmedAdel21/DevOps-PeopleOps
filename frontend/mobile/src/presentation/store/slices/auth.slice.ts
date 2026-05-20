@@ -8,6 +8,7 @@ import { DiKeys } from '@/core/keys/di.key';
 import type { User } from '@/domain/entities';
 import type { AuthStateSubscription } from '@/domain/repositories';
 import {
+  ChangePasswordUseCase,
   LoginUseCase,
   LogoutUseCase,
   ObserveAuthStateUseCase,
@@ -16,10 +17,19 @@ import {
 import { AuthError } from '@/domain/errors';
 import { authLog } from '@/core/logger';
 import type { SerializableDomainError } from '../hooks';
-import { fetchCurrentUser, clearCurrentUser } from './me.slice';
+import {
+  clearCurrentUser,
+  fetchCurrentUser,
+  markPasswordChanged,
+  refreshCurrentUser,
+} from './me.slice';
 
 type AuthStatus = 'uninitialized' | 'authenticated' | 'unauthenticated';
 type ActionStatus = 'idle' | 'pending' | 'error';
+
+// Change-password flow has a `success` state because the screen renders
+// a separate "success" view that's only valid after the BE has confirmed.
+type ChangePasswordStatus = 'idle' | 'pending' | 'success' | 'error';
 
 export interface AuthState {
   user: User | null;
@@ -30,6 +40,8 @@ export interface AuthState {
   zohoLoginError: SerializableDomainError | null;
   logoutStatus: ActionStatus;
   logoutError: SerializableDomainError | null;
+  changePasswordStatus: ChangePasswordStatus;
+  changePasswordError: SerializableDomainError | null;
 }
 
 const initialState: AuthState = {
@@ -41,6 +53,8 @@ const initialState: AuthState = {
   zohoLoginError: null,
   logoutStatus: 'idle',
   logoutError: null,
+  changePasswordStatus: 'idle',
+  changePasswordError: null,
 };
 
 let authSubscription: AuthStateSubscription | null = null;
@@ -133,6 +147,59 @@ export const loginWithZoho = createAsyncThunk<
   }
 });
 
+/**
+ * Forced-password-change flow used by:
+ *   - First-login users (mustChangePassword=true in the Firebase claims
+ *     when HR provisioned them with a temp password)
+ *   - Anyone bumped mid-session via the `RootNavigation` watcher when
+ *     /me reports the flag flipped true.
+ *
+ * On success:
+ *   1. Dispatches `markPasswordChanged` so the local Me record's
+ *      `mustChangePassword` flips to false immediately — unblocks the
+ *      UI before the BE refresh round-trip.
+ *   2. Dispatches `refreshCurrentUser` so the next /me settles on the
+ *      BE-authoritative profile (refreshes role/permissions too in case
+ *      anything else has changed).
+ */
+export const changePassword = createAsyncThunk<
+  void,
+  { newPassword: string },
+  { rejectValue: SerializableDomainError }
+>('auth/changePassword', async ({ newPassword }, { dispatch, rejectWithValue }) => {
+  authLog.info('slice', 'changePassword thunk →');
+  try {
+    const useCase = ServiceLocator.get<ChangePasswordUseCase>(
+      DiKeys.CHANGE_PASSWORD_USE_CASE,
+    );
+    const result = await useCase.execute({ newPassword });
+    dispatch(markPasswordChanged());
+    // Only refresh /me when the JWT was successfully refreshed in step 3.
+    // Otherwise the stale token would carry `mustChangePassword: true` in
+    // its custom claims, the BE would echo it back, and the fulfilled
+    // reducer for refreshCurrentUser would overwrite our local
+    // `markPasswordChanged(false)` flip — bouncing the user back to the
+    // SetPassword screen on the next render. The next opportunistic
+    // refresh (foreground / hourly Firebase auto-refresh) will catch up.
+    if (result.tokenRefreshed) {
+      void dispatch(refreshCurrentUser());
+    } else {
+      authLog.warn(
+        'slice',
+        'changePassword: skipping refreshCurrentUser — token not refreshed yet (stale JWT would re-set mustChangePassword=true)',
+      );
+    }
+    authLog.info('slice', 'changePassword thunk resolved');
+  } catch (e) {
+    const serialized = serializeError(e);
+    authLog.error(
+      'slice',
+      `changePassword thunk rejected (code=${serialized.code})`,
+    );
+    return rejectWithValue(serialized);
+  }
+});
+
 export const logout = createAsyncThunk<
   void,
   void,
@@ -183,6 +250,13 @@ const authSlice = createSlice({
       state.zohoLoginStatus = 'idle';
       state.zohoLoginError = null;
     },
+    /** Reset the change-password status — e.g. when the user navigates
+     *  away from the SetPassword screen, or when re-attempting after an
+     *  error so the screen drops back to the form view. */
+    clearChangePasswordState(state) {
+      state.changePasswordStatus = 'idle';
+      state.changePasswordError = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -231,9 +305,29 @@ const authSlice = createSlice({
             code: 'auth/unknown',
             message: 'Sign out failed',
           };
+      })
+      .addCase(changePassword.pending, (state) => {
+        state.changePasswordStatus = 'pending';
+        state.changePasswordError = null;
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.changePasswordStatus = 'success';
+        state.changePasswordError = null;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.changePasswordStatus = 'error';
+        state.changePasswordError =
+          action.payload ?? {
+            code: 'auth/change-password-failed',
+            message: 'Password change failed',
+          };
       });
   },
 });
 
-export const { clearLoginError, clearZohoLoginError } = authSlice.actions;
+export const {
+  clearLoginError,
+  clearZohoLoginError,
+  clearChangePasswordState,
+} = authSlice.actions;
 export default authSlice.reducer;

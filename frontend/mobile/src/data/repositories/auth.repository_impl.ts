@@ -105,4 +105,39 @@ export class AuthRepositoryImpl implements AuthRepository {
       },
     };
   }
+
+  async updatePassword(newPassword: string): Promise<void> {
+    authLog.info('repository', 'updatePassword called');
+    try {
+      await this.ds.updatePassword(newPassword);
+      authLog.info('repository', 'updatePassword succeeded');
+    } catch (e) {
+      // `no-current-user` is a guard we throw locally — keep it explicit so
+      // the slice can surface "session expired, sign in again" cleanly.
+      if (e instanceof Error && e.message === 'no-current-user') {
+        throw new AuthError('no-current-user', 'No signed-in user');
+      }
+      const mapped = mapFirebaseAuthError(e);
+      authLog.error(
+        'repository',
+        `updatePassword failed (authCode=${mapped.authCode})`,
+      );
+      throw mapped;
+    }
+  }
+
+  async forceRefreshIdToken(): Promise<void> {
+    authLog.info('repository', 'forceRefreshIdToken called');
+    try {
+      await this.ds.forceRefreshIdToken();
+      authLog.info('repository', 'forceRefreshIdToken succeeded');
+    } catch (e) {
+      const mapped = mapFirebaseAuthError(e);
+      authLog.error(
+        'repository',
+        `forceRefreshIdToken failed (authCode=${mapped.authCode})`,
+      );
+      throw mapped;
+    }
+  }
 }

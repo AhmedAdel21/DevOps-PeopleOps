@@ -5,3 +5,7 @@ export {
   type ObserveAuthStateInput,
 } from './observe_auth_state.use_case';
 export { ZohoLoginUseCase } from './zoho_login.use_case';
+export {
+  ChangePasswordUseCase,
+  type ChangePasswordInput,
+} from './change_password.use_case';

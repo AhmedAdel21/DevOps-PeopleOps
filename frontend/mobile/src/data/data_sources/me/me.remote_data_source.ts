@@ -3,6 +3,7 @@ import type { MeDto } from '@/data/dtos/me';
 import { authLog } from '@/core/logger';
 
 const ME_PATH = '/api/v1/auth/me';
+const PASSWORD_CHANGE_COMPLETE_PATH = '/api/v1/users/me/password-change-complete';
 const MAX_ATTEMPTS = 3;
 const BACKOFF_MS = [250, 500, 1000];
 
@@ -56,5 +57,32 @@ export class MeRemoteDataSource {
     }
     // Unreachable — the loop either returns or throws.
     throw lastErr;
+  }
+
+  /**
+   * Tell the BE the user has finished setting their new password.
+   * Clears the `mustChangePassword` custom claim on the Firebase user and
+   * unsets `AppUser.MustChangePassword`. The caller MUST force-refresh the
+   * Firebase ID token after this call so subsequent BE requests carry the
+   * updated claim set (the BE will otherwise still see the old token).
+   *
+   * Idempotent on the BE — calling twice is a no-op.
+   */
+  async completePasswordChange(): Promise<void> {
+    authLog.info(
+      'data_source',
+      `MeRemoteDataSource.completePasswordChange → POST ${PASSWORD_CHANGE_COMPLETE_PATH}`,
+    );
+    try {
+      await this.http.post<{ cleared: boolean }>(PASSWORD_CHANGE_COMPLETE_PATH);
+      authLog.info('data_source', 'MeRemoteDataSource.completePasswordChange ← ok');
+    } catch (e) {
+      authLog.error(
+        'data_source',
+        'MeRemoteDataSource.completePasswordChange failed',
+        e,
+      );
+      throw e;
+    }
   }
 }

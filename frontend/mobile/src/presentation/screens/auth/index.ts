@@ -5,4 +5,8 @@ export type { ForgotPasswordScreenProps } from './forgot_password';
 export { OtpScreen } from './otp';
 export type { OtpScreenProps } from './otp';
 export { SetPasswordScreen } from './set_password';
-export type { SetPasswordScreenProps, SetPasswordMode } from './set_password';
+export type {
+  SetPasswordScreenProps,
+  SetPasswordMode,
+  SetPasswordScreenStatus,
+} from './set_password';

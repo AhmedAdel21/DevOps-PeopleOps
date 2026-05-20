@@ -216,12 +216,11 @@ const BalanceCard: React.FC<BalanceCardProps> = ({ balance, theme, styles, t }) 
           color={balance.colorHex}
           styles={styles}
         />
-        <AppText variant="micro" color={theme.colors.mutedForeground}>
-          {t('leave.balances.usedOf', {
-            used: balance.usedDays,
-            total: balance.totalEntitlement,
-          })}
-        </AppText>
+        {/* "{used} used of {total}" intentionally omitted — the BE only
+         *  ships `remainingDays` on AppUser, so the mapper synthesises
+         *  used=0 and total=remaining. The line would read "0 used of 17"
+         *  after a 3-day deduction, which is wrong. Re-enable when the BE
+         *  exposes per-employee total entitlement + used-days breakdown. */}
       </>
     )}
   </View>

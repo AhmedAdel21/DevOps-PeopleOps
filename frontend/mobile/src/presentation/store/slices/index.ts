@@ -4,8 +4,10 @@ export {
   loginWithEmail,
   loginWithZoho,
   logout,
+  changePassword,
   clearLoginError,
   clearZohoLoginError,
+  clearChangePasswordState,
   type AuthState,
 } from './auth.slice';
 

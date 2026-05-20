@@ -7,6 +7,7 @@ export const DiKeys = {
   LOGOUT_USE_CASE: 'logoutUseCase',
   OBSERVE_AUTH_STATE_USE_CASE: 'observeAuthStateUseCase',
   ZOHO_LOGIN_USE_CASE: 'zohoLoginUseCase',
+  CHANGE_PASSWORD_USE_CASE: 'changePasswordUseCase',
 
   // slack oauth
   SLACK_OAUTH_DATA_SOURCE: 'slackOAuthDataSource',

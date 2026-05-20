@@ -10,6 +10,9 @@ const CODE_MAP: Record<string, AuthErrorCode> = {
   'auth/user-disabled': 'user-disabled',
   'auth/too-many-requests': 'too-many-requests',
   'auth/network-request-failed': 'network',
+  // Password-change flow (user.updatePassword).
+  'auth/weak-password': 'weak-password',
+  'auth/requires-recent-login': 'requires-recent-login',
 };
 
 export const mapFirebaseAuthError = (e: unknown): AuthError => {

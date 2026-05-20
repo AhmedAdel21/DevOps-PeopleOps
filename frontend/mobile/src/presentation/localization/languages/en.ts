@@ -106,6 +106,16 @@ export const en = {
       },
       errors: {
         mismatch: 'Passwords do not match.',
+        weakPassword:
+          'Password is too weak. Use a stronger combination of letters, numbers, and symbols.',
+        requiresRecentLogin:
+          'For your security, please sign in again before changing your password.',
+        noCurrentUser:
+          'Your session has expired. Sign in again and try once more.',
+        changeFailed:
+          'Could not update your password. Please check your connection and try again.',
+        resetNotImplemented:
+          'Password reset isn’t available yet. For now, use Sign in or contact HR if you need to reset.',
       },
     },
 

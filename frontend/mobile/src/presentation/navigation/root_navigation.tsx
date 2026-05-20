@@ -29,6 +29,7 @@ import {
   OtpScreen,
   SetPasswordScreen,
   type LoginScreenStatus,
+  type SetPasswordScreenStatus,
 } from '@/presentation/screens/auth';
 import { MainTabsNavigator } from './main_tabs_navigator';
 import { HistoryScreen } from '@/presentation/screens/history';
@@ -41,9 +42,13 @@ import {
   loginWithZoho,
   clearLoginError,
   clearZohoLoginError,
+  changePassword,
+  clearChangePasswordState,
 } from '@/presentation/store/slices';
 import {
   selectAuthStatus,
+  selectChangePasswordError,
+  selectChangePasswordStatus,
   selectLoginStatus,
   selectLoginError,
   selectZohoLoginStatus,
@@ -70,6 +75,11 @@ const ERROR_I18N_KEY: Record<AuthErrorCode, string> = {
   unknown: 'common.error',
   'zoho-cancelled': 'common.error',
   'zoho-employee-not-linked': 'auth.loginScreen.errors.zohoEmployeeNotLinked',
+  // Change-password flow — used by SetPasswordScreen via SetPasswordWrapper.
+  'weak-password': 'auth.setPassword.errors.weakPassword',
+  'requires-recent-login': 'auth.setPassword.errors.requiresRecentLogin',
+  'no-current-user': 'auth.setPassword.errors.noCurrentUser',
+  'change-password-failed': 'auth.setPassword.errors.changeFailed',
 };
 
 const resolveErrorCode = (code: string | undefined): AuthErrorCode => {
@@ -299,16 +309,84 @@ const SetPasswordWrapper: React.FC<ScreenProps<'SetPassword'>> = ({
   navigation,
   route,
 }) => {
+  const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const { mode } = route.params;
 
-  const handleSubmit = useCallback((_password: string) => {
-    // TODO: dispatch set password thunk
-    // The screen internally transitions to the success view on its own
-  }, []);
+  const changePasswordStatus = useAppSelector(selectChangePasswordStatus);
+  const changePasswordError = useAppSelector(selectChangePasswordError);
+
+  // Reset slice state on mount AND unmount: on mount so a prior error
+  // from a previous attempt doesn't reappear; on unmount so leaving the
+  // screen clears the "success" sentinel before any future attempts.
+  useEffect(() => {
+    dispatch(clearChangePasswordState());
+    return () => {
+      dispatch(clearChangePasswordState());
+    };
+  }, [dispatch]);
+
+  // Forgot-password (`reset`) needs a BE endpoint that accepts the OTP
+  // token + a new password to set it on a NOT-yet-signed-in user. That
+  // endpoint doesn't exist yet, so the screen surfaces a fixed
+  // "coming soon" banner in this mode and the submit dispatch is a no-op
+  // (the screen still validates rules client-side as visual feedback).
+  const resetNotImplemented = mode === 'reset';
+
+  const screenStatus: SetPasswordScreenStatus = resetNotImplemented
+    ? 'error'
+    : changePasswordStatus === 'pending'
+    ? 'submitting'
+    : changePasswordStatus === 'success'
+    ? 'success'
+    : changePasswordStatus === 'error'
+    ? 'error'
+    : 'idle';
+
+  const errorMessage = useMemo(() => {
+    if (resetNotImplemented) {
+      return t('auth.setPassword.errors.resetNotImplemented');
+    }
+    if (!changePasswordError) return undefined;
+    const code = resolveErrorCode(changePasswordError.code);
+    return t(ERROR_I18N_KEY[code]);
+  }, [resetNotImplemented, changePasswordError, t]);
+
+  const handleSubmit = useCallback(
+    (newPassword: string) => {
+      if (mode === 'firstLogin') {
+        authLog.info(
+          'navigation',
+          'SetPasswordWrapper submit (firstLogin) → dispatching changePassword',
+        );
+        dispatch(changePassword({ newPassword }));
+        return;
+      }
+      // See `resetNotImplemented` comment above — no-op until BE lands.
+      authLog.warn(
+        'navigation',
+        'SetPasswordWrapper submit (reset) → BE endpoint not yet implemented; dispatch is a no-op.',
+      );
+    },
+    [dispatch, mode],
+  );
 
   const handleContinue = useCallback(() => {
-    navigation.popToTop();
-  }, [navigation]);
+    // SetPassword is reached via two different stack shapes:
+    //   - firstLogin: LoginWrapper did navigation.reset, so the stack is
+    //     exactly [SetPassword] and the user is already authenticated.
+    //     popToTop has nowhere to go — React Navigation logs
+    //     "POP_TO_TOP not handled by any navigator". Reset forward to
+    //     MainTabs instead.
+    //   - reset (forgot-password): stack is
+    //     [Login, ForgotPassword, Otp, SetPassword]. popToTop returns to
+    //     Login so the user can sign in with the new password.
+    if (mode === 'firstLogin') {
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    } else {
+      navigation.popToTop();
+    }
+  }, [mode, navigation]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -317,6 +395,8 @@ const SetPasswordWrapper: React.FC<ScreenProps<'SetPassword'>> = ({
   return (
     <SetPasswordScreen
       mode={mode}
+      status={screenStatus}
+      errorMessage={errorMessage}
       onSubmit={handleSubmit}
       onContinue={handleContinue}
       onBack={handleBack}

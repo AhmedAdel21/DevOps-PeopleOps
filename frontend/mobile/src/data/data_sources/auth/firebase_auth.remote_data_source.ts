@@ -68,6 +68,42 @@ export class FirebaseAuthRemoteDataSource {
     }
   }
 
+  /**
+   * Update the currently-signed-in user's password client-side. The BE
+   * never sees the plaintext. Firebase may reject with
+   * `auth/requires-recent-login` if the user's session is stale —
+   * mappers surface that as a re-auth prompt.
+   */
+  async updatePassword(newPassword: string): Promise<void> {
+    const user = auth().currentUser;
+    if (!user) {
+      authLog.warn('data_source', 'updatePassword → no current user');
+      throw new Error('no-current-user');
+    }
+    authLog.info('data_source', 'Firebase updatePassword →');
+    try {
+      await user.updatePassword(newPassword);
+      authLog.info('data_source', 'Firebase updatePassword resolved');
+    } catch (e) {
+      const code = (e as { code?: string } | null)?.code ?? 'unknown';
+      authLog.error(
+        'data_source',
+        `Firebase updatePassword rejected (code=${code})`,
+        e,
+      );
+      throw e;
+    }
+  }
+
+  /**
+   * Force-refresh the Firebase ID token so the latest custom claims
+   * (e.g. cleared mustChangePassword) land in the JWT used by subsequent
+   * BE calls. Returns the new token, or null if no user is signed in.
+   */
+  async forceRefreshIdToken(): Promise<string | null> {
+    return this.getIdToken(true);
+  }
+
   async signInWithCustomToken(token: string): Promise<void> {
     authLog.info('data_source', 'Firebase signInWithCustomToken →');
     try {

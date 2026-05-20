@@ -12,6 +12,7 @@ import { Lock, Eye, EyeOff, CircleCheck } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
+  AppAlertBanner,
   AppText,
   AppBackButton,
   AppButton,
@@ -28,10 +29,20 @@ import {
 
 export type SetPasswordMode = 'reset' | 'firstLogin';
 
-type ScreenView = 'form' | 'success';
+/** Drives the screen's view + button state. Mirrors the slice's
+ *  changePasswordStatus exactly so the wrapper can pipe it through
+ *  unchanged. */
+export type SetPasswordScreenStatus = 'idle' | 'submitting' | 'success' | 'error';
 
 export interface SetPasswordScreenProps {
   mode: SetPasswordMode;
+  /** Driven by Redux changePasswordStatus when wired into firstLogin. The
+   *  `reset` flow still uses local state via the legacy `setTimeout` path
+   *  until the BE endpoint exists — wrapper passes `'idle'` there. */
+  status?: SetPasswordScreenStatus;
+  /** Pre-translated error message — surfaced as an inline AppAlertBanner
+   *  above the submit button when status === 'error'. */
+  errorMessage?: string;
   onSubmit?: (password: string) => void;
   onContinue?: () => void;
   onBack?: () => void;
@@ -39,6 +50,8 @@ export interface SetPasswordScreenProps {
 
 export const SetPasswordScreen: React.FC<SetPasswordScreenProps> = ({
   mode,
+  status = 'idle',
+  errorMessage,
   onSubmit,
   onContinue,
   onBack,
@@ -51,9 +64,7 @@ export const SetPasswordScreen: React.FC<SetPasswordScreenProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [mismatchError, setMismatchError] = useState(false);
-  const [view, setView] = useState<ScreenView>('form');
 
   const { score } = scorePassword(password);
 
@@ -67,6 +78,7 @@ export const SetPasswordScreen: React.FC<SetPasswordScreenProps> = ({
     [password, t],
   );
 
+  const submitting = status === 'submitting';
   const allRulesMet = rules.every((r) => r.met);
   const canSubmit = allRulesMet && confirmPassword.length > 0 && !submitting;
 
@@ -75,18 +87,17 @@ export const SetPasswordScreen: React.FC<SetPasswordScreenProps> = ({
       setMismatchError(true);
       return;
     }
-    setSubmitting(true);
     onSubmit?.(password);
-    // Simulate success — in production, the parent calls setView('success')
-    // via a ref or drives state from Redux.
-    setTimeout(() => {
-      setSubmitting(false);
-      setView('success');
-    }, 800);
+    // The parent dispatches the change-password thunk and pipes
+    // `status === 'success'` back, which flips this screen to the success
+    // view. No local fake `setTimeout` — the success screen now correctly
+    // requires actual BE confirmation.
   }, [password, confirmPassword, onSubmit]);
 
   // ─── Success view ───
-  if (view === 'success') {
+  // Only the slice-driven `success` status flips this. The screen no
+  // longer fakes success with a timer.
+  if (status === 'success') {
     return (
       <View style={styles.successContainer}>
         <View style={styles.successSpacer} />
@@ -195,7 +206,10 @@ export const SetPasswordScreen: React.FC<SetPasswordScreenProps> = ({
             />
           </AppCard>
 
-          {/* Submit button */}
+          {/* Submit button + inline error (when the slice rejects). */}
+          {status === 'error' && errorMessage ? (
+            <AppAlertBanner variant="error" message={errorMessage} />
+          ) : null}
           <AppButton
             label={t('auth.setPassword.submit')}
             onPress={handleSubmit}

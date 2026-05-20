@@ -7,7 +7,12 @@ export type AuthErrorCode =
   | 'network'
   | 'unknown'
   | 'zoho-cancelled'
-  | 'zoho-employee-not-linked';
+  | 'zoho-employee-not-linked'
+  // Password-change flow (firstLogin / forced-change)
+  | 'weak-password'
+  | 'requires-recent-login'
+  | 'no-current-user'
+  | 'change-password-failed';
 
 export class AuthError extends DomainError {
   constructor(

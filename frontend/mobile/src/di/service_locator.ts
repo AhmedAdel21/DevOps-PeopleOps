@@ -10,6 +10,7 @@ import type {
   TeamAttendanceRepository,
 } from '@/domain/repositories';
 import {
+  ChangePasswordUseCase,
   LoginUseCase,
   LogoutUseCase,
   ObserveAuthStateUseCase,
@@ -283,6 +284,14 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.FETCH_ME_USE_CASE,
       new FetchMeUseCase(meRepo),
+    );
+
+    // ── Change password (firstLogin / forced-change) ─────────
+    // Depends on both authRepo (Firebase) and meRepo (BE complete + token
+    // refresh), so it must register after meRepo is built.
+    ServiceLocator.register(
+      DiKeys.CHANGE_PASSWORD_USE_CASE,
+      new ChangePasswordUseCase(authRepo, meRepo),
     );
   }
 

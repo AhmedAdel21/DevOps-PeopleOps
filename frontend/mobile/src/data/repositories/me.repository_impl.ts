@@ -26,4 +26,16 @@ export class MeRepositoryImpl implements MeRepository {
       throw new MeError('unknown', e instanceof Error ? e.message : 'Failed to load profile');
     }
   }
+
+  async completePasswordChange(): Promise<void> {
+    try {
+      await this.remote.completePasswordChange();
+    } catch (e) {
+      if (e instanceof HttpError) throw httpErrorToMeError(e);
+      throw new MeError(
+        'unknown',
+        e instanceof Error ? e.message : 'Password change confirmation failed',
+      );
+    }
+  }
 }
