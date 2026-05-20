@@ -52,6 +52,10 @@ const toLeaveRequestStatus = (
     return 'Cancelled';
   }
   switch (requestStatusName) {
+    // New hierarchical-approval BE uses 'Pending' (RequestStatus.Pending = 0)
+    // as the initial state. Legacy 'New'/'InReview' are kept for backward
+    // compatibility with rows from the pre-cutover workflow.
+    case 'Pending':
     case 'New':
     case 'InReview':
       return 'Pending';
@@ -285,7 +289,10 @@ export const adminPermissionRequestListItemDtoToDomain = (
   startDate: toIsoDate(dto.fromDate),
   endDate: toIsoDate(dto.toDate ?? dto.fromDate),
   periodHours: dto.period, // BE PeriodInHours
-  status: toLeaveRequestStatus(dto.requestStatusName),
+  // For permissions, the analogous "child status" is permissionStatusName.
+  // toLeaveRequestStatus only checks the 2nd arg for 'Cancelled' detection,
+  // which uses the same vocabulary in both child enums.
+  status: toLeaveRequestStatus(dto.requestStatusName, dto.permissionStatusName),
   createdAt: dto.createdDate,
 });
 

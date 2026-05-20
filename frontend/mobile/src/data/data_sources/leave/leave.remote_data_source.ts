@@ -215,11 +215,12 @@ export class LeaveRemoteDataSource {
   // ── Admin ──────────────────────────────────────────────────────────────────
 
   async adminGetLeaveRequests(params: {
+    /** Accepted for caller compatibility but ignored — see buildAdminInboxQuery. */
     status?: string;
     page?: number;
     pageSize?: number;
   }): Promise<AdminLeaveRequestsPageDto> {
-    const qs = buildVacationsQuery(params);
+    const qs = buildAdminInboxQuery({ page: params.page, pageSize: params.pageSize });
     const path = qs ? `${ADMIN_VACATIONS}?${qs}` : ADMIN_VACATIONS;
 
     if (AppConfig.USE_MOCK_LEAVE) {
@@ -256,11 +257,12 @@ export class LeaveRemoteDataSource {
   // Management Approvals — Permissions tab. Mirrors the leave-admin trio;
   // gated by USE_MOCK_PERMISSIONS (the self-service permission flag).
   async adminGetPermissionRequests(params: {
+    /** Accepted for caller compatibility but ignored — see buildAdminInboxQuery. */
     status?: string;
     page?: number;
     pageSize?: number;
   }): Promise<PermissionRequestsResponseDto> {
-    const qs = buildVacationsQuery(params);
+    const qs = buildAdminInboxQuery({ page: params.page, pageSize: params.pageSize });
     const path = qs ? `${ADMIN_PERMISSIONS}?${qs}` : ADMIN_PERMISSIONS;
 
     if (AppConfig.USE_MOCK_PERMISSIONS) {
@@ -347,8 +349,8 @@ export class LeaveRemoteDataSource {
         permissionTypeName: input.permissionType === 'Early' ? 'EarlyLeave' : 'LateAttendance',
         permissionStatusId: 1,
         permissionStatusName: 'Pending',
-        requestStatusId: 1,
-        requestStatusName: 'New',
+        requestStatusId: 0,
+        requestStatusName: 'Pending',
         fromDate: `${input.date}T${input.startTime}:00`,
         toDate: `${input.date}T${input.endTime}:00`,
         period: hours,
@@ -383,8 +385,8 @@ export class LeaveRemoteDataSource {
       permissionTypeName: body.permissionTypeId === 1 ? 'LateAttendance' : 'EarlyLeave',
       permissionStatusId: 1,
       permissionStatusName: 'Pending',
-      requestStatusId: 1,
-      requestStatusName: 'New',
+      requestStatusId: 0,
+      requestStatusName: 'Pending',
       fromDate: body.fromDateTime,
       toDate: `${input.date}T${input.endTime}:00`,
       period: body.period,
@@ -425,22 +427,23 @@ export class LeaveRemoteDataSource {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-// The mobile UI exposes Pending / Approved / Rejected / Cancelled. The BE's
-// `RequestStatus` enum only contains New, InReview, Approved, Rejected,
-// Confirmed, Closed — but the list endpoint now accepts string and treats
-// "Cancelled" as a synthetic filter that matches on the leave-side
-// LeaveStatusEnumId/PermissionStatusId enum, keeping cancelled and rejected
-// rows in separate buckets even though BE stores Request.StatusId=Rejected
-// for both.
+// The mobile UI exposes Pending / Approved / Rejected / Cancelled. The new
+// hierarchical approval workflow uses RequestStatus.Pending = 0 as the
+// initial state (NOT RequestStatus.New = 1 — that's a legacy state with
+// zero rows in the new flow). The list endpoint accepts an enum name as a
+// string and treats "Cancelled" as a synthetic filter that matches on the
+// leave-side LeaveStatusEnumId / PermissionStatusId, keeping cancelled
+// and rejected rows in separate buckets even though BE stores
+// Request.StatusId=Rejected for both.
 //
-//   Pending   → New
+//   Pending   → Pending    (was 'New' — legacy bug, returned no rows)
 //   Approved  → Approved
 //   Rejected  → Rejected   (excludes cancelled rows server-side)
 //   Cancelled → Cancelled  (filters on Leave/Permission status = Canceled)
 //   All       → no param
 const VACATIONS_STATUS_MAP: Record<string, string | undefined> = {
   All: undefined,
-  Pending: 'New',
+  Pending: 'Pending',
   Approved: 'Approved',
   Rejected: 'Rejected',
   Cancelled: 'Cancelled',
@@ -457,6 +460,23 @@ const buildVacationsQuery = (params: {
     if (beStatus !== undefined) q.set('status', beStatus);
   }
   if (params.page)     q.set('pageNumber', params.page.toString());  // BE expects pageNumber
+  if (params.pageSize) q.set('pageSize', params.pageSize.toString());
+  return q.toString();
+};
+
+/**
+ * Per-leg inbox query — the `/management/requests/{leaves,permissions}`
+ * (and legacy `/admin/vacations`) endpoints no longer accept a `?status=`
+ * filter (Phase 3b cleanup: inbox is inherently "Pending awaiting my leg").
+ * BE silently ignores extra query params, so omitting the legacy status
+ * just keeps the wire clean.
+ */
+const buildAdminInboxQuery = (params: {
+  page?: number;
+  pageSize?: number;
+}): string => {
+  const q = new URLSearchParams();
+  if (params.page)     q.set('pageNumber', params.page.toString());
   if (params.pageSize) q.set('pageSize', params.pageSize.toString());
   return q.toString();
 };
