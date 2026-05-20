@@ -27,6 +27,22 @@ export interface PermissionRequestDto {
   createdBy: string | null;
   updatedDate: string | null;
   updatedBy: string | null;
+  // ── Per-leg approval state (BE Phase 3 — wire-surfaced flat columns) ──
+  // Same shape + semantics as on LeaveRequestListItemDto. Optional for
+  // backwards compatibility with older BE deploys. Per-leg status is the
+  // `ApprovalDecisionEnum` int: 1=Pending 2=Approved 3=Rejected 4=Superseded.
+  needCeoApprove?: boolean;
+  managerApprovalStatus?: number;
+  managerApprovedById?: number | null;
+  managerActedDate?: string | null;
+  hrApprovalStatus?: number;
+  hrApprovedById?: number | null;
+  hrActedDate?: string | null;
+  ceoApprovalStatus?: number;
+  ceoApprovedById?: number | null;
+  ceoActedDate?: string | null;
+  decidedById?: number | null;
+  decidedDate?: string | null;
 }
 
 /** Matches PagedResult<PermissionInfoModel>. Cursor-based pagination on the

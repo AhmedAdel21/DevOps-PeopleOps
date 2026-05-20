@@ -35,6 +35,26 @@ export interface LeaveRequestListItemDto {
   currentAnnualLeaveBalance?: number;
   currentSickLeaveBalance?: number;
   currentUrgentLeaveBalance?: number;
+  // ── Per-leg approval state (BE Phase 3 — wire-surfaced flat columns) ──
+  // All fields below are OPTIONAL: a BE rollout that ships the new
+  // projection lights them up; an older BE simply omits them. Mobile UI
+  // doesn't consume them yet — they flow through so a future
+  // "Manager ✓, HR pending" progress UI can render without another
+  // round-trip. Per-leg status is the `ApprovalDecisionEnum` int:
+  // 1=Pending  2=Approved  3=Rejected  4=Superseded.
+  needCeoApprove?: boolean;
+  managerApprovalStatus?: number;
+  managerApprovedById?: number | null;
+  managerActedDate?: string | null; // ISO 8601 DateTimeOffset
+  hrApprovalStatus?: number;
+  hrApprovedById?: number | null;
+  hrActedDate?: string | null;
+  ceoApprovalStatus?: number;
+  ceoApprovedById?: number | null;
+  ceoActedDate?: string | null;
+  /** Who terminalized (Approve/Reject at the decisive level). Null while Pending. */
+  decidedById?: number | null;
+  decidedDate?: string | null;
 }
 
 /** Matches Devopsolution.Dal.Models.BaseClasses.Pagination.PaginationData. */
