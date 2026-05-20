@@ -167,11 +167,9 @@ export const SignInLocationSheet: React.FC<SignInLocationSheetProps> = ({
                                 style={[
                                     styles.card,
                                     {
-                                        backgroundColor: isSelected
-                                            ? accent.light
-                                            : theme.colors.card,
+                                        backgroundColor: theme.colors.card,
                                         borderColor: isSelected
-                                            ? accent.base
+                                            ? theme.colors.primary
                                             : theme.colors.border,
                                     },
                                 ]}
@@ -179,11 +177,7 @@ export const SignInLocationSheet: React.FC<SignInLocationSheetProps> = ({
                                 <View
                                     style={[
                                         styles.iconBox,
-                                        {
-                                            backgroundColor: isSelected
-                                                ? theme.colors.background
-                                                : accent.light,
-                                        },
+                                        { backgroundColor: accent.light },
                                     ]}
                                 >
                                     <Icon size={ws(24)} color={accent.base} />

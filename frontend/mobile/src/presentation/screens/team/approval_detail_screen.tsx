@@ -176,7 +176,14 @@ export const ApprovalDetailScreen: React.FC = () => {
         ) : null}
 
         <View style={styles.heroCard}>
-          <Clock size={ws(28)} color={theme.colors.primary} />
+          <Clock
+            size={ws(28)}
+            color={
+              theme.dark
+                ? theme.colors.status.info.base
+                : theme.colors.primary
+            }
+          />
           <AppText variant="cardTitle" weight="semibold">
             {t('team.detail.heroPendingTitle')}
           </AppText>
@@ -411,7 +418,9 @@ const createStyles = (theme: AppTheme) =>
       gap: hs(6),
       paddingVertical: hs(20),
       borderRadius: theme.radius.lg,
-      backgroundColor: theme.colors.primaryLight,
+      backgroundColor: theme.dark
+        ? theme.colors.status.info.light
+        : theme.colors.primaryLight,
     },
     conflictHeader: {
       flexDirection: 'row',

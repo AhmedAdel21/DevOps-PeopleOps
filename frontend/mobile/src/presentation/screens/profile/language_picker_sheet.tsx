@@ -84,26 +84,18 @@ export const LanguagePickerSheet: React.FC<LanguagePickerSheetProps> = ({
                 style={[
                   styles.card,
                   {
-                    backgroundColor: isSelected
-                      ? accent.light
-                      : theme.colors.card,
-                    borderColor: isSelected
-                      ? accent.base
-                      : theme.colors.border,
+                    backgroundColor: theme.colors.card,
+                    borderColor: isSelected ? theme.colors.primary : theme.colors.border,
                   },
                 ]}
               >
                 <View
                   style={[
                     styles.iconBox,
-                    {
-                      backgroundColor: isSelected
-                        ? theme.colors.background
-                        : accent.light,
-                    },
+                    { backgroundColor: theme.colors.status.info.light },
                   ]}
                 >
-                  <Icon size={ws(24)} color={accent.base} />
+                  <Icon size={ws(24)} color={theme.colors.status.info.base} />
                 </View>
 
                 <View style={styles.cardText}>
