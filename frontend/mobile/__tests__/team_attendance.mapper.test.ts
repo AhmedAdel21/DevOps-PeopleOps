@@ -88,7 +88,7 @@ describe('formatTeamStatusLabel', () => {
 const DATE = '2026-04-08';
 
 const emp = (over: Partial<TeamDayEmployeeDto>): TeamDayEmployeeDto => ({
-  slackUserId: 'U_X',
+  empCode: 'E_X',
   displayName: 'X Y',
   avatarUrl: null,
   departmentId: 'd_eng',
@@ -113,21 +113,21 @@ const dto: TeamDayDto = {
     total: 6,
   },
   employees: [
-    emp({ slackUserId: 'U_AHMED', displayName: 'Ahmed El-Sayed',
+    emp({ empCode: 'E_AHMED', displayName: 'Ahmed El-Sayed',
           status: 'office', place: 'office' }),
-    emp({ slackUserId: 'U_NOUR', displayName: 'Nour Khaled',
+    emp({ empCode: 'U_NOUR', displayName: 'Nour Khaled',
           status: 'home', place: 'home',
           signIn: '2026-04-08T09:15:00+03:00' }),
-    emp({ slackUserId: 'U_OMAR', displayName: 'Omar Mostafa',
+    emp({ empCode: 'U_OMAR', displayName: 'Omar Mostafa',
           status: 'office', place: 'office',
           signIn: '2026-04-08T09:45:00+03:00', isLate: true }),
-    emp({ slackUserId: 'U_YOUSSEF', displayName: 'Youssef Samir',
+    emp({ empCode: 'U_YOUSSEF', displayName: 'Youssef Samir',
           status: 'signedOut', place: 'office',
           signIn: '2026-04-08T10:00:00+03:00',
           signOut: '2026-04-08T18:00:00+03:00', hoursWorked: 8 }),
-    emp({ slackUserId: 'U_LAYLA', displayName: 'Layla Hassan',
+    emp({ empCode: 'U_LAYLA', displayName: 'Layla Hassan',
           status: 'vacation', place: null, signIn: null }),
-    emp({ slackUserId: 'U_HANA', displayName: 'Hana Ali',
+    emp({ empCode: 'U_HANA', displayName: 'Hana Ali',
           status: 'notCheckedIn', place: null, signIn: null,
           avatarUrl: 'https://example.test/hana.jpg' }),
   ],
@@ -180,15 +180,15 @@ describe('teamDayDtoToTeamDay', () => {
     const d: TeamDayDto = {
       ...dto,
       employees: [
-        emp({ slackUserId: 'U_OFFICE', status: 'office', place: 'office' }),
-        emp({ slackUserId: 'U_HOME',   status: 'home',   place: 'home' }),
-        emp({ slackUserId: 'U_SO_OFF', status: 'signedOut', place: 'office',
+        emp({ empCode: 'U_OFFICE', status: 'office', place: 'office' }),
+        emp({ empCode: 'U_HOME',   status: 'home',   place: 'home' }),
+        emp({ empCode: 'U_SO_OFF', status: 'signedOut', place: 'office',
               signOut: '2026-04-08T18:00:00+03:00', hoursWorked: 8 }),
-        emp({ slackUserId: 'U_SO_HOM', status: 'signedOut', place: 'home',
+        emp({ empCode: 'U_SO_HOM', status: 'signedOut', place: 'home',
               signOut: '2026-04-08T17:00:00+03:00', hoursWorked: 7 }),
-        emp({ slackUserId: 'U_NCI',    status: 'notCheckedIn', place: null,
+        emp({ empCode: 'U_NCI',    status: 'notCheckedIn', place: null,
               signIn: null }),
-        emp({ slackUserId: 'U_WEIRD',  status: 'office', place: 'Teleporting' }),
+        emp({ empCode: 'U_WEIRD',  status: 'office', place: 'Teleporting' }),
       ],
     };
     const byId = Object.fromEntries(
@@ -206,7 +206,7 @@ describe('teamDayDtoToTeamDay', () => {
 
   it('pipes avatarUrl through unchanged and derives initials from displayName', () => {
     const rows = teamDayDtoToTeamDay(dto).rows;
-    const ahmed = rows.find(r => r.userId === 'U_AHMED')!;
+    const ahmed = rows.find(r => r.userId === 'E_AHMED')!;
     const hana = rows.find(r => r.userId === 'U_HANA')!;
     expect(ahmed.avatarUrl).toBeNull();
     expect(ahmed.avatarInitials).toBe('AE');
