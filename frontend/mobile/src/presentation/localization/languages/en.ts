@@ -255,7 +255,7 @@ export const en = {
     },
     approvals: {
       placeholder: 'Pending approvals — coming next',
-      header: 'Pending approvals',
+      header: 'Approvals',
       tabs: {
         leaves: 'Leaves',
         permissions: 'Permissions',
@@ -270,6 +270,12 @@ export const en = {
         approve: 'Approve',
         reject: 'Reject',
       },
+      status: {
+        Pending: 'Pending',
+        Approved: 'Approved',
+        Rejected: 'Rejected',
+        Cancelled: 'Cancelled',
+      },
       error: "Couldn't load approvals",
       empty: {
         title: 'All caught up!',
@@ -282,8 +288,16 @@ export const en = {
       viewAttendance: 'View attendance record',
       heroPendingTitle: 'Pending approval',
       heroPendingSub: 'Awaiting your decision',
+      heroTerminalTitle: {
+        Approved: 'Approved',
+        Rejected: 'Rejected',
+        Cancelled: 'Cancelled',
+      },
+      heroTerminalSub: 'This request is closed.',
       requestTitle: 'Request Details',
       balanceTitle: 'Balance Impact',
+      attachmentsTitle: 'Attachments',
+      attachmentsEmpty: 'No attachments uploaded',
       error: "Couldn't load this request",
       rows: {
         type: 'Type',
@@ -517,6 +531,12 @@ export const en = {
         Rejected: 'Rejected',
         Superseded: 'Not required',
       },
+    },
+    activityLog: {
+      title: 'Activity',
+      loading: 'Loading activity…',
+      empty: 'No activity yet — this request pre-dates the audit log.',
+      loadFailed: 'Failed to load activity.',
     },
     newPermissionRequest: {
       navTitle: 'New request',

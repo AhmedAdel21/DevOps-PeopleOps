@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   View,
 } from 'react-native';
@@ -263,9 +264,46 @@ const ApprovalCard: React.FC<ApprovalCardProps> = ({
             {item.submittedAgoLabel}
           </AppText>
         </View>
+        {/* Status pill — only shown for non-Pending rows (the inbox is
+            mostly Pending, so a "Pending" pill would just be noise).
+            Pending rows lean on the date-grouped section header instead. */}
+        {item.status !== 'Pending' ? (
+          <View
+            style={[
+              styles.approvalStatusPill,
+              { borderColor: approvalStatusColor(theme, item.status) },
+            ]}
+          >
+            <AppText
+              variant="micro"
+              weight="semibold"
+              color={approvalStatusColor(theme, item.status)}
+            >
+              {t(`team.approvals.status.${item.status}`)}
+            </AppText>
+          </View>
+        ) : null}
       </Pressable>
     </Swipeable>
   );
+};
+
+// Status → border + text color for the pill on terminalized rows.
+const approvalStatusColor = (
+  theme: AppTheme,
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled',
+): string => {
+  switch (status) {
+    case 'Approved':
+      return theme.colors.status.success.base;
+    case 'Rejected':
+      return theme.colors.status.error.base;
+    case 'Cancelled':
+      return theme.colors.mutedForeground;
+    case 'Pending':
+    default:
+      return theme.colors.status.warning.base;
+  }
 };
 
 interface SummaryStripProps {
@@ -639,6 +677,13 @@ export const TeamScreen: React.FC = () => {
         ListHeaderComponent={renderHeader}
         ItemSeparatorComponent={() => <View style={styles.divider} />}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={fetchStatus === 'pending' && rows.length > 0}
+            onRefresh={() => reload(selectedDate)}
+            tintColor={theme.colors.primaryInk}
+          />
+        }
         ListEmptyComponent={
           fetchStatus === 'loaded' ? (
             <View style={styles.emptyState}>
@@ -799,6 +844,13 @@ export const TeamScreen: React.FC = () => {
         ListHeaderComponent={approvalsHeader}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={body as React.ReactElement | null}
+        refreshControl={
+          <RefreshControl
+            refreshing={approvalsStatus === 'pending' && approvalSections.length > 0}
+            onRefresh={() => loadApprovals(pendingTab, approvalsRange)}
+            tintColor={theme.colors.primaryInk}
+          />
+        }
         renderItem={({ item: section }) => (
           <View style={styles.approvalSection}>
             <AppText
@@ -1065,4 +1117,11 @@ const createStyles = (theme: AppTheme) =>
     },
     swipeApprove: { backgroundColor: theme.colors.status.success.base },
     swipeReject: { backgroundColor: theme.colors.status.error.base },
+    approvalStatusPill: {
+      paddingHorizontal: ws(8),
+      paddingVertical: hs(3),
+      borderRadius: theme.radius.pill,
+      borderWidth: 1,
+      alignSelf: 'center',
+    },
   });

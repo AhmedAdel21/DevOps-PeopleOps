@@ -24,8 +24,10 @@ import {
   AppText,
 } from '@/presentation/components/atoms';
 import {
+  AppActivityTimeline,
   AppApprovalProgress,
   type ApprovalProgressLabels,
+  type ApprovalProgressLabelsForLog,
 } from '@/presentation/components/molecules';
 import { Permissions } from '@/core/auth';
 import type {
@@ -135,6 +137,16 @@ export const LeaveRequestDetailScreen: React.FC = () => {
         (acc, k) => ({ ...acc, [k]: t(`leave.approvalProgress.statuses.${k}`) }),
         {} as Record<ApprovalLegStatus, string>,
       ),
+    }),
+    [t],
+  );
+
+  const activityLabels = useMemo<ApprovalProgressLabelsForLog>(
+    () => ({
+      title: t('leave.activityLog.title'),
+      loading: t('leave.activityLog.loading'),
+      empty: t('leave.activityLog.empty'),
+      loadFailed: t('leave.activityLog.loadFailed'),
     }),
     [t],
   );
@@ -258,6 +270,21 @@ export const LeaveRequestDetailScreen: React.FC = () => {
                 />
               </View>
             )}
+
+            {/* Activity log (Phase 4f.4) — chronological audit thread
+             *  surfacing reviewer comments + status changes + the
+             *  requester's own attachments so the conversation reads
+             *  top-to-bottom like a chat. Self-fetches via the use case;
+             *  reload on the same key when the user cancels or the
+             *  parent triggers a refresh. */}
+            <View style={styles.card}>
+              <AppActivityTimeline
+                kind="leave"
+                id={detail.id}
+                labels={activityLabels}
+                reloadKey={fetchStatus === 'pending' ? 1 : 0}
+              />
+            </View>
 
             {/* Notes */}
             {detail.notes && (

@@ -59,6 +59,37 @@ export interface ApprovalProgress {
   readonly decidedAt: string | null;
 }
 
+// ── Activity log (Phase 4f.4 — wired from BE RequestLog) ─────────────────
+// Chronological audit trail surfaced on the detail screens so the
+// requester sees what reviewers said ("please attach the sick note")
+// and acts. Forward-only — rows that pre-date BE log writing have
+// empty arrays.
+
+export type RequestLogCategory =
+  | 'created'
+  | 'approved'
+  | 'rejected'
+  | 'edited'
+  | 'comment'
+  | 'attachment'
+  | 'closed'
+  | 'other';
+
+/** One activity-log entry on a request. */
+export interface RequestLogEntry {
+  readonly id: string;
+  /** Numeric `RequestLogTypeEnum` value as emitted by the BE. */
+  readonly actionId: number;
+  /** Mapped category for icon/color selection on the timeline. */
+  readonly category: RequestLogCategory;
+  /** Free-text body — already formatted by the BE for display. */
+  readonly notes: string;
+  readonly actorId: string | null;
+  readonly actorName: string | null;
+  /** ISO 8601 with offset. */
+  readonly createdAt: string;
+}
+
 // ── Filter / sort options for the Approvals list (designs QosTu + 6.x) ──
 
 /** Date-range chips — the value set differs per status (Pending uses the
@@ -215,6 +246,10 @@ export interface AdminLeaveRequestListItem extends LeaveRequestListItem {
   readonly currentAnnualLeaveBalance: number | null;
   readonly currentSickLeaveBalance: number | null;
   readonly currentUrgentLeaveBalance: number | null;
+  /** Attachments uploaded by the requester. Surfaced on the management
+   *  review inbox in Phase 4f.5 so the approval detail screen renders
+   *  them without a separate fetch. Empty array when none. */
+  readonly attachments: readonly AttachmentSnapshot[];
 }
 
 export interface AdminLeaveRequestsPage {
@@ -236,8 +271,12 @@ export interface AdminPermissionRequestListItem {
   readonly periodHours: number;        // BE period, in hours
   readonly status: LeaveRequestStatus; // shared request-status enum
   readonly createdAt: string;          // ISO 8601
+  /** Submitter-authored note (Phase 4f.5). */
+  readonly notes: string | null;
   /** Per-leg approval snapshot — same shape used on leave rows. */
   readonly approvalProgress: ApprovalProgress | null;
+  /** Attachments uploaded by the requester (Phase 4f.5). */
+  readonly attachments: readonly AttachmentSnapshot[];
 }
 
 export interface AdminPermissionRequestsPage {
@@ -261,6 +300,8 @@ export interface AttachmentSnapshot {
   readonly fileName: string;
   readonly contentType: string;
   readonly sizeBytes: number;
+  /** Public download URL — anchor target for the FE. Phase 4f.5. */
+  readonly url: string;
 }
 
 export interface PermissionRequest {

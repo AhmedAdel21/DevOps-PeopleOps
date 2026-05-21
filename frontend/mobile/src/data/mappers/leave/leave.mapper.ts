@@ -6,6 +6,7 @@ import type {
   ApprovalLeg,
   ApprovalLegStatus,
   ApprovalProgress,
+  AttachmentSnapshot,
   LeaveBalance,
   LeaveBalancesSummary,
   LeaveRequestDetail,
@@ -18,11 +19,14 @@ import type {
   PermissionRequestStatus,
   PermissionRequestsPage,
   PermissionType,
+  RequestLogCategory,
+  RequestLogEntry,
   SubmitLeaveResult,
 } from '@/domain/entities';
 import type {
   AdminLeaveRequestListItemDto,
   AdminLeaveRequestsPageDto,
+  AttachmentInfoDto,
   LeaveBalanceItemDto,
   LeaveBalancesResponseDto,
   LeaveRequestDetailDto,
@@ -31,6 +35,7 @@ import type {
   LeaveTypeSummaryDto,
   PermissionRequestDto,
   PermissionRequestsResponseDto,
+  RequestLogDto,
   SubmitLeaveRequestSuccessDto,
 } from '@/data/dtos/leave';
 import { leaveLog } from '@/core/logger';
@@ -185,6 +190,47 @@ const toApprovalProgress = (
     decidedAt: dto.decidedDate ?? null,
   };
 };
+
+// ── Activity log (Phase 4f.4) ──────────────────────────────────────────────
+// BE `RequestLogTypeEnum` is overloaded — `RequestStatusChanged` (3) is
+// used for both edits AND per-leg decisions, so we sniff the Notes
+// prefix to disambiguate the timeline category. Mirrors the web
+// `categorizeLog` helper.
+
+const categorizeRequestLog = (
+  actionId: number,
+  notes: string,
+): RequestLogCategory => {
+  switch (actionId) {
+    case 1:
+      return 'created';
+    case 5:
+      return 'comment';
+    case 6:
+      return 'attachment';
+    case 10:
+      return 'closed';
+    case 3: {
+      const n = notes ?? '';
+      if (n.startsWith('Updated')) return 'edited';
+      if (/\bapproved\b/i.test(n)) return 'approved';
+      if (/\brejected\b/i.test(n)) return 'rejected';
+      return 'other';
+    }
+    default:
+      return 'other';
+  }
+};
+
+export const requestLogDtoToDomain = (dto: RequestLogDto): RequestLogEntry => ({
+  id: String(dto.id),
+  actionId: dto.actionId,
+  category: categorizeRequestLog(dto.actionId, dto.notes ?? ''),
+  notes: dto.notes ?? '',
+  actorId: dto.createdById != null ? String(dto.createdById) : null,
+  actorName: dto.createdByName ?? null,
+  createdAt: dto.createdDate,
+});
 
 const toPermissionRequestStatus = (raw: string): PermissionRequestStatus => {
   switch (raw) {
@@ -344,8 +390,9 @@ export const submitLeaveRequestSuccessDtoToDomain = (
 
 // ── Admin ────────────────────────────────────────────────────────────────────
 
-// BE returns the same LeaveInfoModel shape for admin — the employee-side
-// fields (notes, conflict, reviewer comment) aren't on the wire today.
+// BE returns the same LeaveInfoModel shape for admin. notes + attachments
+// are now surfaced on the review inbox (Phase 4f.5) so the approval
+// detail screen renders them without a separate fetch.
 export const adminLeaveRequestListItemDtoToDomain = (
   dto: AdminLeaveRequestListItemDto,
 ): AdminLeaveRequestListItem => ({
@@ -353,7 +400,7 @@ export const adminLeaveRequestListItemDtoToDomain = (
   employeeId: String(dto.employeeId),
   employeeName: dto.employeeName,
   employeeCode: '',               // BE doesn't expose EmpCode on the list row
-  notes: null,
+  notes: dto.notes ?? null,
   conflictDetails: null,
   reviewerComment: null,
   reviewedAt: dto.updatedDate ?? null,
@@ -363,6 +410,20 @@ export const adminLeaveRequestListItemDtoToDomain = (
   currentAnnualLeaveBalance: dto.currentAnnualLeaveBalance ?? null,
   currentSickLeaveBalance: dto.currentSickLeaveBalance ?? null,
   currentUrgentLeaveBalance: dto.currentUrgentLeaveBalance ?? null,
+  attachments: (dto.attachments ?? []).map(attachmentInfoDtoToDomain),
+});
+
+// Map BE AttachmentInfoModel → domain AttachmentSnapshot. The BE
+// preserves the misspelled `attachementUrl` field name on the wire; the
+// domain entity uses the correctly-spelled `url`.
+const attachmentInfoDtoToDomain = (
+  dto: AttachmentInfoDto,
+): AttachmentSnapshot => ({
+  id: String(dto.id),
+  fileName: dto.fileName ?? 'attachment',
+  contentType: dto.contentType ?? 'application/octet-stream',
+  sizeBytes: dto.sizeBytes ?? 0,
+  url: dto.attachementUrl,
 });
 
 export const adminLeaveRequestsPageDtoToDomain = (
@@ -389,7 +450,9 @@ export const adminPermissionRequestListItemDtoToDomain = (
   // which uses the same vocabulary in both child enums.
   status: toLeaveRequestStatus(dto.requestStatusName, dto.permissionStatusName),
   createdAt: dto.createdDate,
+  notes: dto.notes ?? null,
   approvalProgress: toApprovalProgress(dto),
+  attachments: (dto.attachments ?? []).map(attachmentInfoDtoToDomain),
 });
 
 export const adminPermissionRequestsPageDtoToDomain = (

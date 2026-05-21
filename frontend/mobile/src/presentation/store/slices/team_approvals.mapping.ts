@@ -180,6 +180,12 @@ export const groupPendingApprovals = (
     { overdue: [], today: [], thisWeek: [] };
 
   for (const it of items) {
+    const normalizedStatus =
+      it.status === 'Approved' ||
+      it.status === 'Rejected' ||
+      it.status === 'Cancelled'
+        ? it.status
+        : 'Pending';
     buckets[sectionKeyFor(it.createdAt, now)].push({
       requestId: it.id,
       employeeName: it.employeeName,
@@ -193,6 +199,7 @@ export const groupPendingApprovals = (
         dateRangeLabel(it.startDate, it.endDate, it.totalDays),
       submittedAgoLabel: submittedAgoLabel(it.createdAt, now),
       submittedAt: it.createdAt,
+      status: normalizedStatus,
     });
   }
 

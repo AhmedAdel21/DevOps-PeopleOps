@@ -12,6 +12,7 @@ import type {
   PermissionRequest,
   PermissionRequestsPage,
   PermissionType,
+  RequestLogEntry,
   SubmitLeaveResult,
 } from '@/domain/entities';
 
@@ -39,6 +40,11 @@ export interface GetLeaveRequestsParams {
   dateRange?: LeaveRequestDateRange;
   /** Sort popover from SJjs8. Defaults to NewestSubmission server-side. */
   sort?: LeaveRequestSort;
+  /** Admin/manager review inbox only — when true (Phase 4f.5), broadens
+   *  the BE query to include terminalized requests the caller had/has
+   *  authority on so the mobile review screen renders the reviewer's
+   *  full history with status badges. Default false. */
+  includeHistory?: boolean;
 }
 
 export interface SubmitLeaveRequestParams {
@@ -124,4 +130,10 @@ export interface LeaveRepository {
   getPermissionRequestDetail(params: GetPermissionRequestDetailParams): Promise<PermissionRequest>;
   createPermissionRequest(params: RequestPermissionParams): Promise<PermissionRequest>;
   cancelPermissionRequest(params: CancelPermissionRequestParams): Promise<void>;
+
+  // Activity log (Phase 4f.4) — chronological audit trail on a single
+  // request. Requester-scoped on the BE: 404 when the id belongs to
+  // another employee. Returns empty list for requests that pre-date
+  // BE log writing.
+  getRequestLog(params: { kind: 'leave' | 'permission'; id: string }): Promise<RequestLogEntry[]>;
 }

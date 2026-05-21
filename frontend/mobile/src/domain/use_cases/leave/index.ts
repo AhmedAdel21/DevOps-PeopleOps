@@ -2,6 +2,7 @@ export { GetAvailableLeaveTypesUseCase } from './get_available_leave_types.use_c
 export { GetLeaveBalancesUseCase } from './get_leave_balances.use_case';
 export { GetLeaveRequestsUseCase } from './get_leave_requests.use_case';
 export { GetLeaveRequestDetailUseCase } from './get_leave_request_detail.use_case';
+export { GetRequestLogUseCase } from './get_request_log.use_case';
 export { SubmitLeaveRequestUseCase } from './submit_leave_request.use_case';
 export { CancelLeaveRequestUseCase } from './cancel_leave_request.use_case';
 export { AdminGetLeaveRequestsUseCase } from './admin_get_leave_requests.use_case';

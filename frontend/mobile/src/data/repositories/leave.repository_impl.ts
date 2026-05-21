@@ -8,6 +8,7 @@ import type {
   PermissionQuota,
   PermissionRequest,
   PermissionRequestsPage,
+  RequestLogEntry,
   SubmitLeaveResult,
 } from '@/domain/entities';
 import type {
@@ -36,6 +37,7 @@ import {
   MOCK_PERMISSION_QUOTA,
   permissionRequestDtoToDomain,
   permissionRequestsResponseDtoToDomain,
+  requestLogDtoToDomain,
   submitLeaveRequestSuccessDtoToDomain,
 } from '@/data/mappers/leave';
 import { leaveLog } from '@/core/logger';
@@ -159,6 +161,25 @@ export class LeaveRepositoryImpl implements LeaveRepository {
     }
   }
 
+  // ── Activity log (Phase 4f.4) ───────────────────────────────────────────
+
+  async getRequestLog(params: { kind: 'leave' | 'permission'; id: string }): Promise<RequestLogEntry[]> {
+    leaveLog.info(
+      'repository',
+      `getRequestLog called (kind=${params.kind}, id=${params.id})`,
+    );
+    try {
+      const dtos = params.kind === 'leave'
+        ? await this.ds.getLeaveRequestLog(params.id)
+        : await this.ds.getPermissionRequestLog(params.id);
+      const entries = dtos.map(requestLogDtoToDomain);
+      leaveLog.info('repository', `getRequestLog → ${entries.length} entries`);
+      return entries;
+    } catch (e) {
+      throw mapAndLog(e, 'getRequestLog');
+    }
+  }
+
   // ── Admin ──────────────────────────────────────────────────────────────────
 
   async adminGetLeaveRequests(
@@ -166,13 +187,14 @@ export class LeaveRepositoryImpl implements LeaveRepository {
   ): Promise<AdminLeaveRequestsPage> {
     leaveLog.info(
       'repository',
-      `adminGetLeaveRequests called (status=${params.status ?? 'all'}, page=${params.page ?? 1})`,
+      `adminGetLeaveRequests called (status=${params.status ?? 'all'}, page=${params.page ?? 1}, includeHistory=${params.includeHistory ?? false})`,
     );
     try {
       const dto = await this.ds.adminGetLeaveRequests({
         status: params.status,
         page: params.page,
         pageSize: params.pageSize,
+        includeHistory: params.includeHistory,
       });
       const page = adminLeaveRequestsPageDtoToDomain(dto);
       leaveLog.info(
@@ -214,13 +236,14 @@ export class LeaveRepositoryImpl implements LeaveRepository {
   ): Promise<AdminPermissionRequestsPage> {
     leaveLog.info(
       'repository',
-      `adminGetPermissionRequests called (status=${params.status ?? 'all'}, page=${params.page ?? 1})`,
+      `adminGetPermissionRequests called (status=${params.status ?? 'all'}, page=${params.page ?? 1}, includeHistory=${params.includeHistory ?? false})`,
     );
     try {
       const dto = await this.ds.adminGetPermissionRequests({
         status: params.status,
         page: params.page,
         pageSize: params.pageSize,
+        includeHistory: params.includeHistory,
       });
       const page = adminPermissionRequestsPageDtoToDomain(dto);
       leaveLog.info(

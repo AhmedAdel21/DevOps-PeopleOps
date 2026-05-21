@@ -24,8 +24,10 @@ import {
   AppText,
 } from '@/presentation/components/atoms';
 import {
+  AppActivityTimeline,
   AppApprovalProgress,
   type ApprovalProgressLabels,
+  type ApprovalProgressLabelsForLog,
 } from '@/presentation/components/molecules';
 import { Permissions } from '@/core/auth';
 import type {
@@ -144,6 +146,16 @@ export const PermissionRequestDetailScreen: React.FC = () => {
     [t],
   );
 
+  const activityLabels = useMemo<ApprovalProgressLabelsForLog>(
+    () => ({
+      title: t('leave.activityLog.title'),
+      loading: t('leave.activityLog.loading'),
+      empty: t('leave.activityLog.empty'),
+      loadFailed: t('leave.activityLog.loadFailed'),
+    }),
+    [t],
+  );
+
   const reload = useCallback(() => {
     dispatch(fetchPermissionRequestDetail({ permissionRequestId: id }));
   }, [dispatch, id]);
@@ -258,6 +270,16 @@ export const PermissionRequestDetailScreen: React.FC = () => {
                 />
               </View>
             )}
+
+            {/* Activity log (Phase 4f.4) — same shape as leave detail. */}
+            <View style={styles.card}>
+              <AppActivityTimeline
+                kind="permission"
+                id={detail.id}
+                labels={activityLabels}
+                reloadKey={fetchStatus === 'pending' ? 1 : 0}
+              />
+            </View>
 
             {/* Notes intentionally omitted: BE doesn't expose them on the
                 detail endpoint today, and the serializable slice doesn't

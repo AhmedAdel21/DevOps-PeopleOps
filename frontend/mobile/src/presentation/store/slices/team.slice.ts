@@ -8,6 +8,7 @@ import { DiKeys } from '@/core/keys/di.key';
 import type {
   AdminLeaveRequestListItem,
   AdminPermissionRequestListItem,
+  ApprovalProgress,
   TeamAttendanceDay,
   TeamAttendanceFilter,
   TeamAttendanceStatus,
@@ -118,6 +119,11 @@ export interface SerializablePendingApprovalItem {
   dateRangeLabel: string;
   submittedAgoLabel: string;
   submittedAt: string;
+  /** Request status — `'Pending'` for actionable rows; `'Approved'` /
+   *  `'Rejected'` / `'Cancelled'` for historical rows surfaced by the
+   *  Phase 4f.5 `includeHistory` broadening. The list card renders a
+   *  status badge except when Pending. */
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled';
 }
 
 export interface SerializablePendingApprovalSection {
@@ -152,6 +158,21 @@ export interface SerializableApprovalDetail {
   } | null;
   conflict: { title: string; rows: string[] } | null;
   precedentLabel: string | null;
+  /** Per-leg approval snapshot — drives the AppApprovalProgress card on
+   *  the detail screen. Null when the BE didn't surface per-leg state. */
+  approvalProgress: ApprovalProgress | null;
+  /** Attachments uploaded by the requester. Drives the attachment
+   *  section on the detail screen. Empty array when none — the UI
+   *  renders "No attachments" rather than hiding the section. */
+  attachments: SerializableAttachment[];
+}
+
+export interface SerializableAttachment {
+  id: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  url: string;
 }
 
 // Approvals + detail now reuse the live leave-admin domain
@@ -308,10 +329,17 @@ export const fetchPendingApprovals = createAsyncThunk<
   { range?: ApprovalRange },
   { rejectValue: SerializableManagementError }
 >('team/fetchPendingApprovals', async (_params, { rejectWithValue }) => {
-  managementLog.info('slice', 'fetchPendingApprovals → admin leaves (Pending)');
+  managementLog.info('slice', 'fetchPendingApprovals → admin leaves (Pending + history)');
   try {
     // Reuse the live leave-admin endpoint (now /management/requests/leaves):
     // Pending = New|InReview server-side. Sections/labels derived client-side.
+    //
+    // Phase 4f.5 — pass `includeHistory: true` so the BE returns
+    // terminalized requests (Approved/Rejected/Cancelled) the caller
+    // had/has authority on. The mobile review screen sections them
+    // (Pending first, then a "Decided" section). The pending count
+    // shown in the inner-tab badge is filtered out client-side so it
+    // still reflects only actionable rows.
     const useCase = ServiceLocator.get<AdminGetLeaveRequestsUseCase>(
       DiKeys.ADMIN_GET_LEAVE_REQUESTS_USE_CASE,
     );
@@ -319,11 +347,15 @@ export const fetchPendingApprovals = createAsyncThunk<
       status: 'Pending',
       page: 1,
       pageSize: 50,
+      includeHistory: true,
     } as GetLeaveRequestsParams);
     const sections = groupPendingApprovals(
       page.items.map(adminItemToSource),
     );
-    const pendingCount = sections.reduce((n, s) => n + s.items.length, 0);
+    // Pending badge count = only rows actually awaiting a decision.
+    // The BE returns "all" but the badge should still reflect work
+    // remaining, not history.
+    const pendingCount = page.items.filter(it => it.status === 'Pending').length;
     return { pendingCount, sections };
   } catch (e) {
     return rejectWithValue(serializeManagementError(e));
@@ -339,10 +371,11 @@ export const fetchPendingPermissionApprovals = createAsyncThunk<
   async (_params, { rejectWithValue }) => {
     managementLog.info(
       'slice',
-      'fetchPendingPermissionApprovals → admin permissions (Pending)',
+      'fetchPendingPermissionApprovals → admin permissions (Pending + history)',
     );
     try {
       // /management/requests/permissions, Pending = New|InReview server-side.
+      // Phase 4f.5 — same includeHistory broadening as the leaves path.
       const useCase = ServiceLocator.get<AdminGetPermissionRequestsUseCase>(
         DiKeys.ADMIN_GET_PERMISSION_REQUESTS_USE_CASE,
       );
@@ -350,14 +383,12 @@ export const fetchPendingPermissionApprovals = createAsyncThunk<
         status: 'Pending',
         page: 1,
         pageSize: 50,
+        includeHistory: true,
       } as GetLeaveRequestsParams);
       const sections = groupPendingApprovals(
         page.items.map(permissionAdminItemToSource),
       );
-      const pendingCount = sections.reduce(
-        (n, s) => n + s.items.length,
-        0,
-      );
+      const pendingCount = page.items.filter(it => it.status === 'Pending').length;
       return { pendingCount, sections };
     } catch (e) {
       return rejectWithValue(serializeManagementError(e));
@@ -377,6 +408,11 @@ export const fetchApprovalDetail = createAsyncThunk<
     // (LeaveInfoModel). Balance impact is derived from the employee's
     // current balances; conflict comes from conflictDetails if present;
     // precedent has no backend source → null (screen hides the block).
+    //
+    // Phase 4f.5 — broaden with `includeHistory: true` so a row the user
+    // just approved (now terminalized) is still findable from this
+    // lookup. Without it, the detail screen would 404 on the
+    // immediately-prior approval.
     const useCase = ServiceLocator.get<AdminGetLeaveRequestsUseCase>(
       DiKeys.ADMIN_GET_LEAVE_REQUESTS_USE_CASE,
     );
@@ -384,6 +420,7 @@ export const fetchApprovalDetail = createAsyncThunk<
       status: 'Pending',
       page: 1,
       pageSize: 50,
+      includeHistory: true,
     } as GetLeaveRequestsParams);
     const it = page.items.find(r => r.id === requestId);
     if (!it) {
@@ -433,6 +470,17 @@ export const fetchApprovalDetail = createAsyncThunk<
           }
         : null,
       precedentLabel: null,
+      // Phase 4f.5 — surface per-leg progress + attachments through to
+      // the approval detail screen so the reviewer sees them without a
+      // separate fetch.
+      approvalProgress: it.approvalProgress,
+      attachments: it.attachments.map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        contentType: a.contentType,
+        sizeBytes: a.sizeBytes,
+        url: a.url,
+      })),
     };
     return detail;
   } catch (e) {

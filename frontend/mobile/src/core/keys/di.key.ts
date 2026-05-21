@@ -23,6 +23,7 @@ export const DiKeys = {
   GET_LEAVE_BALANCES_USE_CASE: 'getLeaveBalancesUseCase',
   GET_LEAVE_REQUESTS_USE_CASE: 'getLeaveRequestsUseCase',
   GET_LEAVE_REQUEST_DETAIL_USE_CASE: 'getLeaveRequestDetailUseCase',
+  GET_REQUEST_LOG_USE_CASE: 'getRequestLogUseCase',
   SUBMIT_LEAVE_REQUEST_USE_CASE: 'submitLeaveRequestUseCase',
   CANCEL_LEAVE_REQUEST_USE_CASE: 'cancelLeaveRequestUseCase',
   ADMIN_GET_LEAVE_REQUESTS_USE_CASE: 'adminGetLeaveRequestsUseCase',

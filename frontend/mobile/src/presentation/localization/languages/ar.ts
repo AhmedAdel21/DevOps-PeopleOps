@@ -253,7 +253,7 @@ export const ar = {
     },
     approvals: {
       placeholder: 'الموافقات المعلّقة — قريبًا',
-      header: 'الموافقات المعلّقة',
+      header: 'الموافقات',
       tabs: {
         leaves: 'الإجازات',
         permissions: 'الأذونات',
@@ -268,6 +268,12 @@ export const ar = {
         approve: 'موافقة',
         reject: 'رفض',
       },
+      status: {
+        Pending: 'قيد الانتظار',
+        Approved: 'تمت الموافقة',
+        Rejected: 'مرفوض',
+        Cancelled: 'ملغى',
+      },
       error: 'تعذّر تحميل الموافقات',
       empty: {
         title: 'كل شيء تم إنجازه!',
@@ -280,8 +286,16 @@ export const ar = {
       viewAttendance: 'عرض سجل الحضور',
       heroPendingTitle: 'بانتظار الموافقة',
       heroPendingSub: 'في انتظار قرارك',
+      heroTerminalTitle: {
+        Approved: 'تمت الموافقة',
+        Rejected: 'مرفوض',
+        Cancelled: 'ملغى',
+      },
+      heroTerminalSub: 'هذا الطلب مغلق.',
       requestTitle: 'تفاصيل الطلب',
       balanceTitle: 'الأثر على الرصيد',
+      attachmentsTitle: 'المرفقات',
+      attachmentsEmpty: 'لا توجد مرفقات',
       error: 'تعذّر تحميل هذا الطلب',
       rows: {
         type: 'النوع',
@@ -515,6 +529,12 @@ export const ar = {
         Rejected: 'مرفوض',
         Superseded: 'غير مطلوب',
       },
+    },
+    activityLog: {
+      title: 'النشاط',
+      loading: 'جارٍ تحميل النشاط…',
+      empty: 'لا يوجد نشاط بعد — هذا الطلب يسبق تفعيل سجل التدقيق.',
+      loadFailed: 'فشل تحميل النشاط.',
     },
     newPermissionRequest: {
       navTitle: 'طلب جديد',

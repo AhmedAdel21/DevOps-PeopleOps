@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   View,
@@ -14,7 +16,7 @@ import {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Clock } from 'lucide-react-native';
+import { AlertTriangle, CheckCircle2, Clock, Download, XCircle } from 'lucide-react-native';
 import { useTheme, type AppTheme } from '@themes/index';
 import { hs, ws } from '@/presentation/utils/scaling';
 import {
@@ -24,8 +26,15 @@ import {
   AppCard,
   AppText,
 } from '@/presentation/components/atoms';
-import { AppAvatar } from '@/presentation/components/molecules';
+import {
+  AppActivityTimeline,
+  AppApprovalProgress,
+  AppAvatar,
+  type ApprovalProgressLabels,
+  type ApprovalProgressLabelsForLog,
+} from '@/presentation/components/molecules';
 import { AppRejectReasonSheet } from '@/presentation/components/organisms';
+import type { ApprovalLegStatus } from '@/domain/entities';
 import { useAppDispatch, useAppSelector } from '@/presentation/store/hooks';
 import {
   approveLeaveRequest,
@@ -41,6 +50,15 @@ import {
 import type { TeamStackParamList } from '@/presentation/navigation/types';
 
 type DetailRoute = RouteProp<TeamStackParamList, 'ApprovalDetail'>;
+
+// Closed set used to build the i18n-keyed `statuses` map for
+// AppApprovalProgress — same shape as on the requester's detail screen.
+const APPROVAL_STATUS_KEYS: readonly ApprovalLegStatus[] = [
+  'Pending',
+  'Approved',
+  'Rejected',
+  'Superseded',
+];
 
 export const ApprovalDetailScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -59,6 +77,38 @@ export const ApprovalDetailScreen: React.FC = () => {
   const [confirmMode, setConfirmMode] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Bumped by pull-to-refresh + after Approve/Reject so the embedded
+  // AppActivityTimeline re-fetches the log without us calling its
+  // imperative API.
+  const [activityReloadKey, setActivityReloadKey] = useState(0);
+
+  // i18n-agnostic component labels — built once per locale change.
+  const approvalLabels = useMemo<ApprovalProgressLabels>(
+    () => ({
+      title: t('leave.approvalProgress.title'),
+      legs: {
+        manager: t('leave.approvalProgress.legs.manager'),
+        hr: t('leave.approvalProgress.legs.hr'),
+        ceo: t('leave.approvalProgress.legs.ceo'),
+      },
+      statuses: APPROVAL_STATUS_KEYS.reduce(
+        (acc, k) => ({ ...acc, [k]: t(`leave.approvalProgress.statuses.${k}`) }),
+        {} as Record<ApprovalLegStatus, string>,
+      ),
+    }),
+    [t],
+  );
+
+  const activityLabels = useMemo<ApprovalProgressLabelsForLog>(
+    () => ({
+      title: t('leave.activityLog.title'),
+      loading: t('leave.activityLog.loading'),
+      empty: t('leave.activityLog.empty'),
+      loadFailed: t('leave.activityLog.loadFailed'),
+    }),
+    [t],
+  );
 
   useEffect(() => {
     dispatch(fetchApprovalDetail({ requestId }));
@@ -136,14 +186,38 @@ export const ApprovalDetailScreen: React.FC = () => {
     );
   }
 
-  const { employee, request, balanceImpact, conflict, precedentLabel } =
-    detail;
+  const {
+    employee,
+    request,
+    balanceImpact,
+    conflict,
+    precedentLabel,
+    approvalProgress,
+    attachments,
+    status,
+  } = detail;
+  // The list is now broadened to include terminalized rows
+  // (Phase 4f.5 includeHistory). Hide the action area + show a
+  // status-appropriate hero card for those.
+  const isTerminal = status === 'Approved' || status === 'Rejected' || status === 'Cancelled';
 
   return (
     <SafeAreaView style={styles.flex} edges={['top', 'left', 'right']}>
       {renderHeader()}
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={fetchStatus === 'pending'}
+            onRefresh={() => {
+              dispatch(fetchApprovalDetail({ requestId }));
+              setActivityReloadKey(k => k + 1);
+            }}
+            tintColor={theme.colors.primaryInk}
+          />
+        }
+      >
         <View style={styles.employeeRow}>
           <AppAvatar
             name={employee.name}
@@ -175,13 +249,38 @@ export const ApprovalDetailScreen: React.FC = () => {
           </Pressable>
         ) : null}
 
-        <View style={styles.heroCard}>
-          <Clock size={ws(28)} color={theme.colors.primaryInk} />
+        {/* Status-aware hero — Pending = "Awaiting your decision",
+            Approved/Rejected/Cancelled = the terminal summary so the
+            reviewer knows the request is closed. */}
+        <View
+          style={[
+            styles.heroCard,
+            isTerminal ? styles.heroCardTerminal : null,
+          ]}
+        >
+          {status === 'Approved' ? (
+            <CheckCircle2 size={ws(28)} color={theme.colors.status.success.base} />
+          ) : status === 'Rejected' || status === 'Cancelled' ? (
+            <XCircle
+              size={ws(28)}
+              color={
+                status === 'Rejected'
+                  ? theme.colors.status.error.base
+                  : theme.colors.mutedForeground
+              }
+            />
+          ) : (
+            <Clock size={ws(28)} color={theme.colors.primaryInk} />
+          )}
           <AppText variant="cardTitle" weight="semibold">
-            {t('team.detail.heroPendingTitle')}
+            {isTerminal
+              ? t(`team.detail.heroTerminalTitle.${status}`)
+              : t('team.detail.heroPendingTitle')}
           </AppText>
           <AppText variant="caption" color={theme.colors.mutedForeground}>
-            {t('team.detail.heroPendingSub')}
+            {isTerminal
+              ? t('team.detail.heroTerminalSub')
+              : t('team.detail.heroPendingSub')}
           </AppText>
         </View>
 
@@ -283,9 +382,80 @@ export const ApprovalDetailScreen: React.FC = () => {
             {precedentLabel}
           </AppText>
         ) : null}
+
+        {/* Per-leg approval progress (Manager → HR → CEO swim lanes).
+            Same component the requester sees on their own detail screen
+            — keeps the visual story consistent across both audiences.
+            Hidden when the BE didn't ship per-leg state. */}
+        {approvalProgress ? (
+          <AppCard>
+            <AppApprovalProgress
+              progress={approvalProgress}
+              labels={approvalLabels}
+            />
+          </AppCard>
+        ) : null}
+
+        {/* Attachments uploaded by the requester (Phase 4f.3 +
+            surfaced on the review inbox in 4f.5). Always rendered so
+            the reviewer can scan whether documentation was supplied;
+            shows "No attachments" when empty. */}
+        <AppCard title={t('team.detail.attachmentsTitle')}>
+          {attachments.length === 0 ? (
+            <AppText
+              variant="caption"
+              color={theme.colors.mutedForeground}
+              style={styles.attachmentsEmpty}
+            >
+              {t('team.detail.attachmentsEmpty')}
+            </AppText>
+          ) : (
+            <View style={styles.attachmentsList}>
+              {attachments.map(att => (
+                <Pressable
+                  key={att.id}
+                  style={styles.attachmentRow}
+                  onPress={() => Linking.openURL(att.url)}
+                  hitSlop={6}
+                  accessibilityRole="link"
+                >
+                  <View style={styles.attachmentInfo}>
+                    <AppText variant="label" numberOfLines={1}>
+                      {att.fileName}
+                    </AppText>
+                    {att.sizeBytes > 0 ? (
+                      <AppText
+                        variant="micro"
+                        color={theme.colors.mutedForeground}
+                      >
+                        {formatBytes(att.sizeBytes)}
+                      </AppText>
+                    ) : null}
+                  </View>
+                  <Download
+                    size={ws(18)}
+                    color={theme.colors.accentHover}
+                  />
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </AppCard>
+
+        {/* Activity log — chronological conversation (submission,
+            comments, status changes, attachments). Self-fetches via the
+            use case; bumps on parent reloadKey after the reviewer acts. */}
+        <AppCard>
+          <AppActivityTimeline
+            kind="leave"
+            id={requestId}
+            labels={activityLabels}
+            reloadKey={activityReloadKey}
+          />
+        </AppCard>
       </ScrollView>
 
-      <View style={styles.stickyBottom}>
+      {isTerminal ? null : <View style={styles.stickyBottom}>
         {confirmMode ? (
           <>
             <AppText
@@ -335,7 +505,7 @@ export const ApprovalDetailScreen: React.FC = () => {
             />
           </View>
         )}
-      </View>
+      </View>}
 
       <AppRejectReasonSheet
         visible={rejectOpen}
@@ -345,6 +515,12 @@ export const ApprovalDetailScreen: React.FC = () => {
       />
     </SafeAreaView>
   );
+};
+
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 };
 
 interface DetailRowProps {
@@ -415,6 +591,29 @@ const createStyles = (theme: AppTheme) =>
         ? theme.colors.status.info.light
         : theme.colors.primaryLight,
     },
+    // Terminal hero uses the neutral surface — the status icon already
+    // carries the colour signal, no need for the primary tint.
+    heroCardTerminal: {
+      backgroundColor: theme.colors.muted,
+    },
+    attachmentsList: {
+      gap: hs(8),
+    },
+    attachmentsEmpty: {
+      fontStyle: 'italic',
+    },
+    attachmentRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: ws(10),
+      paddingVertical: hs(10),
+      paddingHorizontal: ws(12),
+      borderRadius: theme.radius.m,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.card,
+    },
+    attachmentInfo: { flex: 1, gap: hs(2) },
     conflictHeader: {
       flexDirection: 'row',
       alignItems: 'center',

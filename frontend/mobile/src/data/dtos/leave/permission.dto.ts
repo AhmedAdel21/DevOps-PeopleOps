@@ -43,6 +43,11 @@ export interface PermissionRequestDto {
   ceoActedDate?: string | null;
   decidedById?: number | null;
   decidedDate?: string | null;
+  /** Submitter-authored note (Phase 4e.1). Optional for back-compat. */
+  notes?: string | null;
+  /** Attachments uploaded by the requester. Surfaced on the management
+   *  review inbox in Phase 4f.5. Empty array when none. */
+  attachments?: import('./leave_request.dto').AttachmentInfoDto[];
 }
 
 /** Matches PagedResult<PermissionInfoModel>. Cursor-based pagination on the

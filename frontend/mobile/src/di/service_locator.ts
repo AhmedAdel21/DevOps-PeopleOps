@@ -26,6 +26,7 @@ import {
   GetLeaveBalancesUseCase,
   GetLeaveRequestsUseCase,
   GetLeaveRequestDetailUseCase,
+  GetRequestLogUseCase,
   SubmitLeaveRequestUseCase,
   CancelLeaveRequestUseCase,
   AdminGetLeaveRequestsUseCase,
@@ -194,6 +195,10 @@ export class ServiceLocator {
     ServiceLocator.register(
       DiKeys.GET_LEAVE_REQUEST_DETAIL_USE_CASE,
       new GetLeaveRequestDetailUseCase(leaveRepo),
+    );
+    ServiceLocator.register(
+      DiKeys.GET_REQUEST_LOG_USE_CASE,
+      new GetRequestLogUseCase(leaveRepo),
     );
     ServiceLocator.register(
       DiKeys.SUBMIT_LEAVE_REQUEST_USE_CASE,

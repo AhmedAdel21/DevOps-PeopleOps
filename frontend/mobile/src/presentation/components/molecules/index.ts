@@ -7,3 +7,4 @@ export * from './app_avatar';
 export * from './app_alert_dialog';
 export * from './app_attachment_picker';
 export * from './app_approval_progress';
+export * from './app_activity_timeline';

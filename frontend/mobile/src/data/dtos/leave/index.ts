@@ -13,6 +13,7 @@ export type {
   AdminLeaveRequestListItemDto,
   AdminLeaveRequestsPageDto,
   ReviewLeaveRequestDto,
+  AttachmentInfoDto,
 } from './leave_request.dto';
 export type {
   PermissionRequestDto,
@@ -24,3 +25,4 @@ export type {
   SubmitPermissionResultDto,
 } from './permission.dto';
 export type { PaginationDataDto } from './leave_request.dto';
+export type { RequestLogDto } from './request_log.dto';

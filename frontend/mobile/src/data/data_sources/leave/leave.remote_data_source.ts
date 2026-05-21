@@ -9,6 +9,7 @@ import type {
   PermissionQuotaDto,
   PermissionRequestDto,
   PermissionRequestsResponseDto,
+  RequestLogDto,
   ReviewLeaveRequestDto,
   SubmitLeaveRequestSuccessDto,
   PermissionTypeIdDto,
@@ -171,6 +172,34 @@ export class LeaveRemoteDataSource {
     return this.http.get<LeaveRequestDetailDto>(path);
   }
 
+  // ── Activity log (Phase 4f.4) ──────────────────────────────────────────
+  // Chronological audit trail surfaced on the mobile detail screens so
+  // the requester sees reviewer comments / status changes / attachments
+  // their reviewer added. BE endpoints are requester-scoped — return
+  // 404 if the request isn't theirs (auth handled server-side).
+
+  async getLeaveRequestLog(id: string): Promise<RequestLogDto[]> {
+    const path = `${VACATIONS_PATH}/${encodeURIComponent(id)}/log`;
+    if (AppConfig.USE_MOCK_LEAVE) {
+      leaveLog.info('data_source', `[MOCK] GET ${path}`);
+      await mockDelay();
+      return [];
+    }
+    leaveLog.info('data_source', `GET ${path}`);
+    return this.http.get<RequestLogDto[]>(path);
+  }
+
+  async getPermissionRequestLog(id: string): Promise<RequestLogDto[]> {
+    const path = `${PERMISSIONS_PATH}/${encodeURIComponent(id)}/log`;
+    if (AppConfig.USE_MOCK_LEAVE) {
+      leaveLog.info('data_source', `[MOCK] GET ${path}`);
+      await mockDelay();
+      return [];
+    }
+    leaveLog.info('data_source', `GET ${path}`);
+    return this.http.get<RequestLogDto[]>(path);
+  }
+
   // ── Submit ─────────────────────────────────────────────────────────────────
 
   async submitLeaveRequest(input: SubmitLeaveRequestInput): Promise<SubmitLeaveRequestSuccessDto> {
@@ -219,8 +248,10 @@ export class LeaveRemoteDataSource {
     status?: string;
     page?: number;
     pageSize?: number;
+    /** Phase 4f.5 — when true, BE returns terminalized requests too. */
+    includeHistory?: boolean;
   }): Promise<AdminLeaveRequestsPageDto> {
-    const qs = buildAdminInboxQuery({ page: params.page, pageSize: params.pageSize });
+    const qs = buildAdminInboxQuery({ page: params.page, pageSize: params.pageSize, includeHistory: params.includeHistory });
     const path = qs ? `${ADMIN_VACATIONS}?${qs}` : ADMIN_VACATIONS;
 
     if (AppConfig.USE_MOCK_LEAVE) {
@@ -261,8 +292,10 @@ export class LeaveRemoteDataSource {
     status?: string;
     page?: number;
     pageSize?: number;
+    /** Phase 4f.5 — see leave mirror. */
+    includeHistory?: boolean;
   }): Promise<PermissionRequestsResponseDto> {
-    const qs = buildAdminInboxQuery({ page: params.page, pageSize: params.pageSize });
+    const qs = buildAdminInboxQuery({ page: params.page, pageSize: params.pageSize, includeHistory: params.includeHistory });
     const path = qs ? `${ADMIN_PERMISSIONS}?${qs}` : ADMIN_PERMISSIONS;
 
     if (AppConfig.USE_MOCK_PERMISSIONS) {
@@ -474,9 +507,11 @@ const buildVacationsQuery = (params: {
 const buildAdminInboxQuery = (params: {
   page?: number;
   pageSize?: number;
+  includeHistory?: boolean;
 }): string => {
   const q = new URLSearchParams();
   if (params.page)     q.set('pageNumber', params.page.toString());
   if (params.pageSize) q.set('pageSize', params.pageSize.toString());
+  if (params.includeHistory) q.set('includeHistory', 'true');
   return q.toString();
 };

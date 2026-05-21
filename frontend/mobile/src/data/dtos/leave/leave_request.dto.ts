@@ -55,6 +55,13 @@ export interface LeaveRequestListItemDto {
   /** Who terminalized (Approve/Reject at the decisive level). Null while Pending. */
   decidedById?: number | null;
   decidedDate?: string | null;
+  /** Submitter-authored note attached at create/edit time (Phase 4e.1). */
+  notes?: string | null;
+  /** Attachments uploaded by the requester. Surfaced on the management
+   *  review inbox in Phase 4f.5 so the mobile approval detail screen
+   *  renders the requester's files without a separate fetch. Empty
+   *  array when none. */
+  attachments?: AttachmentInfoDto[];
 }
 
 /** Matches Devopsolution.Dal.Models.BaseClasses.Pagination.PaginationData. */
@@ -79,10 +86,16 @@ export interface AttachmentInfoDto {
   id: number;
   attachmentTypeId: number;
   attachementUrl: string;      // sic — BE typo preserved on the wire
+  /** Original file name as uploaded (e.g. "sick-note.pdf"). Phase 4f.3. */
+  fileName?: string | null;
+  /** MIME type captured at upload (e.g. "application/pdf"). Phase 4f.3. */
+  contentType?: string | null;
+  /** File size in bytes. Phase 4f.3. */
+  sizeBytes?: number | null;
   createdDate: string;
-  createdBy: string | null;
-  updatedDate: string | null;
-  updatedBy: string | null;
+  createdBy?: string | null;
+  updatedDate?: string | null;
+  updatedBy?: string | null;
 }
 
 export interface LeaveRequestDetailDto extends LeaveRequestListItemDto {
